@@ -921,13 +921,22 @@
     const dropdown = document.getElementById('dropdownAreaDestino')
     dropdown.innerHTML = ''
 
-    areas.forEach((area) => {
-      const opt = document.createElement('div')
-      opt.className = 'filtro-option'
-      opt.dataset.value = area.id
-      opt.textContent = area.nombre
-      dropdown.appendChild(opt)
-    })
+    const AREAS_PERMITIDAS = new Set([
+      'UNIDAD DE SEGUROS PRIVADOS',
+      'SIS',
+      'MEDICOS AUDITORES',
+      'FISSAL',
+    ].map((nombre) => NORMALIZACION.aMayusculasSinTilde(nombre.trim())))
+
+    areas
+      .filter((area) => AREAS_PERMITIDAS.has(NORMALIZACION.aMayusculasSinTilde((area.nombre || '').trim())))
+      .forEach((area) => {
+        const opt = document.createElement('div')
+        opt.className = 'filtro-option'
+        opt.dataset.value = area.id
+        opt.textContent = area.nombre
+        dropdown.appendChild(opt)
+      })
 
     const trigger = document.getElementById('triggerAreaDestino')
     const text = trigger.querySelector('.filtro-select-text')
