@@ -59,8 +59,8 @@ document.addEventListener('lateral:listo', async () => {
         clave: 'acciones', titulo: '',
         render: (v, fila) => {
           const activo = fila.activo;
-          const accion = activo ? 'eliminar' : 'reactivar';
-          const icono = activo ? 'ph-trash-simple' : 'ph-check-circle';
+          const accion = activo ? 'desactivar' : 'reactivar';
+          const icono = activo ? 'ph-lock' : 'ph-lock-open';
           const titulo = activo ? 'Desactivar' : 'Reactivar';
           const clase = activo ? 'btn-eliminar' : 'btn-reactivar';
           return `
@@ -70,6 +70,9 @@ document.addEventListener('lateral:listo', async () => {
               </button>
               <button class="btn-accion ${clase}" data-accion="${accion}" data-id="${fila.id}" title="${titulo}">
                 <i class="ph ${icono}"></i>
+              </button>
+              <button class="btn-accion btn-eliminar" data-accion="eliminar" data-id="${fila.id}" title="Eliminar">
+                <i class="ph ph-trash-simple"></i>
               </button>
             </div>
           `;
@@ -89,12 +92,15 @@ document.addEventListener('lateral:listo', async () => {
     e.stopPropagation();
     const id = btn.dataset.id;
     if (btn.dataset.accion === 'editar') editarUsuario(id);
-    if (btn.dataset.accion === 'eliminar' || btn.dataset.accion === 'reactivar') toggleEstadoUsuario(id, btn.dataset.accion === 'reactivar');
+    if (btn.dataset.accion === 'desactivar' || btn.dataset.accion === 'reactivar') toggleEstadoUsuario(id, btn.dataset.accion === 'reactivar');
+    if (btn.dataset.accion === 'eliminar') eliminarUsuario(id);
   });
 
   const modalEliminar = document.getElementById('modalEliminarUsuario');
+  const modalEliminarDefinitivo = document.getElementById('modalEliminarUsuarioDefinitivo');
   let eliminarPendiente = null;
   let reactivarPendiente = false;
+  let eliminarDefinitivoPendiente = null;
 
   document.getElementById('btnConfirmarEliminar').addEventListener('click', async () => {
     if (!eliminarPendiente) return;
@@ -116,6 +122,55 @@ document.addEventListener('lateral:listo', async () => {
       modalEliminar.classList.remove('activo');
       eliminarPendiente = null;
       reactivarPendiente = false;
+    }
+  });
+
+  document.getElementById('btnConfirmarEliminarDefinitivo').addEventListener('click', async () => {
+    if (!eliminarDefinitivoPendiente) return;
+
+    const id = eliminarDefinitivoPendiente;
+    modalEliminarDefinitivo.classList.remove('activo');
+    eliminarDefinitivoPendiente = null;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const respuesta = await fetch(
+        `${CONFIGURACION.supabase.url}/functions/v1/eliminar-usuario`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ id }),
+        }
+      );
+
+      const resultado = await respuesta.json();
+
+      if (!respuesta.ok) {
+        alert(resultado.error || 'Error al eliminar el usuario');
+        return;
+      }
+
+      alert(resultado.mensaje || 'Usuario eliminado correctamente');
+      await cargarUsuarios();
+    } catch (err) {
+      alert('Error de conexión con el servidor');
+    }
+  });
+
+  document.getElementById('btnCancelarEliminarDefinitivo').addEventListener('click', () => {
+    modalEliminarDefinitivo.classList.remove('activo');
+    eliminarDefinitivoPendiente = null;
+  });
+
+  modalEliminarDefinitivo.addEventListener('click', (e) => {
+    if (e.target === modalEliminarDefinitivo) {
+      modalEliminarDefinitivo.classList.remove('activo');
+      eliminarDefinitivoPendiente = null;
     }
   });
 
@@ -215,6 +270,7 @@ document.addEventListener('lateral:listo', async () => {
     const { data, error } = await supabase
       .from('perfiles')
       .select('*, Rol:rol(nombre)')
+      .eq('eliminado', false)
       .order('nombre_completo');
 
     if (error) return;
@@ -350,6 +406,14 @@ document.addEventListener('lateral:listo', async () => {
       : 'btn-filled-md btn-peligro-md';
 
     document.getElementById('modalEliminarUsuario').classList.add('activo');
+  }
+
+  function eliminarUsuario(id) {
+    const user = todosLosUsuarios.find(u => u.id === id);
+    if (!user) return;
+
+    eliminarDefinitivoPendiente = id;
+    document.getElementById('modalEliminarUsuarioDefinitivo').classList.add('activo');
   }
 
   document.getElementById('btnNuevoRegistroFooter').addEventListener('click', abrirPanel);

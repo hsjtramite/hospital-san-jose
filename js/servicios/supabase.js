@@ -89,7 +89,7 @@ async function obtenerEstadoSesion() {
 
       const { data: perfil, error: errorPerfil } = await supabase
         .from('perfiles')
-        .select('id, rol, nombre_completo, apellidos_completos, nombre_usuario, gmail, activo, firma_url')
+        .select('id, rol, nombre_completo, apellidos_completos, nombre_usuario, gmail, activo, eliminado, firma_url')
         .eq('id', session.user.id)
         .maybeSingle()
 
@@ -201,7 +201,7 @@ async function verificarAcceso(modulo) {
       if (session && !perfil) {
         const { data: perfilDirecto } = await supabase
           .from('perfiles')
-          .select('rol')
+          .select('rol, activo, eliminado')
           .eq('id', session.user.id)
           .single()
         perfil = perfilDirecto || null
@@ -209,6 +209,11 @@ async function verificarAcceso(modulo) {
     }
 
     if (!session || !perfil) {
+      window.location.href = 'index.html'
+      return false
+    }
+
+    if (perfil.activo === false || perfil.eliminado === true) {
       window.location.href = 'index.html'
       return false
     }

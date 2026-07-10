@@ -10,3 +10,6 @@ verify_jwt = false
 
 [functions.crear-documento]
 verify_jwt = false
+
+[functions.eliminar-usuario]
+verify_jwt = false
