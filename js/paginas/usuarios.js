@@ -62,7 +62,7 @@ document.addEventListener('lateral:listo', async () => {
           const accion = activo ? 'desactivar' : 'reactivar';
           const icono = activo ? 'ph-lock' : 'ph-lock-open';
           const titulo = activo ? 'Desactivar' : 'Reactivar';
-          const clase = activo ? 'btn-eliminar' : 'btn-reactivar';
+          const clase = activo ? 'btn-desactivar' : 'btn-reactivar';
           return `
             <div class="acciones-tabla">
               <button class="btn-accion btn-editar" data-accion="editar" data-id="${fila.id}" title="Editar">
