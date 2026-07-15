@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/componentes/tabla.css" />
   <link rel="stylesheet" href="css/componentes/fecha.css" />
   <link rel="stylesheet" href="css/paginas/documentos.css" />
+<base target="_blank">
 </head>
 <body data-pagina="DOCUMENTOS" data-ruta="Consulta de documentos" data-modulo-activo="documentos">
   <main class="contenido-principal">
@@ -28,7 +29,7 @@
           <label class="filtro-label">Buscar</label>
           <div class="filtro-search">
             <i class="ph ph-magnifying-glass"></i>
-            <input type="text" class="filtro-input" id="buscadorGeneral" placeholder="Buscar por número, asunto o remitente..." />
+            <input type="text" class="filtro-input" id="buscadorGeneral" placeholder="Buscar por numero, asunto o remitente..." />
           </div>
         </div>
         <div class="filtro-grupo">
@@ -83,7 +84,7 @@
         <div class="tabla-esqueleto-icono">
           <i class="ph ph-file-text"></i>
         </div>
-        <h3>Cargando documentos…</h3>
+        <h3>Cargando documentos...</h3>
       </div>
     </section>
 
@@ -97,12 +98,12 @@
   <script src="js/componentes/header.js"></script>
   <script src="js/componentes/lateral.js"></script>
 
-  <!-- Dependencias para generación de documentos Word -->
+  <!-- Dependencias para generacion de documentos Word -->
   <script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js"></script>
   <script src="https://unpkg.com/docxtemplater@3.46.0/build/docxtemplater.min.js"></script>
   <script src="js/componentes/generar-word.js"></script>
 
-  <!-- Librerías para generación de PDF -->
+  <!-- Librerias para generacion de PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script src="js/paginas/documentos.js"></script>
@@ -122,36 +123,33 @@
         <div class="visor-documento" id="visorDocumento">
           <div class="visor-placeholder" id="visorPlaceholder">
             <i class="ph ph-file-text" style="font-size:3rem;display:block;margin-bottom:12px;"></i>
-            <p>Cargando documento…</p>
+            <p>Cargando documento...</p>
           </div>
         </div>
         <div class="panel-informacion" id="panelInformacion">
-          <!-- INFO DEL DOCUMENTO -->
           <div class="panel-seccion">
-            <div class="panel-seccion-titulo">Información del documento</div>
+            <div class="panel-seccion-titulo">Informacion del documento</div>
             <div class="info-grid" id="infoGrid">
-              <div class="info-label">N° Documento</div>
-              <div class="info-valor" id="infoNumDoc">—</div>
+              <div class="info-label">N Documento</div>
+              <div class="info-valor" id="infoNumDoc">-</div>
               <div class="info-label">Asunto</div>
-              <div class="info-valor" id="infoAsunto">—</div>
+              <div class="info-valor" id="infoAsunto">-</div>
               <div class="info-label">Estado</div>
-              <div class="info-valor" id="infoEstado">—</div>
+              <div class="info-valor" id="infoEstado">-</div>
               <div class="info-label">Prioridad</div>
-              <div class="info-valor" id="infoPrioridad">—</div>
+              <div class="info-valor" id="infoPrioridad">-</div>
               <div class="info-label">Fecha</div>
-              <div class="info-valor" id="infoFecha">—</div>
+              <div class="info-valor" id="infoFecha">-</div>
               <div class="info-label">Remitente</div>
-              <div class="info-valor" id="infoRemitente">—</div>
+              <div class="info-valor" id="infoRemitente">-</div>
               <div class="info-label">Firmante</div>
-              <div class="info-valor" id="infoFirmante">—</div>
+              <div class="info-valor" id="infoFirmante">-</div>
               <div class="info-label">Destinatario</div>
-              <div class="info-valor" id="infoDestinatario">—</div>
+              <div class="info-valor" id="infoDestinatario">-</div>
             </div>
           </div>
-
-          <!-- VISUALIZACIÓN -->
           <div class="panel-seccion">
-            <div class="panel-seccion-titulo">Visualización</div>
+            <div class="panel-seccion-titulo">Visualizacion</div>
             <div class="opciones-visualizacion" id="opcionesVisualizacion">
               <button class="btn-visualizacion activo" data-vista="documento" id="btnVerPDF">
                 <i class="ph ph-file-text"></i> Ver documento
@@ -161,8 +159,6 @@
               </button>
             </div>
           </div>
-
-          <!-- DESCARGAS -->
           <div class="panel-seccion">
             <div class="panel-seccion-titulo">Descargas</div>
             <div class="descargas-lista" id="descargasLista">
@@ -177,8 +173,6 @@
               </button>
             </div>
           </div>
-
-          <!-- CERRAR -->
           <button class="btn-filled-md" id="btnCerrarDetalleBottom" style="width:100%;justify-content:center;">
             <i class="ph ph-x"></i> Cerrar
           </button>
@@ -187,18 +181,176 @@
     </div>
   </div>
 
-  <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN -->
+  <!-- MODAL EDITAR DOCUMENTO -->
+  <div class="modal-overlay" id="modalEditarDocumento">
+    <div class="md-modal md-modal-editar">
+      <div class="modal-header-md">
+        <div class="header-text-md">
+          <h3>Editar Documento</h3>
+          <p id="editarSubtitulo">Modifique los campos necesarios</p>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarEditar" title="Cerrar">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body-md modal-body-scroll">
+        <form id="formEditarDocumento" class="form-editar">
+          <input type="hidden" id="editarId" />
+          <div class="form-seccion">
+            <div class="form-seccion-titulo">
+              <span class="form-seccion-numero">1</span>
+              <span>DATOS GENERALES</span>
+            </div>
+            <div class="form-seccion-campos">
+              <div class="campo-grupo">
+                <label>Tipo de documento</label>
+                <div class="filtro-select-wrapper" id="wrapperEditarTipoDoc">
+                  <button type="button" class="filtro-select-trigger" id="triggerEditarTipoDoc">
+                    <span class="filtro-select-text">Seleccione un tipo</span>
+                    <i class="ph ph-caret-down filtro-select-arrow"></i>
+                  </button>
+                  <div class="filtro-dropdown" id="dropdownEditarTipoDoc"></div>
+                </div>
+              </div>
+              <div class="campo-grupo">
+                <label>Numero de documento</label>
+                <div class="input-wrapper">
+                  <input type="text" id="editarNumero" />
+                </div>
+              </div>
+              <div class="campo-grupo">
+                <label>Fecha</label>
+                <div class="input-wrapper">
+                  <input type="text" id="editarFecha" placeholder="dd/mm/aaaa" />
+                </div>
+              </div>
+              <div class="campo-grupo">
+                <label>Prioridad</label>
+                <div class="filtro-select-wrapper" id="wrapperEditarPrioridad">
+                  <button type="button" class="filtro-select-trigger" id="triggerEditarPrioridad">
+                    <span class="filtro-select-text">Seleccione una prioridad</span>
+                    <i class="ph ph-caret-down filtro-select-arrow"></i>
+                  </button>
+                  <div class="filtro-dropdown" id="dropdownEditarPrioridad">
+                    <div class="filtro-option" data-value="Baja">Baja</div>
+                    <div class="filtro-option" data-value="Media">Media</div>
+                    <div class="filtro-option" data-value="Alta">Alta</div>
+                    <div class="filtro-option" data-value="Urgente">Urgente</div>
+                  </div>
+                </div>
+              </div>
+              <div class="campo-grupo">
+                <label>Firmante del Documento</label>
+                <div class="filtro-select-wrapper" id="wrapperEditarFirmante">
+                  <button type="button" class="filtro-select-trigger" id="triggerEditarFirmante">
+                    <span class="filtro-select-text">Seleccione un firmante</span>
+                    <i class="ph ph-caret-down filtro-select-arrow"></i>
+                  </button>
+                  <div class="filtro-dropdown" id="dropdownEditarFirmante"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-seccion">
+            <div class="form-seccion-titulo">
+              <span class="form-seccion-numero">2</span>
+              <span>ORIGEN Y DESTINO</span>
+            </div>
+            <div class="form-seccion-campos">
+              <div class="campo-grupo">
+                <label>Destinatario (Senor/a)</label>
+                <div class="input-wrapper">
+                  <input type="text" id="editarDestinatario" placeholder="Nombre del destinatario" />
+                </div>
+              </div>
+              <div class="campo-grupo">
+                <label>Cargo del Destinatario</label>
+                <div class="input-wrapper">
+                  <input type="text" id="editarCargo" placeholder="Cargo del destinatario" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-seccion">
+            <div class="form-seccion-titulo">
+              <span class="form-seccion-numero">3</span>
+              <span>DETALLE DEL DOCUMENTO</span>
+            </div>
+            <div class="form-seccion-campos">
+              <div class="campo-grupo campo-full">
+                <label>Asunto</label>
+                <div class="input-wrapper">
+                  <input type="text" id="editarAsunto" placeholder="Ingrese el asunto del documento" />
+                </div>
+                <span class="input-error" id="errorEditarAsunto"></span>
+              </div>
+              <div class="campo-grupo campo-full">
+                <label>Cuerpo del Documento</label>
+                <div class="input-wrapper">
+                  <textarea id="editarCuerpo" placeholder="Redacte el contenido del documento" rows="6"></textarea>
+                </div>
+                <span class="input-error" id="errorEditarCuerpo"></span>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer-md">
+        <button class="btn-text-md" id="btnCancelarEditar">Cancelar</button>
+        <button class="btn-filled-md" id="btnGuardarEditar">
+          <span id="textoGuardarEditar">Guardar Cambios</span>
+          <span class="spinner" id="spinnerEditar" style="display:none;"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMACION ELIMINAR -->
+  <div class="modal-overlay" id="modalEliminarDocumento">
+    <div class="md-modal md-modal-eliminar">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <div class="modal-icono-peligro">
+            <i class="ph ph-trash"></i>
+          </div>
+          <h3>Eliminar documento?</h3>
+          <p id="eliminarMensaje">Esta accion no se puede deshacer.</p>
+        </div>
+      </div>
+      <div class="modal-body-md">
+        <div class="eliminar-confirmacion">
+          <label class="eliminar-label">Escriba <strong id="eliminarConfirmarTexto">ELIMINAR</strong> para confirmar:</label>
+          <div class="input-wrapper">
+            <input type="text" id="eliminarConfirmarInput" placeholder="Escriba ELIMINAR" autocomplete="off" />
+          </div>
+          <span class="input-error" id="errorEliminarConfirmar"></span>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarEliminar">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminar" disabled>
+          <span id="textoConfirmarEliminar">Eliminar Documento</span>
+          <span class="spinner" id="spinnerEliminar" style="display:none;"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICACION -->
+  <div class="toast-contenedor" id="toastContenedor"></div>
+
+  <!-- MODAL CONFIRMACION CERRAR SESION -->
   <div class="modal-overlay" id="modalCerrarSesion">
     <div class="md-modal">
       <div class="modal-header-md modal-header-centro">
         <div class="header-text-md">
-          <h3>Estás a punto de cerrar sesión</h3>
-          <p>¿Está seguro de que desea salir del sistema?</p>
+          <h3>Estas a punto de cerrar sesion</h3>
+          <p>Esta seguro de que desea salir del sistema?</p>
         </div>
       </div>
       <div class="modal-footer-md modal-footer-centro">
         <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
-        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesion</button>
       </div>
     </div>
   </div>
