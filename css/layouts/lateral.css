@@ -155,51 +155,62 @@
 }
 
 /* ════════════════════════════════════════════
-   MEJORA: SIDEBAR CON LABELS VISIBLES
+   MEJORA: SIDEBAR CON LABELS SIEMPRE VISIBLES
    ════════════════════════════════════════════ */
 
-.sidebar-item {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 6px;
-  gap: 5px;
-  min-height: 68px;
-}
-
+/* Labels siempre visibles (no solo en hover) */
 .sidebar-item .title {
-  display: block !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
   font-size: 10px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
   text-align: center;
   line-height: 1.2;
   max-width: 100%;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.sidebar-item:hover .title {
-  color: #ffffff;
+/* Ajustar layout del item para mostrar icono arriba y label abajo */
+.sidebar-item {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px;
+  gap: 4px;
+  min-height: 64px;
 }
 
-.sidebar-item.activo .title {
-  color: #ffffff;
-  font-weight: 600;
+/* Reducir tamaño del icono para que quepa el label */
+.sidebar-icono {
+  width: 36px;
+  height: 36px;
 }
 
-/* En móvil: sidebar expandido muestra labels más grandes */
+.sidebar-item i {
+  font-size: 1.2rem;
+}
+
+/* En móvil: mantener layout horizontal cuando sidebar está expandido */
 @media (max-width: 1024px) {
   .sidebar.visible .sidebar-item {
     flex-direction: row;
     justify-content: flex-start;
-    padding: 14px 20px;
-    gap: 14px;
+    padding: 8px 20px 8px 16px;
+    gap: 12px;
     min-height: auto;
   }
   
   .sidebar.visible .sidebar-item .title {
-    font-size: 15px;
+    font-size: var(--texto-sm);
+    text-align: left;
+  }
+  
+  .sidebar.visible .sidebar-icono {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .sidebar.visible .sidebar-item i {
+    font-size: 1.4rem;
   }
 }
