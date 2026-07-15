@@ -1,0 +1,408 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--fuente-principal);
+  background: var(--color-fondo-modulos);
+  color: var(--color-texto);
+}
+
+/* ==========================================
+   ENCABEZADO
+   ========================================== */
+.encabezado {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--color-fondo);
+  border-bottom: 1px solid var(--borde-color);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--espaciado-xl);
+  z-index: 100;
+}
+
+/* IZQUIERDA — LOGO + TÍTULOS */
+.encabezado-izquierda {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-md);
+}
+
+.encabezado-logo {
+  height: 40px;
+  width: auto;
+}
+
+.encabezado-titulos {
+  display: flex;
+  flex-direction: column;
+}
+
+.encabezado-siglas {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+}
+
+.encabezado-subtitulo {
+  font-size: var(--texto-xs);
+  color: var(--color-texto-secundario);
+}
+
+/* CENTRO — PÁGINA ACTUAL + RUTA */
+.encabezado-centro {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaciado-md);
+}
+
+.encabezado-pagina {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-bold);
+  color: var(--color-texto);
+}
+
+.encabezado-divisor {
+  width: 1px;
+  height: 20px;
+  background: var(--borde-color);
+}
+
+.encabezado-ruta {
+  font-size: var(--texto-sm);
+  color: var(--color-texto-secundario);
+}
+
+/* DERECHA — USUARIO + AVATAR + CERRAR SESIÓN */
+.encabezado-derecha {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-md);
+  margin-left: auto;
+  flex-shrink: 0;
+  max-width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.encabezado-usuario {
+  font-size: var(--texto-sm);
+  color: var(--color-texto-secundario);
+  min-width: 0;
+  max-width: clamp(110px, 14vw, 180px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.encabezado-avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--color-primario-inicio);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-bold);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.btn-notificaciones {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: var(--borde-radio);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-texto-secundario);
+  font-size: 1.25rem;
+  transition: background var(--transicion-rapida);
+  flex-shrink: 0;
+}
+
+.btn-notificaciones:hover {
+  background: var(--color-fondo-modulos);
+  color: var(--color-primario-inicio);
+}
+
+.notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--color-error);
+  color: #fff;
+  font-size: 0.5625rem;
+  font-weight: var(--peso-bold);
+  padding: 1px 5px;
+  border-radius: 100px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.3;
+  border: 2px solid var(--color-fondo);
+  pointer-events: none;
+}
+
+.btn-cerrar-sesion {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: var(--borde-radio);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-error);
+  font-size: 1.25rem;
+  transition: background var(--transicion-rapida);
+  flex-shrink: 0;
+}
+
+.btn-cerrar-sesion:hover {
+  background: rgba(214, 40, 40, 0.1);
+}
+
+/* ==========================================
+   NOTIFICACIONES — DROPDOWN
+   ========================================== */
+.notif-wrapper {
+  position: relative;
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  max-height: 420px;
+  background: var(--color-fondo);
+  border: 1px solid var(--borde-color);
+  border-radius: var(--borde-radio);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+}
+
+.notif-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--borde-color);
+}
+
+.notif-dropdown-titulo {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+}
+
+.notif-dropdown-marcar {
+  background: none;
+  border: none;
+  font-size: var(--texto-xs);
+  color: var(--color-primario-inicio);
+  cursor: pointer;
+  padding: 0;
+}
+
+.notif-dropdown-marcar:hover {
+  text-decoration: underline;
+}
+
+.notif-dropdown-lista {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 320px;
+}
+
+.notif-dropdown-vacio {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--color-texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.notif-dropdown-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background var(--transicion-rapida);
+  border-bottom: 1px solid var(--borde-color);
+}
+
+.notif-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.notif-dropdown-item:hover {
+  background: var(--color-fondo-modulos);
+}
+
+.notif-dropdown-item.no-leido {
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.notif-dropdown-item-icono {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-fondo-modulos);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primario-inicio);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.notif-dropdown-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-dropdown-item-titulo {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notif-dropdown-item-mensaje {
+  font-size: 0.75rem;
+  color: var(--color-texto-secundario);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.notif-dropdown-item-fecha {
+  font-size: 0.6875rem;
+  color: var(--color-texto-secundario);
+  margin-top: 2px;
+}
+
+.notif-dropdown-item-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primario-inicio);
+  flex-shrink: 0;
+  margin-top: 12px;
+}
+
+.notif-dropdown-footer {
+  border-top: 1px solid var(--borde-color);
+  padding: 8px 16px;
+}
+
+.notif-dropdown-ver-todas {
+  width: 100%;
+  background: none;
+  border: none;
+  font-size: var(--texto-xs);
+  color: var(--color-primario-inicio);
+  cursor: pointer;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.notif-dropdown-ver-todas:hover {
+  text-decoration: underline;
+}
+
+/* Abrir/cerrar animación */
+.notif-dropdown {
+  animation: notifFadeIn 0.15s ease-out;
+}
+
+@keyframes notifFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================
+   SIDEBAR TOGGLE — HAMBURGUESA
+   ========================================== */
+.sidebar-toggle {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: var(--borde-radio);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-texto-secundario);
+  font-size: 1.375rem;
+  flex-shrink: 0;
+  transition: background var(--transicion-rapida);
+}
+
+.sidebar-toggle:hover {
+  background: var(--color-fondo-modulos);
+  color: var(--color-primario-inicio);
+}
+
+/* ==========================================
+   RESPONSIVE — HEADER
+   ========================================== */
+@media (max-width: 1024px) {
+  .sidebar-toggle {
+    display: flex;
+  }
+
+  .encabezado-centro {
+    display: none;
+  }
+
+  .encabezado {
+    padding: 0 var(--espaciado-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .encabezado-usuario {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .encabezado-avatar {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .notif-dropdown {
+    width: 90vw;
+    max-width: 360px;
+  }
+}

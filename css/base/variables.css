@@ -1,0 +1,83 @@
+:root {
+   /* ========================
+     TIPOGRAFÍA
+     ======================== */
+   --fuente-principal: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+   --fuente-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+
+   --texto-xs: 0.75rem;
+   --texto-sm: 0.875rem;
+   --texto-base: 1rem;
+   --texto-lg: 1.125rem;
+   --texto-xl: 1.25rem;
+   --texto-2xl: 1.5rem;
+   --texto-3xl: 1.875rem;
+
+   --peso-normal: 400;
+   --peso-medium: 500;
+   --peso-semibold: 600;
+   --peso-bold: 700;
+
+   /* ========================
+     COLORES
+     ======================== */
+   --color-primario-inicio: #1E88E5;
+   --color-primario-fin: #1565C0;
+   --degradado-primario: linear-gradient(180deg, var(--color-primario-inicio), var(--color-primario-fin));
+
+   --color-burbuja: rgba(45, 212, 191, 0.15);
+   --difuminado-burbuja: 40px;
+
+   --color-fondo: #FFFFFF;
+   --color-fondo-modulos: #F8FAFC;
+
+   --color-texto: #1e293b;
+   --color-texto-secundario: #64748b;
+   --color-texto-claro: #94a3b8;
+
+   /* ========================
+     BORDES Y SOMBRAS
+     ======================== */
+   --borde-radio: 8px;
+   --borde-radio-lg: 12px;
+   --borde-radio-xl: 16px;
+   --borde-color: #e2e8f0;
+
+   --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+   --sombra-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+   --sombra-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+   --sombra-xl: 0 20px 60px rgba(0, 0, 0, 0.15);
+
+   /* ========================
+     ESPACIADO
+     ======================== */
+   --espaciado-xs: 0.25rem;
+   --espaciado-sm: 0.5rem;
+   --espaciado-md: 1rem;
+   --espaciado-lg: 1.5rem;
+   --espaciado-xl: 2rem;
+   --espaciado-2xl: 3rem;
+   --espaciado-3xl: 4rem;
+
+   /* ========================
+     TRANSICIONES
+     ======================== */
+   --transicion-rapida: 150ms ease;
+   --transicion-normal: 250ms ease;
+   --transicion-lenta: 400ms ease;
+
+   --color-exito: #00674f;
+   --color-error: #d62828;
+   --color-naranja: #f59e0b;
+   --color-purpura: #7c3aed;
+
+   --color-overlay: rgba(15, 23, 42, 0.45);
+   --blur-overlay: blur(6px);
+}
+
+@font-face {
+   font-family: 'PlusJakartaSans';
+   src: url('../../assets/fuentes/PlusJakartaSans-ExtraBold.ttf') format('truetype');
+   font-weight: 800;
+   font-style: normal;
+}

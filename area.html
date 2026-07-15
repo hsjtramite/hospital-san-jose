@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario — Áreas</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/layouts/header.css" />
+  <link rel="stylesheet" href="css/layouts/lateral.css" />
+  <link rel="stylesheet" href="css/paginas/dashboard.css" />
+  <link rel="stylesheet" href="css/componentes/tabla.css" />
+  <link rel="stylesheet" href="css/paginas/areas.css" />
+</head>
+<body data-pagina="ÁREAS" data-ruta="Gestión de áreas" data-modulo-activo="area">
+  <main class="contenido-principal">
+    <div class="areas-layout">
+      <div class="areas-content"></div>
+      <aside class="areas-panel" id="panelFormulario">
+        <div class="panel-card">
+          <div class="panel-body">
+            <form id="formCrearArea" autocomplete="off" style="max-width: 340px;">
+              <div class="input-grupo">
+                <label for="campoNombre">Nombre del área</label>
+                <div class="input-wrapper">
+                  <input type="text" id="campoNombre" placeholder="Ingrese el nombre" required />
+                </div>
+                <span class="input-error" id="errorNombre"></span>
+              </div>
+              <div class="input-grupo">
+                <label for="campoResponsable">Responsable</label>
+                <div class="input-wrapper">
+                  <input type="text" id="campoResponsable" placeholder="Ingrese el responsable" required />
+                </div>
+                <span class="input-error" id="errorResponsable"></span>
+              </div>
+              <div class="input-grupo">
+                <label for="campoCargo">Cargo</label>
+                <div class="input-wrapper">
+                  <input type="text" id="campoCargo" placeholder="Ingrese el cargo" required />
+                </div>
+                <span class="input-error" id="errorCargo"></span>
+              </div>
+              <div class="input-grupo">
+                <div class="toggle-contenedor">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="campoActivo" checked />
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span class="toggle-label">Área activa</span>
+                </div>
+              </div>
+            </form>
+            <div class="panel-footer">
+              <div class="panel-footer-interior">
+                <div class="panel-footer-botones">
+                  <button class="btn-text-md" id="btnCancelarArea">Cancelar</button>
+                  <button class="btn-filled-md" id="btnGuardarArea">
+                    <span id="textoGuardar">Guardar</span>
+                    <span class="spinner" id="spinnerGuardar"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/utilidades/normalizacion.js"></script>
+  <script src="js/componentes/tabla.js"></script>
+  <script src="js/componentes/header.js"></script>
+  <script src="js/componentes/lateral.js"></script>
+  <script src="js/paginas/areas.js"></script>
+
+  <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN -->
+  <div class="modal-overlay" id="modalCerrarSesion">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Estás a punto de cerrar sesión</h3>
+          <p>¿Está seguro de que desea salir del sistema?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMACIÓN ELIMINAR ÁREA -->
+  <div class="modal-overlay" id="modalEliminarArea">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3 id="tituloEliminar">Desactivar área</h3>
+          <p id="textoEliminar">¿Está seguro de que desea desactivar esta área?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarEliminar">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminar">
+          <span id="textoConfirmarEliminar">Desactivar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+/* ==========================================
+   LAYOUT — TABLA + PANEL
+   ========================================== */
+.areas-layout {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+}
+
+.areas-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ==========================================
+   PANEL LATERAL — NUEVA ÁREA
+   ========================================== */
+.areas-panel {
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--transicion-normal), padding-left var(--transicion-normal);
+  flex-shrink: 0;
+}
+
+.areas-panel.abierto {
+  width: fit-content;
+  opacity: 1;
+  padding-left: var(--espaciado-lg);
+  overflow-y: auto;
+  max-height: calc(100vh - 94px);
+}
+
+.panel-card {
+  background: var(--color-fondo);
+  border-radius: var(--borde-radio-xl);
+  box-shadow: var(--sombra-sm);
+  width: fit-content;
+  min-width: 0;
+}
+
+.panel-body {
+  padding: var(--espaciado-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.panel-footer {
+  width: 100%;
+  padding: 0;
+}
+
+.panel-footer-interior {
+  border-top: 1px solid var(--borde-color);
+}
+
+.panel-footer-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaciado-md);
+  padding-top: var(--espaciado-sm);
+}
+
+.panel-footer-botones .btn-filled-md {
+  margin-right: var(--espaciado-xl);
+}
+
+/* ==========================================
+   INPUTS
+   ========================================== */
+.input-grupo {
+  margin-bottom: var(--espaciado-lg);
+}
+
+.input-grupo label {
+  display: block;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medium);
+  margin-bottom: var(--espaciado-xs);
+  color: var(--color-texto);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--borde-color);
+  border-radius: var(--borde-radio);
+  background: var(--color-fondo);
+  transition: border-color var(--transicion-rapida), box-shadow var(--transicion-rapida);
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  outline: none;
+  font-size: var(--texto-base);
+  font-family: var(--fuente-principal);
+  background: transparent;
+  color: var(--color-texto);
+}
+
+.input-wrapper input::placeholder {
+  color: var(--color-texto-claro);
+}
+
+.input-grupo:focus-within .input-wrapper {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-primario-inicio),
+              0 0 0 4px rgba(30, 136, 229, 0.15);
+}
+
+.input-error {
+  display: block;
+  font-size: var(--texto-xs);
+  color: var(--color-error);
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+/* ==========================================
+   TOGGLE — ACTIVO
+   ========================================== */
+.toggle-contenedor {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-md);
+  padding-top: 8px;
+}
+
+.toggle-label {
+  font-size: var(--texto-sm);
+  color: var(--color-texto);
+  font-weight: var(--peso-medium);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--borde-color);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background var(--transicion-rapida);
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform var(--transicion-rapida);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--color-exito);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+/* ==========================================
+   ACCIONES DE TABLA
+   ========================================== */
+.acciones-tabla {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-accion {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background var(--transicion-rapida);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.btn-editar {
+  color: var(--color-primario-inicio);
+  background: rgba(30, 136, 229, 0.1);
+}
+.btn-editar:hover {
+  background: rgba(30, 136, 229, 0.2);
+}
+
+.btn-eliminar {
+  color: var(--color-error);
+  background: rgba(214, 40, 40, 0.1);
+}
+.btn-eliminar:hover {
+  background: rgba(214, 40, 40, 0.2);
+}
+
+.btn-reactivar {
+  color: var(--color-exito);
+  background: rgba(0, 103, 79, 0.1);
+}
+.btn-reactivar:hover {
+  background: rgba(0, 103, 79, 0.2);
+}
+
+#modalEliminarArea .md-modal {
+  width: auto;
+  min-width: 380px;
+  max-height: none;
+  overflow: visible;
+}
+
+/* ==========================================
+   SPINNER
+   ========================================== */
+.spinner {
+  display: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: girar 0.6s linear infinite;
+}
+
+.spinner.visible {
+  display: block;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}

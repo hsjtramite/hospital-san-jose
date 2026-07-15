@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario — Documentos</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/layouts/header.css" />
+  <link rel="stylesheet" href="css/layouts/lateral.css" />
+  <link rel="stylesheet" href="css/paginas/dashboard.css" />
+  <link rel="stylesheet" href="css/componentes/tabla.css" />
+  <link rel="stylesheet" href="css/componentes/fecha.css" />
+  <link rel="stylesheet" href="css/paginas/documentos.css" />
+</head>
+<body data-pagina="DOCUMENTOS" data-ruta="Consulta de documentos" data-modulo-activo="documentos">
+  <main class="contenido-principal">
+
+    <!-- ═══ PANEL DE FILTROS ═══ -->
+    <section class="filtros-panel">
+      <div class="filtros-panel-body">
+        <div class="filtro-grupo">
+          <label class="filtro-label">Buscar</label>
+          <div class="filtro-search">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" class="filtro-input" id="buscadorGeneral" placeholder="Buscar por número, asunto o remitente..." />
+          </div>
+        </div>
+        <div class="filtro-grupo">
+          <label class="filtro-label">Tipo de documento</label>
+          <div class="filtro-select-wrapper" id="wrapperFiltroTipoDoc">
+            <button type="button" class="filtro-select-trigger" id="triggerFiltroTipoDoc">
+              <span class="filtro-select-text">Todos</span>
+              <i class="ph ph-caret-down filtro-select-arrow"></i>
+            </button>
+            <div class="filtro-dropdown" id="dropdownFiltroTipoDoc"></div>
+          </div>
+        </div>
+        <div class="filtro-grupo">
+          <label class="filtro-label">Origen</label>
+          <div class="filtro-select-wrapper" id="wrapperFiltroOrigen">
+            <button type="button" class="filtro-select-trigger" id="triggerFiltroOrigen">
+              <span class="filtro-select-text">Todos</span>
+              <i class="ph ph-caret-down filtro-select-arrow"></i>
+            </button>
+            <div class="filtro-dropdown" id="dropdownFiltroOrigen">
+              <div class="filtro-option seleccionada" data-value="">Todos</div>
+              <div class="filtro-option" data-value="emitido">Emitidos</div>
+              <div class="filtro-option" data-value="derivado">Derivados</div>
+            </div>
+          </div>
+        </div>
+        <div class="filtro-grupo">
+          <label class="filtro-label">Fecha desde</label>
+          <div class="input-wrapper">
+            <input type="text" id="filtroFechaDesde" placeholder="dd/mm/aaaa" />
+          </div>
+        </div>
+        <div class="filtro-grupo">
+          <label class="filtro-label">Fecha hasta</label>
+          <div class="input-wrapper">
+            <input type="text" id="filtroFechaHasta" placeholder="dd/mm/aaaa" />
+          </div>
+        </div>
+      </div>
+      <div class="filtros-panel-acciones">
+        <button class="btn-text-md" id="btnLimpiarFiltros">Limpiar</button>
+        <button class="btn-filled-md" id="btnFiltrar">
+          <i class="ph ph-funnel"></i>
+          Filtrar
+        </button>
+      </div>
+    </section>
+
+    <!-- ═══ TABLA DE DOCUMENTOS ═══ -->
+    <section class="documentos-tabla-contenedor" id="contenedorTabla">
+      <div class="tabla-esqueleto">
+        <div class="tabla-esqueleto-icono">
+          <i class="ph ph-file-text"></i>
+        </div>
+        <h3>Cargando documentos…</h3>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/componentes/tabla.js"></script>
+  <script src="js/componentes/fecha.js"></script>
+  <script src="js/componentes/header.js"></script>
+  <script src="js/componentes/lateral.js"></script>
+
+  <!-- Dependencias para generación de documentos Word -->
+  <script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js"></script>
+  <script src="https://unpkg.com/docxtemplater@3.46.0/build/docxtemplater.min.js"></script>
+  <script src="js/componentes/generar-word.js"></script>
+
+  <!-- Librerías para generación de PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="js/paginas/documentos.js"></script>
+
+  <!-- MODAL DETALLE DEL DOCUMENTO -->
+  <div class="modal-overlay" id="modalDetalleDocumento">
+    <div class="md-modal md-modal-documento">
+      <div class="modal-header-md">
+        <div class="header-text-md">
+          <h3>Detalle del Documento</h3>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarDetalle" title="Cerrar">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body-md" id="cuerpoDetalleDocumento">
+        <div class="visor-documento" id="visorDocumento">
+          <div class="visor-placeholder" id="visorPlaceholder">
+            <i class="ph ph-file-text" style="font-size:3rem;display:block;margin-bottom:12px;"></i>
+            <p>Cargando documento…</p>
+          </div>
+        </div>
+        <div class="panel-informacion" id="panelInformacion">
+          <!-- INFO DEL DOCUMENTO -->
+          <div class="panel-seccion">
+            <div class="panel-seccion-titulo">Información del documento</div>
+            <div class="info-grid" id="infoGrid">
+              <div class="info-label">N° Documento</div>
+              <div class="info-valor" id="infoNumDoc">—</div>
+              <div class="info-label">Asunto</div>
+              <div class="info-valor" id="infoAsunto">—</div>
+              <div class="info-label">Estado</div>
+              <div class="info-valor" id="infoEstado">—</div>
+              <div class="info-label">Prioridad</div>
+              <div class="info-valor" id="infoPrioridad">—</div>
+              <div class="info-label">Fecha</div>
+              <div class="info-valor" id="infoFecha">—</div>
+              <div class="info-label">Remitente</div>
+              <div class="info-valor" id="infoRemitente">—</div>
+              <div class="info-label">Firmante</div>
+              <div class="info-valor" id="infoFirmante">—</div>
+              <div class="info-label">Destinatario</div>
+              <div class="info-valor" id="infoDestinatario">—</div>
+            </div>
+          </div>
+
+          <!-- VISUALIZACIÓN -->
+          <div class="panel-seccion">
+            <div class="panel-seccion-titulo">Visualización</div>
+            <div class="opciones-visualizacion" id="opcionesVisualizacion">
+              <button class="btn-visualizacion activo" data-vista="documento" id="btnVerPDF">
+                <i class="ph ph-file-text"></i> Ver documento
+              </button>
+              <button class="btn-visualizacion" data-vista="adjunto" id="btnVerAdjunto" disabled>
+                <i class="ph ph-paperclip"></i> Ver adjunto
+              </button>
+            </div>
+          </div>
+
+          <!-- DESCARGAS -->
+          <div class="panel-seccion">
+            <div class="panel-seccion-titulo">Descargas</div>
+            <div class="descargas-lista" id="descargasLista">
+              <button class="btn-descarga" id="btnDescargarPDF">
+                <i class="ph ph-file-pdf"></i> Descargar PDF
+              </button>
+              <button class="btn-descarga" id="btnDescargarWord" disabled>
+                <i class="ph ph-file-doc"></i> Descargar Word
+              </button>
+              <button class="btn-descarga" id="btnDescargarAdjunto" disabled>
+                <i class="ph ph-paperclip"></i> Descargar adjunto
+              </button>
+            </div>
+          </div>
+
+          <!-- CERRAR -->
+          <button class="btn-filled-md" id="btnCerrarDetalleBottom" style="width:100%;justify-content:center;">
+            <i class="ph ph-x"></i> Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN -->
+  <div class="modal-overlay" id="modalCerrarSesion">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Estás a punto de cerrar sesión</h3>
+          <p>¿Está seguro de que desea salir del sistema?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

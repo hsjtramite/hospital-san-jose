@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario — Reportes</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/layouts/header.css" />
+  <link rel="stylesheet" href="css/layouts/lateral.css" />
+  <link rel="stylesheet" href="css/paginas/dashboard.css" />
+  <link rel="stylesheet" href="css/paginas/reportes.css" />
+</head>
+<body data-pagina="REPORTES" data-ruta="Análisis y estadísticas" data-modulo-activo="reportes">
+  <main class="contenido-principal">
+
+    <!-- ═══ SECCIÓN 1: RESUMEN EJECUTIVO ═══ -->
+    <section class="reporte-seccion resumen-ejecutivo">
+      <div class="reporte-seccion-header">
+        <i class="ph ph-chart-pie-slice"></i>
+        <h2 class="reporte-seccion-titulo">Resumen Ejecutivo</h2>
+      </div>
+      <div class="reporte-grid" id="resumenCards">
+        <article class="resumen-card">
+          <div class="resumen-card-icono" style="background:rgba(30,136,229,0.1);color:var(--color-primario-inicio)">
+            <i class="ph ph-files"></i>
+          </div>
+          <div class="resumen-card-contenido">
+            <span class="resumen-card-label">Total documentos</span>
+            <span class="resumen-card-valor" id="valorTotalDocs">0</span>
+            <span class="resumen-card-desc">Documentos registrados</span>
+          </div>
+        </article>
+        <article class="resumen-card">
+          <div class="resumen-card-icono" style="background:rgba(30,136,229,0.1);color:var(--color-primario-inicio)">
+            <i class="ph ph-file-arrow-up"></i>
+          </div>
+          <div class="resumen-card-contenido">
+            <span class="resumen-card-label">Emitidos</span>
+            <span class="resumen-card-valor" id="valorEmitidos">0</span>
+            <span class="resumen-card-desc">Documentos emitidos</span>
+          </div>
+        </article>
+        <article class="resumen-card">
+          <div class="resumen-card-icono" style="background:rgba(124,58,237,0.1);color:var(--color-purpura)">
+            <i class="ph ph-file-arrow-down"></i>
+          </div>
+          <div class="resumen-card-contenido">
+            <span class="resumen-card-label">Derivados</span>
+            <span class="resumen-card-valor" id="valorDerivados">0</span>
+            <span class="resumen-card-desc">Documentos derivados</span>
+          </div>
+        </article>
+        <article class="resumen-card">
+          <div class="resumen-card-icono" style="background:rgba(0,103,79,0.1);color:var(--color-exito)">
+            <i class="ph ph-check-circle"></i>
+          </div>
+          <div class="resumen-card-contenido">
+            <span class="resumen-card-label">Finalizados</span>
+            <span class="resumen-card-valor" id="valorFinalizados">0</span>
+            <span class="resumen-card-desc">Documentos concluidos</span>
+          </div>
+        </article>
+      </div>
+      <div class="info-chips" id="infoChips">
+        <div class="info-chip">
+          <i class="ph ph-buildings"></i>
+          <span class="info-chip-label">Área más activa</span>
+          <span class="info-chip-valor" id="chipAreaActiva">—</span>
+        </div>
+        <div class="info-chip">
+          <i class="ph ph-file-text"></i>
+          <span class="info-chip-label">Tipo más usado</span>
+          <span class="info-chip-valor" id="chipTipoUsado">—</span>
+        </div>
+        <div class="info-chip">
+          <i class="ph ph-flag"></i>
+          <span class="info-chip-label">Estado predominante</span>
+          <span class="info-chip-valor" id="chipEstadoPredominante">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ SECCIÓN 2 + 3: GRÁFICOS (fila 1) ═══ -->
+    <div class="reporte-charts-grid">
+      <section class="reporte-seccion">
+        <div class="reporte-seccion-header">
+          <i class="ph ph-trend-up"></i>
+          <h2 class="reporte-seccion-titulo">Documentos por Mes</h2>
+        </div>
+        <div class="chart-contenedor">
+          <canvas id="chartDocumentosMes"></canvas>
+        </div>
+      </section>
+
+      <section class="reporte-seccion">
+        <div class="reporte-seccion-header">
+          <i class="ph ph-chart-donut"></i>
+          <h2 class="reporte-seccion-titulo">Distribución por Estado</h2>
+        </div>
+        <div class="chart-contenedor chart-contenedor-dona">
+          <canvas id="chartDistribucionEstado"></canvas>
+          <div class="dona-leyenda" id="donaLeyenda"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ SECCIÓN 4 + 5: GRÁFICOS (fila 2) ═══ -->
+    <div class="reporte-charts-grid">
+      <section class="reporte-seccion">
+        <div class="reporte-seccion-header">
+          <i class="ph ph-buildings"></i>
+          <h2 class="reporte-seccion-titulo">Documentos por Área</h2>
+        </div>
+        <div class="chart-contenedor">
+          <canvas id="chartDocumentosArea"></canvas>
+        </div>
+      </section>
+
+      <section class="reporte-seccion">
+        <div class="reporte-seccion-header">
+          <i class="ph ph-file-text"></i>
+          <h2 class="reporte-seccion-titulo">Tipos Documentales</h2>
+        </div>
+        <div class="chart-contenedor">
+          <canvas id="chartTiposDocumentales"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ SECCIÓN 6: EXPORTACIÓN ═══ -->
+    <section class="reporte-seccion exportacion">
+      <div class="reporte-seccion-header">
+        <i class="ph ph-download-simple"></i>
+        <h2 class="reporte-seccion-titulo">Exportación de Reportes</h2>
+      </div>
+      <p class="exportacion-desc">Descargue los reportes generados en formato PDF o Excel para su análisis externo.</p>
+      <div class="exportacion-botones">
+        <button class="btn-exportar" id="btnExportarPDFGeneral">
+          <i class="ph ph-file-pdf"></i>
+          Reporte General PDF
+        </button>
+        <button class="btn-exportar" id="btnExportarPDFArea">
+          <i class="ph ph-file-pdf"></i>
+          Reporte por Área PDF
+        </button>
+        <button class="btn-exportar" id="btnExportarExcel">
+          <i class="ph ph-file-xls"></i>
+          Exportar Excel
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/componentes/header.js"></script>
+  <script src="js/componentes/lateral.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="js/paginas/reportes.js"></script>
+
+  <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN -->
+  <div class="modal-overlay" id="modalCerrarSesion">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Estás a punto de cerrar sesión</h3>
+          <p>¿Está seguro de que desea salir del sistema?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

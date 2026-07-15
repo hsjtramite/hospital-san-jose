@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario</title>
+
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/paginas/login.css" />
+</head>
+<body>
+  <div class="login-contenedor">
+    <div class="login-izquierda">
+      <img src="assets/imagenes/Logo.jpg" alt="Logo" class="login-logo" />
+
+      <h1 class="login-titulo">SISTEMA SIS</h1>
+
+      <form class="login-formulario" id="formLogin">
+        <div class="input-grupo">
+          <label for="txtUsuario">Nombre de Usuario</label>
+          <div class="input-wrapper">
+            <i class="ph ph-user input-icono"></i>
+            <input type="text" id="txtUsuario" placeholder="Ingrese su usuario" autocomplete="username" />
+          </div>
+          <span class="input-error" id="error-usuario"></span>
+        </div>
+
+        <div class="input-grupo">
+          <label for="txtContrasena">Contraseña</label>
+          <div class="input-wrapper">
+            <i class="ph ph-lock input-icono"></i>
+            <input type="password" id="txtContrasena" placeholder="Ingrese su contraseña" autocomplete="current-password" />
+            <i class="ph ph-eye toggle-password" id="btnMostrarPass"></i>
+          </div>
+          <span class="input-error" id="error-contrasena"></span>
+        </div>
+
+        <div class="login-opciones">
+          <label class="checkbox-recordar">
+            <input type="checkbox" id="chkRecordar" />
+            Recordarme
+          </label>
+          <a href="#" id="lnkOlvidaste">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button type="submit" id="btnIniciarSesion">
+          <span id="texto-login">Iniciar Sesión</span>
+          <div class="spinner" id="spinner-login" style="display:none;"></div>
+        </button>
+      </form>
+    </div>
+
+    <div class="login-seccion-visual">
+      <div class="login-texto-bienvenida">
+        <h2 class="bienvenida-titulo">¡Bienvenido!</h2>
+        <p class="bienvenida-descripcion">Ingrese sus datos personales para usar todas las funciones del trámite documentario</p>
+      </div>
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+  </div>
+
+  <!-- Modal de Recuperación de Contraseña -->
+  <div class="modal-overlay" id="modal-recuperacion">
+    <div class="md-modal">
+      <div class="modal-header-md">
+        <div class="header-icon-md">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3L15.5 7.5z"/>
+          </svg>
+        </div>
+        <div class="header-text-md">
+          <h3 id="modal-recuperacion-titulo">Recuperar Contraseña</h3>
+          <p id="modal-recuperacion-subtitulo">Sigue los pasos para restablecer tu acceso.</p>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btn-cerrar-recuperacion">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body-md">
+        <div class="pasos-indicador">
+          <div class="paso-dot activo" id="dot-1"></div>
+          <div class="paso-dot" id="dot-2"></div>
+          <div class="paso-dot" id="dot-3"></div>
+        </div>
+
+        <div class="recuperacion-paso activo" id="paso-1">
+          <p class="paso-descripcion">Ingresa tu correo electrónico asociado para recibir un código de 8 dígitos.</p>
+          <div class="md-field full">
+            <input type="email" id="recuperar-email" class="md-input" placeholder=" " required>
+            <label for="recuperar-email" class="md-label">Correo Electrónico</label>
+            <span class="md-helper">Enviaremos un código de verificación</span>
+          </div>
+        </div>
+
+        <div class="recuperacion-paso" id="paso-2" style="display:none;">
+          <p class="paso-descripcion">Ingresa el código de 8 dígitos enviado a <strong id="email-destino"></strong></p>
+          <div class="otp-contenedor">
+            <input type="text" maxlength="1" class="otp-casilla" data-index="0" inputmode="numeric" name="otp">
+            <input type="text" maxlength="1" class="otp-casilla" data-index="1" inputmode="numeric" name="otp">
+            <input type="text" maxlength="1" class="otp-casilla" data-index="2" inputmode="numeric" name="otp">
+            <input type="text" maxlength="1" class="otp-casilla" data-index="3" inputmode="numeric" name="otp">
+            <input type="text" maxlength="1" class="otp-casilla" data-index="4" inputmode="numeric" name="otp">
+            <input type="text" maxlength="1" class="otp-casilla" data-index="5" inputmode="numeric" name="otp">
+            <input type="text" maxlength="1" class="otp-casilla" data-index="6" inputmode="numeric" name="otp">
+            <input type="text" maxlength="1" class="otp-casilla" data-index="7" inputmode="numeric" name="otp">
+          </div>
+          <div class="reenvio-contenedor">
+            <span id="timer-texto">Reenviar código en <strong id="timer-segundos">60</strong>s</span>
+            <button type="button" id="btn-reenviar" class="btn-link" style="display:none;">Reenviar ahora</button>
+          </div>
+        </div>
+
+        <div class="recuperacion-paso" id="paso-3" style="display:none;">
+          <p class="paso-descripcion">Crea una nueva contraseña segura para tu cuenta.</p>
+          <div class="md-grid">
+            <div class="md-field full">
+              <input type="password" id="nueva-pass" class="md-input" placeholder=" " required>
+              <label for="nueva-pass" class="md-label">Nueva Contraseña</label>
+              <i class="ph ph-eye toggle-md-pass" data-target="nueva-pass"></i>
+            </div>
+            <div class="md-field full">
+              <input type="password" id="confirmar-pass" class="md-input" placeholder=" " required>
+              <label for="confirmar-pass" class="md-label">Confirmar Contraseña</label>
+              <i class="ph ph-eye toggle-md-pass" data-target="confirmar-pass"></i>
+            </div>
+          </div>
+          <div class="validacion-requisitos">
+            <div class="requisito-item" id="req-min"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Mínimo 6 caracteres</div>
+            <div class="requisito-item" id="req-match"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Coincidencia de contraseñas</div>
+          </div>
+        </div>
+
+        <div class="recuperacion-paso" id="paso-exito" style="display:none;">
+          <div class="exito-animacion">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <h4 class="exito-titulo">¡Contraseña Restablecida!</h4>
+          <p class="exito-descripcion">Ya puedes iniciar sesión con tu nueva contraseña.</p>
+        </div>
+
+        <p id="recuperar-error" class="mensaje-error-md"></p>
+      </div>
+
+      <div class="modal-footer-md">
+        <button type="button" class="btn-text-md" id="btn-cancelar-recuperacion">Cancelar</button>
+        <button type="button" class="btn-filled-md" id="btn-accion-recuperacion">
+          <span id="texto-accion">Enviar Código</span>
+          <div class="spinner" id="spinner-recuperacion" style="display:none; width:16px; height:16px;"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/paginas/login.js"></script>
+</body>
+</html>

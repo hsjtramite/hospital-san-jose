@@ -1,0 +1,167 @@
+.fecha-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--borde-color);
+  border-radius: var(--borde-radio);
+  background: var(--color-fondo);
+  transition: border-color var(--transicion-rapida), box-shadow var(--transicion-rapida);
+}
+
+.fecha-wrapper:focus-within {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-primario-inicio),
+              0 0 0 4px rgba(30, 136, 229, 0.15);
+}
+
+.fecha-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  outline: none;
+  font-size: var(--texto-sm);
+  font-family: var(--fuente-principal);
+  background: transparent;
+  color: var(--color-texto);
+}
+
+.fecha-input::placeholder {
+  color: var(--color-texto-claro);
+}
+
+.fecha-icono {
+  padding: 0 14px;
+  color: var(--color-texto-claro);
+  font-size: 1.25rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color var(--transicion-rapida);
+}
+
+.fecha-icono:hover {
+  color: var(--color-primario-inicio);
+}
+
+/* ── Calendario flotante ── */
+.fecha-calendario {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  background: var(--color-fondo);
+  border: 1px solid var(--borde-color);
+  border-radius: var(--borde-radio-lg);
+  box-shadow: var(--sombra-xl);
+  padding: 16px;
+  width: 280px;
+  animation: fechaAparece 0.15s ease;
+}
+
+.fecha-calendario.visible {
+  display: block;
+}
+
+@keyframes fechaAparece {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cabecera del calendario ── */
+.fecha-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.fecha-cal-mes {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+}
+
+.fecha-cal-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.fecha-cal-nav-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--borde-radio);
+  background: transparent;
+  color: var(--color-texto-claro);
+  cursor: pointer;
+  transition: background var(--transicion-rapida), color var(--transicion-rapida);
+  font-size: 1rem;
+}
+
+.fecha-cal-nav-btn:hover {
+  background: var(--color-fondo-modulos);
+  color: var(--color-texto);
+}
+
+/* ── Días de la semana ── */
+.fecha-cal-dias-semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.fecha-cal-dias-semana span {
+  text-align: center;
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medium);
+  color: var(--color-texto-claro);
+  padding: 4px 0;
+}
+
+/* ── Días del mes ── */
+.fecha-cal-dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.fecha-cal-dia {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--borde-radio);
+  background: transparent;
+  color: var(--color-texto);
+  font-size: var(--texto-sm);
+  cursor: pointer;
+  transition: background var(--transicion-rapida), color var(--transicion-rapida);
+}
+
+.fecha-cal-dia:hover {
+  background: var(--color-fondo-modulos);
+}
+
+.fecha-cal-dia.otro-mes {
+  color: var(--color-texto-claro);
+  opacity: 0.4;
+}
+
+.fecha-cal-dia.hoy {
+  font-weight: var(--peso-bold);
+  color: var(--color-primario-inicio);
+}
+
+.fecha-cal-dia.seleccionado {
+  background: var(--color-primario-inicio);
+  color: #fff;
+}
+
+.fecha-cal-dia.seleccionado:hover {
+  background: var(--color-primario-fin);
+}

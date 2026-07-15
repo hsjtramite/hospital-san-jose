@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario — Inventario</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/layouts/header.css" />
+  <link rel="stylesheet" href="css/layouts/lateral.css" />
+  <link rel="stylesheet" href="css/paginas/dashboard.css" />
+  <link rel="stylesheet" href="css/componentes/tabla.css" />
+  <link rel="stylesheet" href="css/componentes/fecha.css" />
+  <link rel="stylesheet" href="css/paginas/inventario.css" />
+</head>
+<body data-pagina="INVENTARIO" data-ruta="Gestión de almacén" data-modulo-activo="inventario">
+  <main class="contenido-principal">
+    <div class="inventario-layout">
+
+      <!-- TABS -->
+      <div class="inventario-tabs">
+        <button class="inventario-tab activo" data-tab="resumen">
+          <i class="ph ph-chart-bar"></i> Resumen
+        </button>
+        <button class="inventario-tab" data-tab="catalogo">
+          <i class="ph ph-boxes"></i> Catálogo
+        </button>
+        <button class="inventario-tab" data-tab="ingresar">
+          <i class="ph ph-arrow-circle-up"></i> Ingresar
+        </button>
+        <button class="inventario-tab" data-tab="descontar">
+          <i class="ph ph-arrow-circle-down"></i> Descontar
+        </button>
+        <button class="inventario-tab" data-tab="kardex">
+          <i class="ph ph-clipboard-text"></i> Kardex
+        </button>
+      </div>
+
+      <!-- ─── PANEL RESUMEN ─── -->
+      <div class="inventario-panel activo" id="panelResumen">
+        <div class="resumen-grid" id="resumenGrid">
+          <div class="card-resumen">
+            <div class="card-resumen-icono" style="background:var(--color-primario-inicio)">
+              <i class="ph ph-package"></i>
+            </div>
+            <div class="card-resumen-info">
+              <span class="card-resumen-valor" id="resumenTotalArticulos">0</span>
+              <span class="card-resumen-label">Total artículos</span>
+            </div>
+          </div>
+          <div class="card-resumen">
+            <div class="card-resumen-icono" style="background:var(--color-exito)">
+              <i class="ph ph-check-circle"></i>
+            </div>
+            <div class="card-resumen-info">
+              <span class="card-resumen-valor" id="resumenStockDisponible">0</span>
+              <span class="card-resumen-label">Stock disponible</span>
+            </div>
+          </div>
+          <div class="card-resumen">
+            <div class="card-resumen-icono" style="background:var(--color-error)">
+              <i class="ph ph-warning"></i>
+            </div>
+            <div class="card-resumen-info">
+              <span class="card-resumen-valor" id="resumenStockBajo">0</span>
+              <span class="card-resumen-label">Artículos con stock bajo</span>
+            </div>
+          </div>
+          <div class="card-resumen">
+            <div class="card-resumen-icono" style="background:var(--color-naranja)">
+              <i class="ph ph-arrow-circle-up"></i>
+            </div>
+            <div class="card-resumen-info">
+              <span class="card-resumen-valor" id="resumenEntradas">0</span>
+              <span class="card-resumen-label">Entradas registradas</span>
+            </div>
+          </div>
+          <div class="card-resumen">
+            <div class="card-resumen-icono" style="background:var(--color-purpura)">
+              <i class="ph ph-arrow-circle-down"></i>
+            </div>
+            <div class="card-resumen-info">
+              <span class="card-resumen-valor" id="resumenSalidas">0</span>
+              <span class="card-resumen-label">Salidas registradas</span>
+            </div>
+          </div>
+          <div class="card-resumen">
+            <div class="card-resumen-icono" style="background:var(--color-texto)">
+              <i class="ph ph-clock"></i>
+            </div>
+            <div class="card-resumen-info">
+              <span class="card-resumen-valor" id="resumenUltimoMovimiento">—</span>
+              <span class="card-resumen-label">Último movimiento</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── PANEL CATÁLOGO ─── -->
+      <div class="inventario-panel" id="panelCatalogo">
+        <div class="inventario-catalogo-layout">
+          <div class="catalogo-content" id="catalogoContent"></div>
+          <aside class="catalogo-panel" id="panelFormArticulo">
+            <div class="panel-card">
+              <div class="panel-body">
+                <form id="formArticulo" autocomplete="off" style="max-width:340px;">
+                  <div class="input-grupo">
+                    <label for="campoCodigo">Código</label>
+                    <div class="input-wrapper">
+                      <input type="text" id="campoCodigo" placeholder="Auto-generado si se deja vacío" />
+                    </div>
+                    <span class="input-error" id="errorCodigo"></span>
+                  </div>
+                  <div class="input-grupo">
+                    <label for="campoNombreArticulo">Nombre del artículo</label>
+                    <div class="input-wrapper">
+                      <input type="text" id="campoNombreArticulo" placeholder="Ingrese el nombre" required />
+                    </div>
+                    <span class="input-error" id="errorNombreArticulo"></span>
+                  </div>
+                  <div class="input-grupo">
+                    <label>Categoría</label>
+                    <div class="filtro-select-wrapper" id="wrapperCategoria">
+                      <button type="button" class="filtro-select-trigger" id="triggerCategoria">
+                        <span class="filtro-select-text">Seleccione una categoría</span>
+                        <i class="ph ph-caret-down filtro-select-arrow"></i>
+                      </button>
+                      <div class="filtro-dropdown" id="dropdownCategoria"></div>
+                    </div>
+                    <span class="input-error" id="errorCategoria"></span>
+                  </div>
+                  <div class="input-grupo">
+                    <label>Unidad de Medida</label>
+                    <div class="filtro-select-wrapper" id="wrapperUnidad">
+                      <button type="button" class="filtro-select-trigger" id="triggerUnidad">
+                        <span class="filtro-select-text">Seleccione una unidad</span>
+                        <i class="ph ph-caret-down filtro-select-arrow"></i>
+                      </button>
+                      <div class="filtro-dropdown" id="dropdownUnidad"></div>
+                    </div>
+                    <span class="input-error" id="errorUnidad"></span>
+                  </div>
+                  <div class="input-grupo">
+                    <label for="campoStockMinimo">Stock mínimo</label>
+                    <div class="input-wrapper">
+                      <input type="number" id="campoStockMinimo" placeholder="0" min="0" />
+                    </div>
+                  </div>
+                  <div class="input-grupo">
+                    <div class="toggle-contenedor">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="campoArticuloActivo" checked />
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <span class="toggle-label">Artículo activo</span>
+                    </div>
+                  </div>
+                </form>
+                <div class="panel-footer">
+                  <div class="panel-footer-interior">
+                    <div class="panel-footer-botones">
+                      <button class="btn-text-md" id="btnCancelarArticulo">Cancelar</button>
+                      <button class="btn-filled-md" id="btnGuardarArticulo">
+                        <span id="textoGuardarArticulo">Guardar</span>
+                        <span class="spinner" id="spinnerArticulo"></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- ─── PANEL INGRESAR ─── -->
+      <div class="inventario-panel" id="panelIngresar">
+        <div class="ingresar-form">
+          <div class="ingresar-form-header">
+            <h3>Registrar Entrada</h3>
+          </div>
+          <div class="ingresar-form-campos">
+            <div class="campo-grupo">
+              <label>Artículo</label>
+              <div class="filtro-select-wrapper" id="wrapperArticuloIngreso">
+                <button type="button" class="filtro-select-trigger" id="triggerArticuloIngreso">
+                  <span class="filtro-select-text">Seleccione un artículo</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownArticuloIngreso"></div>
+              </div>
+              <span class="input-error" id="errorArticuloIngreso"></span>
+            </div>
+            <div class="campo-grupo">
+              <label>Fecha</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoFechaIngreso" placeholder="dd/mm/aaaa" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoCantidadIngreso">Cantidad</label>
+              <div class="input-wrapper">
+                <input type="number" id="campoCantidadIngreso" min="1" placeholder="0" />
+              </div>
+              <span class="input-error" id="errorCantidadIngreso"></span>
+            </div>
+            <div class="campo-grupo">
+              <label>Usuario responsable</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoUsuarioIngreso" readonly />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoProveedor">Proveedor</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoProveedor" placeholder="Nombre del proveedor" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoDocEntrada">N° Documento</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoDocEntrada" placeholder="Factura, guía, etc." />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoMotivoEntrada">Motivo / Observación</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoMotivoEntrada" placeholder="Opcional" />
+              </div>
+            </div>
+          </div>
+          <div class="ingresar-form-footer">
+            <button class="btn-filled-md" id="btnRegistrarEntrada">
+              <span id="textoRegistrarEntrada">Registrar Entrada</span>
+              <span class="spinner" id="spinnerEntrada"></span>
+            </button>
+          </div>
+        </div>
+        <div class="ingresar-tabla">
+          <h3>Últimas Entradas</h3>
+          <div class="tabla-wrapper">
+            <table class="tabla" id="tablaUltimasEntradas">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Artículo</th>
+                  <th>Cantidad</th>
+                  <th>Proveedor</th>
+                  <th>Usuario</th>
+                  <th>Observación</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyUltimasEntradas"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── PANEL DESCONTAR ─── -->
+      <div class="inventario-panel" id="panelDescontar">
+        <div class="cargo-formulario">
+          <h3>Registrar Cargo de Entrega</h3>
+          <div class="cargo-form-campos">
+            <div class="campo-grupo">
+              <label>Fecha</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoFechaCargo" placeholder="dd/mm/aaaa" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Área solicitante</label>
+              <div class="filtro-select-wrapper" id="wrapperAreaCargo">
+                <button type="button" class="filtro-select-trigger" id="triggerAreaCargo">
+                  <span class="filtro-select-text">Seleccione un área</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownAreaCargo"></div>
+              </div>
+              <span class="input-error" id="errorAreaSolicitante"></span>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoResponsableReceptor">Responsable receptor</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoResponsableReceptor" placeholder="Nombre de quien recibe" required />
+              </div>
+              <span class="input-error" id="errorResponsableReceptor"></span>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoObservacionCargo">Observación</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoObservacionCargo" placeholder="Opcional" />
+              </div>
+            </div>
+          </div>
+
+          <div class="cargo-detalle">
+            <h4>Detalle de Artículos</h4>
+            <div class="cargo-agregar-articulo">
+              <div class="cargo-agregar-select">
+                <div class="filtro-select-wrapper" id="wrapperArticuloCargo">
+                  <button type="button" class="filtro-select-trigger" id="triggerArticuloCargo">
+                    <span class="filtro-select-text">Seleccione un artículo</span>
+                    <i class="ph ph-caret-down filtro-select-arrow"></i>
+                  </button>
+                  <div class="filtro-dropdown" id="dropdownArticuloCargo"></div>
+                </div>
+              </div>
+              <div class="cargo-agregar-cantidad">
+                <div class="input-wrapper">
+                  <input type="number" id="campoCantidadCargo" min="1" placeholder="Cantidad" />
+                </div>
+              </div>
+              <button class="btn-filled-md" id="btnAgregarArticuloCargo">
+                <i class="ph ph-plus"></i> Agregar
+              </button>
+            </div>
+            <span class="input-error" id="errorArticuloCargo"></span>
+            <div class="cargo-detalle-tabla-contenedor">
+              <table class="tabla" id="tablaDetalleCargo">
+                <thead>
+                  <tr><th>Artículo</th><th>Código</th><th>Cantidad</th><th>Stock Actual</th><th></th></tr>
+                </thead>
+                <tbody id="tbodyDetalleCargo"></tbody>
+              </table>
+            </div>
+            <div class="cargo-detalle-vacio" id="cargoDetalleVacio">
+              <i class="ph ph-package"></i>
+              <p>Agregue artículos al cargo de entrega</p>
+            </div>
+          </div>
+
+          <div class="cargo-form-footer">
+            <button class="btn-filled-md" id="btnRegistrarCargo">
+              <span id="textoRegistrarCargo">Registrar Cargo</span>
+              <span class="spinner" id="spinnerCargo"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cargo-historial">
+          <h3>Cargos Registrados</h3>
+          <div class="cargo-historial-content" id="cargoHistorialContent"></div>
+        </div>
+      </div>
+
+      <!-- ─── PANEL KARDEX ─── -->
+      <div class="inventario-panel" id="panelKardex">
+        <div class="kardex-filtros">
+          <div class="filtro-group">
+            <label>Fecha desde</label>
+            <div class="input-wrapper">
+              <input type="text" id="kardexFechaDesde" placeholder="dd/mm/aaaa" />
+            </div>
+          </div>
+          <div class="filtro-group">
+            <label>Fecha hasta</label>
+            <div class="input-wrapper">
+              <input type="text" id="kardexFechaHasta" placeholder="dd/mm/aaaa" />
+            </div>
+          </div>
+          <div class="filtro-group">
+            <label>Tipo</label>
+            <div class="filtro-select-wrapper" id="wrapperFiltroTipoKardex">
+              <button type="button" class="filtro-select-trigger" id="triggerFiltroTipoKardex">
+                <span class="filtro-select-text">Todos</span>
+                <i class="ph ph-caret-down filtro-select-arrow"></i>
+              </button>
+              <div class="filtro-dropdown" id="dropdownFiltroTipoKardex">
+                <div class="filtro-option seleccionada" data-value="">Todos</div>
+                <div class="filtro-option" data-value="entrada">Entrada</div>
+                <div class="filtro-option" data-value="salida">Salida</div>
+                <div class="filtro-option" data-value="importacion">Importación</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn-filled-md" id="btnFiltrarKardex">
+            <i class="ph ph-funnel"></i> Filtrar
+          </button>
+        </div>
+        <div class="kardex-content" id="kardexContent"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ─── MODAL PREVIEW IMPORTACIÓN EXCEL ─── -->
+  <div class="modal-overlay" id="modalPreviewImportacion">
+    <div class="md-modal">
+      <div class="modal-header-md">
+        <div class="header-icon-md">
+          <i class="ph ph-file-xls"></i>
+        </div>
+        <div class="header-text-md">
+          <h3>Vista previa de importación</h3>
+          <p id="previewImportacionInfo">Se van a procesar los siguientes datos</p>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarPreviewImportacion">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body-md">
+        <div class="tabla-wrapper" style="max-height:300px;overflow:auto;">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPreviewImportacion"></tbody>
+          </table>
+        </div>
+        <p id="previewImportacionError" class="mensaje-error-md" style="display:none;"></p>
+      </div>
+      <div class="modal-footer-md">
+        <button class="btn-text-md" id="btnCancelarPreview">Cancelar</button>
+        <button class="btn-filled-md" id="btnConfirmarPreview">
+          <span id="textoConfirmarPreview">Confirmar Importación</span>
+          <span class="spinner" id="spinnerPreview" style="display:none;width:16px;height:16px;"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODAL VER CARGO PDF ─── -->
+  <div class="modal-overlay" id="modalVerCargoPdf">
+    <div class="md-modal md-modal-grande">
+      <div class="modal-header-md">
+        <div class="header-icon-md">
+          <i class="ph ph-file-pdf"></i>
+        </div>
+        <div class="header-text-md">
+          <h3>Cargo de Entrega</h3>
+          <p id="modalCargoInfo"></p>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarModalCargo">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body-md" style="padding:0;">
+        <iframe id="iframeCargoPdf" style="width:100%;height:500px;border:none;"></iframe>
+      </div>
+      <div class="modal-footer-md">
+        <button class="btn-filled-md" id="btnDescargarCargoPdf">
+          <i class="ph ph-download"></i> Descargar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODAL CONFIRMACIÓN ELIMINAR ARTÍCULO ─── -->
+  <div class="modal-overlay" id="modalEliminarArticulo">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3 id="tituloEliminarArticulo">Desactivar artículo</h3>
+          <p id="textoEliminarArticulo">¿Está seguro de que desea desactivar este artículo?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarEliminarArticulo">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarArticulo">
+          <span id="textoConfirmarEliminarArticulo">Desactivar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODAL CONFIRMACIÓN CERRAR SESIÓN ─── -->
+  <div class="modal-overlay" id="modalCerrarSesion">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Estás a punto de cerrar sesión</h3>
+          <p>¿Está seguro de que desea salir del sistema?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/utilidades/normalizacion.js"></script>
+  <script src="js/componentes/tabla.js"></script>
+  <script src="js/componentes/fecha.js"></script>
+  <script src="js/componentes/header.js"></script>
+  <script src="js/componentes/lateral.js"></script>
+  <script src="js/paginas/inventario.js"></script>
+</body>
+</html>

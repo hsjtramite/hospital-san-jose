@@ -1,0 +1,337 @@
+/* ════════════════════════════════════════════
+   MÓDULO REPORTES — Análisis y estadísticas
+   ════════════════════════════════════════════ */
+
+/* ─── SECCIONES ─── */
+.reporte-seccion {
+  background: var(--color-fondo);
+  border-radius: var(--borde-radio-xl);
+  box-shadow: var(--sombra-sm);
+  padding: var(--espaciado-xl);
+  margin-bottom: var(--espaciado-xl);
+  transition: box-shadow var(--transicion-normal);
+}
+
+.reporte-seccion:hover {
+  box-shadow: var(--sombra-md);
+}
+
+.reporte-seccion-header {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-sm);
+  margin-bottom: var(--espaciado-lg);
+  padding-bottom: var(--espaciado-md);
+  border-bottom: 1px solid var(--borde-color);
+}
+
+.reporte-seccion-header i {
+  font-size: 1.375rem;
+  color: var(--color-primario-inicio);
+}
+
+.reporte-seccion-titulo {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+}
+
+/* ─── GRID DE TARJETAS (4 columnas) ─── */
+.reporte-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--espaciado-xl);
+  margin-bottom: var(--espaciado-lg);
+}
+
+/* Reutilizar .resumen-card de documentos.css pero sin hover translate */
+.resumen-card {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-md);
+  background: var(--color-fondo);
+  border-radius: var(--borde-radio-xl);
+  box-shadow: var(--sombra-sm);
+  padding: var(--espaciado-xl);
+  transition: all var(--transicion-normal);
+  cursor: default;
+}
+
+.resumen-card:hover {
+  box-shadow: var(--sombra-md);
+  transform: translateY(-2px);
+}
+
+.resumen-card-icono {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--borde-radio-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.5rem;
+}
+
+.resumen-card-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resumen-card-label {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medium);
+  color: var(--color-texto-claro);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.resumen-card-valor {
+  font-size: 2rem;
+  font-weight: var(--peso-bold);
+  color: var(--color-texto);
+  line-height: 1.1;
+}
+
+.resumen-card-desc {
+  font-size: var(--texto-xs);
+  color: var(--color-texto-claro);
+  margin-top: 2px;
+}
+
+/* ─── ACENTO SUPERIOR EN TARJETAS RESUMEN ─── */
+#resumenCards .resumen-card {
+  position: relative;
+  overflow: hidden;
+}
+
+#resumenCards .resumen-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 4px;
+  border-radius: 0 0 4px 0;
+  pointer-events: none;
+}
+
+#resumenCards .resumen-card:nth-child(1)::before {
+  background: var(--degradado-primario);
+}
+
+#resumenCards .resumen-card:nth-child(2)::before {
+  background: var(--color-primario-inicio);
+}
+
+#resumenCards .resumen-card:nth-child(3)::before {
+  background: var(--color-purpura);
+}
+
+#resumenCards .resumen-card:nth-child(4)::before {
+  background: var(--color-exito);
+}
+
+/* ─── CHIPS INFORMATIVOS ─── */
+.info-chips {
+  display: flex;
+  gap: var(--espaciado-md);
+  flex-wrap: wrap;
+}
+
+.info-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-sm);
+  padding: var(--espaciado-sm) var(--espaciado-md);
+  background: var(--color-fondo-modulos);
+  border-radius: 100px;
+  border: 1px solid var(--borde-color);
+}
+
+.info-chip i {
+  font-size: 1rem;
+  color: var(--color-primario-inicio);
+}
+
+.info-chip-label {
+  font-size: var(--texto-xs);
+  color: var(--color-texto-secundario);
+  white-space: nowrap;
+}
+
+.info-chip-valor {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+  white-space: nowrap;
+}
+
+/* ─── GRID DE GRÁFICOS ─── */
+.reporte-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaciado-xl);
+}
+
+.chart-contenedor {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-contenedor canvas {
+  max-width: 100%;
+  max-height: 300px;
+}
+
+.chart-contenedor-dona {
+  flex-direction: column;
+  gap: var(--espaciado-md);
+}
+
+.dona-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaciado-sm);
+  justify-content: center;
+}
+
+.dona-leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--texto-xs);
+  color: var(--color-texto);
+}
+
+.dona-leyenda-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ─── EXPORTACIÓN ─── */
+.exportacion-desc {
+  font-size: var(--texto-sm);
+  color: var(--color-texto-secundario);
+  margin-bottom: var(--espaciado-lg);
+}
+
+.exportacion-botones {
+  display: flex;
+  gap: var(--espaciado-md);
+  flex-wrap: wrap;
+}
+
+.btn-exportar {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-sm);
+  padding: 10px 20px;
+  border: 1.5px solid var(--borde-color);
+  border-radius: var(--borde-radio);
+  background: var(--color-fondo);
+  font-size: var(--texto-sm);
+  font-family: var(--fuente-principal);
+  font-weight: var(--peso-medium);
+  color: var(--color-texto);
+  cursor: pointer;
+  transition: all var(--transicion-rapida);
+}
+
+#btnExportarPDFGeneral:hover:not(:disabled) {
+  border-color: var(--color-error);
+  color: var(--color-error);
+  background: rgba(214, 40, 40, 0.06);
+}
+
+#btnExportarPDFArea:hover:not(:disabled) {
+  border-color: var(--color-primario-inicio);
+  color: var(--color-primario-inicio);
+  background: rgba(30, 136, 229, 0.04);
+}
+
+#btnExportarExcel:hover:not(:disabled) {
+  border-color: var(--color-exito);
+  color: var(--color-exito);
+  background: rgba(0, 103, 79, 0.06);
+}
+
+.btn-exportar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-exportar i {
+  font-size: 1.125rem;
+}
+
+.exportacion-nota {
+  font-size: var(--texto-xs);
+  color: var(--color-texto-claro);
+  margin-top: var(--espaciado-md);
+  font-style: italic;
+}
+
+/* ════════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════════ */
+
+@media (max-width: 1440px) {
+  .reporte-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .reporte-charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reporte-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--espaciado-md);
+  }
+
+  .resumen-card {
+    padding: var(--espaciado-md);
+  }
+
+  .resumen-card-valor {
+    font-size: 1.625rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .reporte-seccion {
+    padding: var(--espaciado-md);
+  }
+
+  .reporte-grid {
+    grid-template-columns: 1fr;
+    gap: var(--espaciado-sm);
+  }
+
+  .info-chips {
+    flex-direction: column;
+  }
+
+  .exportacion-botones {
+    flex-direction: column;
+  }
+
+  .btn-exportar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .chart-contenedor {
+    min-height: 220px;
+  }
+}

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario</title>
+
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/layouts/header.css" />
+  <link rel="stylesheet" href="css/layouts/lateral.css" />
+  <link rel="stylesheet" href="css/paginas/dashboard.css" />
+</head>
+<body data-pagina="DASHBOARD GENERAL" data-ruta="Resumen ejecutivo" data-modulo-activo="dashboard">
+  <main class="contenido-principal">
+
+    <!-- ═══ SECCIÓN 1: HERO BIENVENIDA ═══ -->
+    <section class="dash-hero">
+      <div class="dash-hero-izquierda">
+        <div class="dash-hero-texto">
+          <h1 class="dash-saludo" id="dashSaludo">Bienvenido</h1>
+          <p class="dash-subtexto">Aquí tienes un resumen de lo más importante.</p>
+        </div>
+        <div class="dash-hero-indicadores" id="heroIndicadores">
+          <div class="dash-hero-indicador">
+            <div class="dash-indicador-icono">
+              <i class="ph ph-clock-counter-clockwise"></i>
+            </div>
+            <div class="dash-indicador-info">
+              <span class="dash-indicador-numero" id="indicPendientes">0</span>
+              <span class="dash-indicador-label">Pendientes</span>
+            </div>
+          </div>
+          <div class="dash-hero-indicador">
+            <div class="dash-indicador-icono">
+              <i class="ph ph-file-arrow-down"></i>
+            </div>
+            <div class="dash-indicador-info">
+              <span class="dash-indicador-numero" id="indicDerivadosHoy">0</span>
+              <span class="dash-indicador-label">Derivados hoy</span>
+            </div>
+          </div>
+          <div class="dash-hero-indicador">
+            <div class="dash-indicador-icono">
+              <i class="ph ph-warning"></i>
+            </div>
+            <div class="dash-indicador-info">
+              <span class="dash-indicador-numero" id="indicPrioridadAlta">0</span>
+              <span class="dash-indicador-label">Prioridad alta</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dash-hero-derecha">
+        <img src="assets/imagenes/monitor.png" alt="Ilustración institucional" class="dash-hero-img" />
+      </div>
+    </section>
+
+    <!-- ═══ SECCIÓN 2: FILA 1 — CALENDARIO + PRÓXIMOS EVENTOS + ACTIVIDAD ═══ -->
+    <div class="dash-grid-3col">
+
+      <!-- COL 1: CALENDARIO + EVENTOS DEL DÍA -->
+      <section class="dash-card dash-cal-card">
+        <div class="dash-cal-header">
+          <button class="dash-cal-nav" id="btnCalMesAnt"><i class="ph ph-caret-left"></i></button>
+          <span class="dash-cal-titulo" id="dashCalTitulo"></span>
+          <button class="dash-cal-nav" id="btnCalMesSig"><i class="ph ph-caret-right"></i></button>
+          <button class="dash-cal-hoy" id="btnCalHoy">Hoy</button>
+          <button class="dash-cal-btn-nuevo" id="btnNuevaReunion" title="Nueva reunión">
+            <i class="ph ph-plus"></i>
+          </button>
+        </div>
+        <div class="dash-cal-dias-semana">
+          <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+        </div>
+        <div class="dash-cal-grid" id="dashCalGrid"></div>
+        <div class="dash-cal-divider"></div>
+        <div class="dash-cal-eventos-dia" id="dashEventosDia">
+          <div class="dash-cal-evento-placeholder">Selecciona un día para ver sus eventos</div>
+        </div>
+        <button class="dash-dia-ver-todas" id="btnVerTodasDia" style="display:none;">
+          Ver todas las reuniones del día <i class="ph ph-caret-right"></i>
+        </button>
+      </section>
+
+      <!-- COL 2: PRÓXIMOS EVENTOS -->
+      <section class="dash-card dash-card-proximos">
+        <h2 class="dash-card-titulo">Próximas Reuniones</h2>
+        <div class="dash-proximos-lista" id="dashProximosLista">
+          <div class="dash-empty">Cargando eventos…</div>
+        </div>
+        <button class="dash-ver-todos" id="btnVerTodosEventos">
+          Ver todos <i class="ph ph-caret-right"></i>
+        </button>
+      </section>
+
+      <!-- COL 3: ACTIVIDAD RECIENTE -->
+      <section class="dash-card dash-card-actividad">
+        <h2 class="dash-card-titulo">Actividad Reciente</h2>
+        <div class="dash-card-body dash-actividad-lista" id="actividadLista">
+          <div class="dash-empty">Cargando actividad…</div>
+        </div>
+        <button class="dash-ver-mas" id="btnVerMasActividad">
+          Ver más actividad <i class="ph ph-caret-right"></i>
+        </button>
+      </section>
+
+    </div>
+
+    <!-- ═══ SECCIÓN 3: ACCESOS RÁPIDOS ═══ -->
+    <section class="dash-seccion">
+      <h2 class="dash-seccion-titulo">Accesos Rápidos</h2>
+      <div class="dash-accesos-grid">
+        <article class="dash-acceso-card" data-ruta="registrar-tramite">
+          <div class="dash-acceso-icono" style="background:rgba(30,136,229,0.1);color:var(--color-primario-inicio)">
+            <i class="ph ph-file-plus"></i>
+          </div>
+          <div class="dash-acceso-body">
+            <h3 class="dash-acceso-titulo">Registrar trámite</h3>
+            <p class="dash-acceso-desc">Registrar un nuevo documento.</p>
+          </div>
+          <i class="ph ph-caret-right dash-acceso-flecha"></i>
+        </article>
+        <article class="dash-acceso-card" data-ruta="registrar-tramite" data-tab="derivar">
+          <div class="dash-acceso-icono" style="background:rgba(124,58,237,0.1);color:var(--color-purpura)">
+            <i class="ph ph-file-arrow-down"></i>
+          </div>
+          <div class="dash-acceso-body">
+            <h3 class="dash-acceso-titulo">Derivar documento</h3>
+            <p class="dash-acceso-desc">Enviar documento a otra área.</p>
+          </div>
+          <i class="ph ph-caret-right dash-acceso-flecha"></i>
+        </article>
+        <article class="dash-acceso-card" data-ruta="documentos">
+          <div class="dash-acceso-icono" style="background:rgba(245,158,11,0.1);color:var(--color-naranja)">
+            <i class="ph ph-file-search"></i>
+          </div>
+          <div class="dash-acceso-body">
+            <h3 class="dash-acceso-titulo">Consultar documentos</h3>
+            <p class="dash-acceso-desc">Buscar y visualizar documentos registrados.</p>
+          </div>
+          <i class="ph ph-caret-right dash-acceso-flecha"></i>
+        </article>
+        <article class="dash-acceso-card" data-ruta="reportes">
+          <div class="dash-acceso-icono" style="background:rgba(0,103,79,0.1);color:var(--color-exito)">
+            <i class="ph ph-chart-line"></i>
+          </div>
+          <div class="dash-acceso-body">
+            <h3 class="dash-acceso-titulo">Ver reportes</h3>
+            <p class="dash-acceso-desc">Analizar información institucional.</p>
+          </div>
+          <i class="ph ph-caret-right dash-acceso-flecha"></i>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/componentes/header.js"></script>
+  <script src="js/componentes/lateral.js"></script>
+  <script src="js/paginas/dashboard.js"></script>
+
+  <!-- ═══ MODAL NUEVA REUNIÓN ═══ -->
+  <div class="modal-overlay" id="modalNuevaReunion">
+    <div class="md-modal">
+      <div class="modal-header-md">
+        <div class="header-icon-md" style="background:rgba(30,136,229,0.1);color:var(--color-primario-inicio)">
+          <i class="ph ph-plus-circle"></i>
+        </div>
+        <div class="header-text-md">
+          <h3>Nueva reunión</h3>
+          <p>Complete los detalles de la reunión</p>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarNuevaReunion">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body-md">
+        <form id="formNuevaReunion" autocomplete="off">
+          <div class="md-grid">
+            <div class="md-field full">
+              <input type="text" id="campoNuevoTitulo" class="md-input" placeholder=" " required />
+              <label class="md-label">Título</label>
+              <span class="md-error" id="errorNuevoTitulo"></span>
+            </div>
+            <div class="md-grid-2">
+              <div class="md-field">
+                <input type="date" id="campoNuevoFecha" class="md-input" required />
+                <label class="md-label">Fecha</label>
+              </div>
+              <div class="md-field hora-field">
+                <div class="hora-wrapper">
+                  <div class="hora-ampm">
+                    <input type="number" id="campoNuevoHora" class="hora-subinput" min="1" max="12" placeholder="HH" required />
+                    <span class="hora-sep">:</span>
+                    <input type="number" id="campoNuevoMinuto" class="hora-subinput" min="0" max="59" placeholder="MM" required />
+                    <select id="campoNuevoAmPm" class="ampm-select">
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                </div>
+                <label class="md-label">Hora</label>
+                <span class="md-error" id="errorNuevoHora"></span>
+              </div>
+            </div>
+            <div class="md-field full">
+              <textarea id="campoNuevoDescripcion" class="md-input md-textarea" placeholder=" "></textarea>
+              <label class="md-label">Descripción (opcional)</label>
+            </div>
+            <div class="md-field full">
+              <div class="toggle-contenedor">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="campoNuevoCompletado" />
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">Reunión completada</span>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer-md">
+        <button type="button" class="btn-text-md btn-peligro-md" id="btnEliminarReunion" style="margin-right:auto;display:none;">
+          <i class="ph ph-trash"></i> Eliminar
+        </button>
+        <button type="button" class="btn-text-md" id="btnCancelarNuevaReunion">Cancelar</button>
+        <button type="button" class="btn-actualizar-md" id="btnGuardarNuevaReunion">
+          <span id="textoGuardarNuevaReunion">Guardar</span>
+          <span class="spinner" id="spinnerNuevaReunion" style="display:none;width:16px;height:16px;"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL TODOS LOS EVENTOS ═══ -->
+  <div class="modal-overlay" id="modalTodosEventos">
+    <div class="md-modal">
+      <div class="modal-header-md">
+        <div class="header-icon-md" style="background:rgba(30,136,229,0.1);color:var(--color-primario-inicio)">
+          <i class="ph ph-calendar-blank"></i>
+        </div>
+        <div class="header-text-md">
+          <h3>Todas las reuniones</h3>
+          <p>Lista completa de reuniones programadas</p>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarTodosEventos">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body-md" id="todosEventosLista">
+        <div class="dash-empty">Cargando eventos…</div>
+      </div>
+      <div class="modal-footer-md">
+        <button type="button" class="btn-text-md" id="btnCerrarTodosEventosFooter">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL EVENTOS DEL DÍA ═══ -->
+  <div class="modal-overlay" id="modalEventosDia">
+    <div class="md-modal">
+      <div class="modal-header-md">
+        <div class="header-icon-md" style="background:rgba(30,136,229,0.1);color:var(--color-primario-inicio)">
+          <i class="ph ph-calendar-check"></i>
+        </div>
+        <div class="header-text-md">
+          <h3>Reuniones del día</h3>
+          <p id="modalEventosDiaSubtitulo"></p>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarEventosDia">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body-md" id="eventosDiaLista">
+        <div class="dash-empty">Cargando eventos…</div>
+      </div>
+      <div class="modal-footer-md">
+        <button type="button" class="btn-text-md" id="btnCerrarEventosDiaFooter">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN -->
+  <div class="modal-overlay" id="modalCerrarSesion">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Estás a punto de cerrar sesión</h3>
+          <p>¿Está seguro de que desea salir del sistema?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

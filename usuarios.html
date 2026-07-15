@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario — Usuarios</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/layouts/header.css" />
+  <link rel="stylesheet" href="css/layouts/lateral.css" />
+  <link rel="stylesheet" href="css/paginas/dashboard.css" />
+  <link rel="stylesheet" href="css/componentes/tabla.css" />
+  <link rel="stylesheet" href="css/paginas/usuarios.css" />
+</head>
+<body data-pagina="GESTIÓN DE USUARIOS" data-ruta="Administración de usuarios" data-modulo-activo="usuarios">
+  <main class="contenido-principal">
+    <div class="usuarios-layout">
+      <div class="usuarios-content"></div>
+      <aside class="usuarios-panel" id="panelFormulario">
+        <div class="panel-card">
+          <div class="panel-body">
+            <form id="formCrearUsuario" autocomplete="off" style="max-width: 340px;">
+              <div class="input-grupo">
+                <label for="campoNombre">Nombre</label>
+                <div class="input-wrapper">
+                  <input type="text" id="campoNombre" placeholder="Ingrese el nombre" required />
+                </div>
+                <span class="input-error" id="errorNombre"></span>
+              </div>
+              <div class="input-grupo">
+                <label for="campoApellidos">Apellidos</label>
+                <div class="input-wrapper">
+                  <input type="text" id="campoApellidos" placeholder="Ingrese los apellidos" required />
+                </div>
+                <span class="input-error" id="errorApellidos"></span>
+              </div>
+              <div class="input-grupo">
+                <label for="campoUsuario">Nombre de usuario</label>
+                <div class="input-wrapper">
+                  <input type="text" id="campoUsuario" placeholder="Ingrese el nombre de usuario" required />
+                </div>
+                <span class="input-error" id="errorUsuario"></span>
+              </div>
+              <div class="input-grupo" id="grupoGmail">
+                <label for="campoGmail">Correo electrónico</label>
+                <div class="input-wrapper">
+                  <input type="email" id="campoGmail" placeholder="@gmail.com" required />
+                </div>
+                <span class="input-error" id="errorGmail"></span>
+              </div>
+              <div class="input-grupo">
+                <label for="campoPassword">Contraseña</label>
+                <div class="input-wrapper input-wrapper-password">
+                  <input type="password" id="campoPassword" placeholder="Ingrese la contraseña" required />
+                  <i class="ph ph-eye toggle-password" id="btnTogglePassword"></i>
+                </div>
+                <span class="input-error" id="errorPassword"></span>
+              </div>
+              <div class="input-grupo">
+                <label>Rol</label>
+                <div class="filtro-select-wrapper" id="wrapperCampoRol">
+                  <button type="button" class="filtro-select-trigger" id="triggerCampoRol">
+                    <span class="filtro-select-text">Seleccione un rol</span>
+                    <i class="ph ph-caret-down filtro-select-arrow"></i>
+                  </button>
+                  <div class="filtro-dropdown" id="dropdownCampoRol"></div>
+                </div>
+                <span class="input-error" id="errorRol"></span>
+              </div>
+              <div class="input-grupo">
+                <label>Firma</label>
+                <div class="file-contenedor">
+                  <input type="file" class="file-input" id="campoFirma" accept="image/*" />
+                  <div class="file-area">
+                    <div class="file-icono">
+                      <i class="ph ph-image"></i>
+                    </div>
+                    <div class="file-info">
+                      <div class="file-nombre" id="firmaNombre"></div>
+                      <div class="file-placeholder">Subir firma (opcional, solo imágenes)</div>
+                    </div>
+                    <img class="file-preview" id="firmaPreview" alt="" />
+                  </div>
+                </div>
+                <span class="input-error" id="errorFirma"></span>
+              </div>
+              <div class="input-grupo">
+                <div class="toggle-contenedor">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="campoActivo" checked />
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span class="toggle-label">Usuario activo</span>
+                </div>
+              </div>
+            </form>
+            <div class="panel-footer">
+              <div class="panel-footer-interior">
+                <div class="panel-footer-botones">
+                  <button class="btn-text-md" id="btnCancelarUsuario">Cancelar</button>
+                  <button class="btn-filled-md" id="btnGuardarUsuario">
+                    <span id="textoGuardar">Guardar</span>
+                    <span class="spinner" id="spinnerGuardar"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/utilidades/normalizacion.js"></script>
+  <script src="js/componentes/tabla.js"></script>
+  <script src="js/componentes/header.js"></script>
+  <script src="js/componentes/lateral.js"></script>
+  <script src="js/paginas/usuarios.js"></script>
+
+  <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN -->
+  <div class="modal-overlay" id="modalCerrarSesion">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Estás a punto de cerrar sesión</h3>
+          <p>¿Está seguro de que desea salir del sistema?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMACIÓN ELIMINAR USUARIO -->
+  <div class="modal-overlay" id="modalEliminarUsuario">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3 id="tituloEliminar">Desactivar usuario</h3>
+          <p id="textoEliminar">¿Está seguro de que desea desactivar este usuario?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarEliminar">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminar">
+          <span id="textoConfirmarEliminar">Desactivar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMACIÓN ELIMINAR USUARIO -->
+  <div class="modal-overlay" id="modalEliminarUsuarioDefinitivo">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Eliminar usuario</h3>
+          <p>¿Está seguro de eliminar este usuario?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarEliminarDefinitivo">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarDefinitivo">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

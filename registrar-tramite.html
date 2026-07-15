@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario — Registrar Trámite</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/layouts/header.css" />
+  <link rel="stylesheet" href="css/layouts/lateral.css" />
+  <link rel="stylesheet" href="css/paginas/dashboard.css" />
+  <link rel="stylesheet" href="css/componentes/tabla.css" />
+  <link rel="stylesheet" href="css/componentes/fecha.css" />
+  <link rel="stylesheet" href="css/paginas/registrar-tramite.css" />
+</head>
+<body data-pagina="GESTIÓN DE TRÁMITES" data-ruta="Documentos emitidos y en trámite" data-modulo-activo="registrar-tramite">
+  <main class="contenido-principal">
+    <div class="tramite-layout">
+      <div class="tramite-header">
+        <button class="tramite-btn-tipo activo" id="btnEmitir" data-tipo="emitido">
+          <i class="ph ph-file-arrow-up"></i>
+          Emitir documento
+        </button>
+        <button class="tramite-btn-tipo" id="btnDerivar" data-tipo="derivado">
+          <i class="ph ph-file-arrow-down"></i>
+          Derivación
+        </button>
+      </div>
+
+      <div class="tramite-card" id="cardEmitir">
+        <!-- ─── ESPACIO 1: DATOS GENERALES ─── -->
+        <div class="tramite-seccion">
+          <div class="seccion-titulo">
+            <span class="seccion-numero">1</span>
+            <span class="seccion-label">DATOS GENERALES</span>
+          </div>
+          <div class="seccion-campos">
+            <div class="campo-grupo">
+              <label>Tipo de documento</label>
+              <div class="filtro-select-wrapper" id="wrapperTipoDoc">
+                <button type="button" class="filtro-select-trigger" id="triggerTipoDoc">
+                  <span class="filtro-select-text">Seleccione un tipo</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownTipoDoc"></div>
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Número de documento</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoNumero" readonly placeholder="—" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Fecha</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoFecha" placeholder="dd/mm/aaaa" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Prioridad</label>
+              <div class="filtro-select-wrapper" id="wrapperPrioridad">
+                <button type="button" class="filtro-select-trigger" id="triggerPrioridad">
+                  <span class="filtro-select-text">Media</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownPrioridad"></div>
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Firmante del Documento</label>
+              <div class="filtro-select-wrapper" id="wrapperFirmante">
+                <button type="button" class="filtro-select-trigger" id="triggerFirmante">
+                  <span class="filtro-select-text">Seleccione un firmante</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownFirmante"></div>
+              </div>
+              <span class="input-error" id="errorFirmante"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── ESPACIO 2: ORIGEN Y DESTINO ─── -->
+        <div class="tramite-seccion">
+          <div class="seccion-titulo">
+            <span class="seccion-numero">2</span>
+            <span class="seccion-label">ORIGEN Y DESTINO</span>
+          </div>
+          <div class="seccion-campos">
+            <div class="campo-grupo">
+              <label>Remitente</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoRemitente" readonly />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Área</label>
+              <div class="filtro-select-wrapper" id="wrapperArea">
+                <button type="button" class="filtro-select-trigger" id="triggerArea">
+                  <span class="filtro-select-text">Seleccione un área</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownArea"></div>
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Destinatario (Señor/a)</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoDestinatario" readonly />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Cargo del Destinatario</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoCargo" readonly />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── ESPACIO 3: DETALLE DEL DOCUMENTO ─── -->
+        <div class="tramite-seccion">
+          <div class="seccion-titulo">
+            <span class="seccion-numero">3</span>
+            <span class="seccion-label">DETALLE DEL DOCUMENTO</span>
+          </div>
+          <div class="seccion-campos">
+            <div class="campo-grupo">
+              <label>Asunto</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoAsunto" placeholder="Ingrese el asunto del documento" />
+              </div>
+              <span class="input-error" id="errorAsunto"></span>
+            </div>
+            <div class="campo-grupo">
+              <label>Cuerpo del Documento</label>
+              <div class="input-wrapper">
+                <textarea id="campoCuerpo" placeholder="Redacte el contenido del documento" rows="6"></textarea>
+              </div>
+              <span class="input-error" id="errorCuerpo"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── ESPACIO 4: ARCHIVO ADJUNTO ─── -->
+        <div class="tramite-seccion">
+          <div class="seccion-titulo">
+            <span class="seccion-numero">4</span>
+            <span class="seccion-label">ARCHIVO ADJUNTO (Opcional)</span>
+          </div>
+          <div class="seccion-campos">
+            <div class="campo-grupo">
+              <div class="file-contenedor">
+                <input type="file" class="file-input" id="campoAdjuntos" accept=".pdf" multiple />
+                <div class="file-area">
+                  <div class="file-icono">
+                    <i class="ph ph-file-pdf"></i>
+                  </div>
+                  <div class="file-info">
+                    <div class="file-nombre" id="adjuntosNombre">Ningún archivo seleccionado</div>
+                    <div class="file-placeholder">Seleccione archivos PDF (múltiple)</div>
+                  </div>
+                </div>
+              </div>
+              <div class="adjuntos-lista" id="adjuntosLista"></div>
+              <span class="input-error" id="errorAdjuntos"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── BOTÓN GUARDAR ─── -->
+        <div class="tramite-footer">
+          <div class="tramite-footer-linea"></div>
+          <div class="tramite-footer-botones">
+            <button class="btn-text-md" id="btnCancelarTramite">Cancelar</button>
+            <button class="btn-filled-md" id="btnGuardarTramite">
+              <span id="textoGuardarTramite">Guardar Trámite</span>
+              <span class="spinner" id="spinnerTramite"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tramite-card" id="cardDerivar" style="display:none;">
+
+        <!-- ─── SECCIÓN 1: DATOS GENERALES DEL DOCUMENTO ─── -->
+        <div class="tramite-seccion">
+          <div class="seccion-titulo">
+            <span class="seccion-numero">1</span>
+            <span class="seccion-label">DATOS GENERALES DEL DOCUMENTO</span>
+          </div>
+          <div class="seccion-campos">
+            <div class="campo-grupo">
+              <label>Tipo de documento</label>
+              <div class="filtro-select-wrapper" id="wrapperTipoDocDeriv">
+                <button type="button" class="filtro-select-trigger" id="triggerTipoDocDeriv">
+                  <span class="filtro-select-text">Seleccione un tipo</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownTipoDocDeriv"></div>
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Número de documento</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoNumeroDerivar" placeholder="Ej. 454-2026-US" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Fecha</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoFechaDerivar" placeholder="dd/mm/aaaa" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Prioridad</label>
+              <div class="filtro-select-wrapper" id="wrapperPrioridadDeriv">
+                <button type="button" class="filtro-select-trigger" id="triggerPrioridadDeriv">
+                  <span class="filtro-select-text">Seleccione una prioridad</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownPrioridadDeriv"></div>
+              </div>
+            </div>
+            <div class="campo-grupo campo-full">
+              <label>Remitente</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoRemitenteDerivar" placeholder="Nombre o institución" />
+              </div>
+            </div>
+            <div class="campo-grupo campo-full">
+              <label>Asunto</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoAsuntoDerivar" placeholder="Ingrese el asunto" />
+              </div>
+              <span class="input-error" id="errorAsuntoDerivar"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── SECCIÓN 2: DATOS DE DERIVACIÓN ─── -->
+        <div class="tramite-seccion">
+          <div class="seccion-titulo">
+            <span class="seccion-numero">2</span>
+            <span class="seccion-label">DATOS DE DERIVACIÓN</span>
+          </div>
+          <div class="seccion-campos">
+            <div class="campo-grupo">
+              <label>Área destino</label>
+              <div class="filtro-select-wrapper" id="wrapperAreaDestino">
+                <button type="button" class="filtro-select-trigger" id="triggerAreaDestino">
+                  <span class="filtro-select-text">Seleccione el área</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownAreaDestino"></div>
+              </div>
+              <span class="input-error" id="errorAreaDestino"></span>
+            </div>
+            <div class="campo-grupo">
+              <label>Responsable</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoResponsableDerivar" readonly placeholder="Nombre del responsable" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Cargo del responsable</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoCargoDerivar" readonly placeholder="Ej. Jefe de Unidad" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Nuevo estado</label>
+              <div class="filtro-select-wrapper" id="wrapperEstadoDeriv">
+                <button type="button" class="filtro-select-trigger" id="triggerEstadoDeriv">
+                  <span class="filtro-select-text">Seleccione un estado</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownEstadoDeriv">
+                  <div class="filtro-option" data-value="DERIVADO">Derivado</div>
+                  <div class="filtro-option" data-value="EN_REVISION">En revisión</div>
+                  <div class="filtro-option" data-value="PENDIENTE">Pendiente</div>
+                  <div class="filtro-option" data-value="ATENDIDO">Atendido</div>
+                  <div class="filtro-option" data-value="OBSERVADO">Observado</div>
+                </div>
+              </div>
+              <span class="input-error" id="errorEstadoDerivar"></span>
+            </div>
+            <div class="campo-grupo campo-full">
+                <label>Cuerpo de derivación</label>
+              <div class="input-wrapper">
+                <textarea id="campoObservacionesDerivar" placeholder="Ingrese observaciones..." rows="4"></textarea>
+              </div>
+              <span class="input-error" id="errorObservacionesDerivar"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── ACCIONES FINALES ─── -->
+        <div class="tramite-footer">
+          <div class="tramite-footer-botones">
+            <button class="btn-text-md" id="btnCancelarDerivar">Cancelar</button>
+            <button class="btn-filled-md" id="btnGuardarDerivar">
+              <span id="textoGuardarDerivar">Guardar Derivación</span>
+              <span class="spinner" id="spinnerDerivar"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/utilidades/normalizacion.js"></script>
+  <script src="js/componentes/tabla.js"></script>
+  <script src="js/componentes/fecha.js"></script>
+  <script src="js/componentes/header.js"></script>
+  <script src="js/componentes/lateral.js"></script>
+
+  <script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js"></script>
+  <script src="https://unpkg.com/docxtemplater@3.46.0/build/docxtemplater.min.js"></script>
+  <script src="js/componentes/generar-word.js"></script>
+
+  <script src="js/paginas/registrar-tramite.js"></script>
+
+  <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN -->
+  <div class="modal-overlay" id="modalCerrarSesion">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Estás a punto de cerrar sesión</h3>
+          <p>¿Está seguro de que desea salir del sistema?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

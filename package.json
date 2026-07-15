@@ -1,0 +1,19 @@
+{
+  "name": "nuevo_tramite",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
+    "docxtemplater": "^3.68.7",
+    "jszip": "^3.10.1",
+    "pizzip": "^3.2.0",
+    "xml2js": "^0.6.2"
+  }
+}
