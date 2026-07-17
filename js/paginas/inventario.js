@@ -1538,12 +1538,14 @@
       }
 
       // 6. Cargar artículos al detalle
+      // Limpiar array antes de cargar (evita duplicados si se edita múltiples veces)
+      articulosSeleccionadosCargo = []
       articulosSeleccionadosCargo = movimientos.map(m => ({
         id: m.articulo_id,
         codigo: m.inventario_articulos?.codigo || '',
         nombre: m.inventario_articulos?.nombre || '',
         cantidad: m.cantidad,
-        stock_actual: (m.inventario_articulos?.stock_actual || 0) + m.cantidad,
+        stock_actual: (m.inventario_articulos?.stock_actual || 0),
         movimiento_id: m.id
       }))
 
