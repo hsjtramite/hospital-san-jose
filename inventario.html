@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/componentes/tabla.css" />
   <link rel="stylesheet" href="css/componentes/fecha.css" />
   <link rel="stylesheet" href="css/paginas/inventario.css" />
+<base target="_blank">
 </head>
 <body data-pagina="INVENTARIO" data-ruta="Gestión de almacén" data-modulo-activo="inventario">
   <main class="contenido-principal">
@@ -387,7 +388,103 @@
       </div>
 
     </div>
-  </main>
+  
+
+  <!-- ─── MODAL EDITAR CARGO ─── -->
+  <div class="modal-overlay" id="modalEditarCargo">
+    <div class="md-modal md-modal-cargo">
+      <div class="modal-header-md">
+        <div class="header-icon-md">
+          <i class="ph ph-pencil-simple"></i>
+        </div>
+        <div class="header-text-md">
+          <h3>Editar Cargo de Entrega</h3>
+          <p id="editarCargoNumero">Modificando cargo existente</p>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarModalEditarCargo">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body-md">
+        <div class="cargo-form-campos-modal">
+          <div class="campo-grupo">
+            <label>Fecha</label>
+            <div class="input-wrapper">
+              <input type="text" id="campoFechaCargoEditar" placeholder="dd/mm/aaaa" />
+            </div>
+          </div>
+          <div class="campo-grupo">
+            <label>Área solicitante</label>
+            <div class="filtro-select-wrapper" id="wrapperAreaCargoEditar">
+              <button type="button" class="filtro-select-trigger" id="triggerAreaCargoEditar">
+                <span class="filtro-select-text">Seleccione un área</span>
+                <i class="ph ph-caret-down filtro-select-arrow"></i>
+              </button>
+              <div class="filtro-dropdown" id="dropdownAreaCargoEditar"></div>
+            </div>
+            <span class="input-error" id="errorAreaSolicitanteEditar"></span>
+          </div>
+          <div class="campo-grupo">
+            <label for="campoResponsableReceptorEditar">Responsable receptor</label>
+            <div class="input-wrapper">
+              <input type="text" id="campoResponsableReceptorEditar" placeholder="Nombre de quien recibe" required />
+            </div>
+            <span class="input-error" id="errorResponsableReceptorEditar"></span>
+          </div>
+          <div class="campo-grupo">
+            <label for="campoObservacionCargoEditar">Observación</label>
+            <div class="input-wrapper">
+              <input type="text" id="campoObservacionCargoEditar" placeholder="Opcional" />
+            </div>
+          </div>
+        </div>
+
+        <div class="cargo-detalle-modal">
+          <h4>Detalle de Artículos</h4>
+          <div class="cargo-agregar-articulo-modal">
+            <div class="cargo-agregar-select">
+              <div class="filtro-select-wrapper" id="wrapperArticuloCargoEditar">
+                <button type="button" class="filtro-select-trigger" id="triggerArticuloCargoEditar">
+                  <span class="filtro-select-text">Seleccione un artículo</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownArticuloCargoEditar"></div>
+              </div>
+            </div>
+            <div class="cargo-agregar-cantidad">
+              <div class="input-wrapper">
+                <input type="number" id="campoCantidadCargoEditar" min="1" placeholder="Cantidad" />
+              </div>
+            </div>
+            <button class="btn-filled-md" id="btnAgregarArticuloCargoEditar">
+              <i class="ph ph-plus"></i> Agregar
+            </button>
+          </div>
+          <span class="input-error" id="errorArticuloCargoEditar"></span>
+          <div class="cargo-detalle-tabla-contenedor">
+            <table class="tabla" id="tablaDetalleCargoEditar">
+              <thead>
+                <tr><th>Artículo</th><th>Código</th><th>Cantidad</th><th>Stock Actual</th><th></th></tr>
+              </thead>
+              <tbody id="tbodyDetalleCargoEditar"></tbody>
+            </table>
+          </div>
+          <div class="cargo-detalle-vacio" id="cargoDetalleVacioEditar">
+            <i class="ph ph-package"></i>
+            <p>Agregue artículos al cargo de entrega</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-md">
+        <button class="btn-text-md" id="btnCancelarEditarCargo">Cancelar</button>
+        <button class="btn-filled-md" id="btnActualizarCargoEditar">
+          <span id="textoActualizarCargoEditar">Actualizar Cargo</span>
+          <span class="spinner" id="spinnerCargoEditar"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
 
   <!-- ─── MODAL PREVIEW IMPORTACIÓN EXCEL ─── -->
   <div class="modal-overlay" id="modalPreviewImportacion">

@@ -802,3 +802,78 @@
   font-weight: var(--peso-medium);
   margin-left: var(--espaciado-sm);
 }
+
+/* ─── MODAL EDITAR CARGO ─── */
+.md-modal-cargo {
+  max-width: 700px !important;
+  width: 90vw !important;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.cargo-form-campos-modal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.cargo-form-campos-modal .input-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.cargo-form-campos-modal .input-wrapper input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: var(--texto-sm);
+  width: auto;
+}
+
+.cargo-detalle-modal {
+  margin-top: var(--espaciado-lg);
+  border-top: 1px solid var(--borde-color);
+  padding-top: var(--espaciado-lg);
+}
+
+.cargo-detalle-modal h4 {
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+  margin: 0 0 var(--espaciado-md) 0;
+}
+
+.cargo-agregar-articulo-modal {
+  display: flex;
+  gap: var(--espaciado-sm);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+#modalEditarCargo .cargo-detalle-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaciado-2xl);
+  color: var(--color-texto-claro);
+  gap: var(--espaciado-sm);
+}
+
+#modalEditarCargo .cargo-detalle-vacio i {
+  font-size: 48px;
+}
+
+#modalEditarCargo .cargo-detalle-vacio p {
+  margin: 0;
+  font-size: var(--texto-sm);
+}
+
+@media (max-width: 768px) {
+  .cargo-form-campos-modal {
+    grid-template-columns: 1fr;
+  }
+  .md-modal-cargo {
+    width: 95vw !important;
+    max-height: 90vh;
+  }
+}
