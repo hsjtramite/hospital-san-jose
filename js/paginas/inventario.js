@@ -235,8 +235,8 @@
     trigger.dataset.value = valor
 
     dropdown.innerHTML = opciones.map(o => {
-      const sel = String(o.valor) === valor
-      return `<div class="filtro-option${sel ? ' seleccionada' : ''}" data-value="${o.valor}">${escaparHtml(o.texto)}</div>`
+      const sel = String(o.valor) === valor ? ' seleccionada' : ''
+      return `<div class="filtro-option${sel}" data-value="${o.valor}">${escaparHtml(o.texto)}</div>`
     }).join('')
   }
 
@@ -1166,13 +1166,22 @@
       contenedor.appendChild(tablaCargos.obtenerElemento())
       await cargarCargosRecientes()
 
-      contenedor.addEventListener('click', (e) => {
+      contenedor.addEventListener('click', async (e) => {
         const btn = e.target.closest('[data-accion]')
         if (!btn) return
         e.stopPropagation()
+        e.preventDefault()
         const id = btn.dataset.id
-        if (btn.dataset.accion === 'ver-pdf') verCargoPdf(id)
-        if (btn.dataset.accion === 'descargar-pdf') descargarCargoPdf(id)
+        console.log('[Inventario] Click en acción:', btn.dataset.accion, 'ID:', id)
+        
+        try {
+          if (btn.dataset.accion === 'ver-pdf') await verCargoPdf(id)
+          if (btn.dataset.accion === 'descargar-pdf') await descargarCargoPdf(id)
+          if (btn.dataset.accion === 'editar-cargo') await editarCargo(id)
+          if (btn.dataset.accion === 'eliminar-cargo') confirmarEliminarCargo(id)
+        } catch (err) {
+          console.error('[Inventario] Error en acción:', btn.dataset.accion, err)
+        }
       })
     } catch (err) {
       console.error('[Inventario] Error en renderizarDescontar():', err)
@@ -1476,56 +1485,88 @@
     if (tablaCargos) tablaCargos.actualizar(cargos)
   }
 
-    /* ─── EDITAR CARGO ─── */
   async function editarCargo(numeroCargo) {
-    // Cargar los movimientos del cargo
-    const { data: movimientos, error } = await supabase
-      .from('inventario_movimientos')
-      .select('*, inventario_articulos!inner(id, nombre, codigo, stock_actual)')
-      .eq('numero_cargo', numeroCargo)
-      .eq('tipo', 'salida')
+    console.log('[Inventario] Editando cargo:', numeroCargo)
+    
+    try {
+      // 1. Cargar los movimientos del cargo
+      const { data: movimientos, error } = await supabase
+        .from('inventario_movimientos')
+        .select('*, inventario_articulos!inner(id, nombre, codigo, stock_actual)')
+        .eq('numero_cargo', numeroCargo)
+        .eq('tipo', 'salida')
 
-    if (error || !movimientos || movimientos.length === 0) {
-      alert('No se pudieron cargar los datos del cargo')
-      return
+      console.log('[Inventario] Movimientos cargados:', movimientos, 'Error:', error)
+
+      if (error) {
+        console.error('[Inventario] Error al cargar movimientos:', error)
+        alert('Error al cargar los datos del cargo: ' + error.message)
+        return
+      }
+
+      if (!movimientos || movimientos.length === 0) {
+        alert('No se encontraron datos para este cargo')
+        return
+      }
+
+      const cargo = movimientos[0]
+
+      // 2. Cargar áreas
+      const { data: areasData, error: areasError } = await supabase
+        .from('areas')
+        .select('nombre')
+        .eq('activo', true)
+        .order('nombre')
+
+      if (areasError) {
+        console.error('[Inventario] Error al cargar áreas:', areasError)
+      }
+
+      const areaOpts = (areasData || []).map(a => ({ valor: a.nombre, texto: a.nombre }))
+      
+      // 3. Prellenar área
+      actualizarOpcionesDesplegable('wrapperAreaCargo', 'triggerAreaCargo', 'dropdownAreaCargo', areaOpts, cargo.area_solicitante, 'Seleccione un área')
+
+      // 4. Prellenar campos
+      document.getElementById('campoResponsableReceptor').value = cargo.responsable_receptor || ''
+      document.getElementById('campoObservacionCargo').value = cargo.observacion || ''
+
+      // 5. Prellenar fecha
+      if (window.datePickerCargo && cargo.created_at) {
+        window.datePickerCargo.fechaISO = cargo.created_at.slice(0, 10)
+        document.getElementById('campoFechaCargo').value = formatearFecha(cargo.created_at.slice(0, 10))
+      }
+
+      // 6. Cargar artículos al detalle
+      articulosSeleccionadosCargo = movimientos.map(m => ({
+        id: m.articulo_id,
+        codigo: m.inventario_articulos?.codigo || '',
+        nombre: m.inventario_articulos?.nombre || '',
+        cantidad: m.cantidad,
+        stock_actual: (m.inventario_articulos?.stock_actual || 0) + m.cantidad,
+        movimiento_id: m.id
+      }))
+
+      console.log('[Inventario] Artículos seleccionados:', articulosSeleccionadosCargo)
+
+      renderizarDetalleCargo()
+
+      // 7. Cambiar modo del botón
+      const btnTexto = document.getElementById('textoRegistrarCargo')
+      if (btnTexto) btnTexto.textContent = 'Actualizar Cargo'
+
+      // 8. Guardar referencia al cargo que se está editando
+      document.getElementById('btnRegistrarCargo').dataset.editandoCargo = numeroCargo
+
+      // 9. Scroll al formulario
+      document.querySelector('.cargo-formulario').scrollIntoView({ behavior: 'smooth', block: 'start' })
+      
+      console.log('[Inventario] Cargo listo para editar:', numeroCargo)
+      
+    } catch (err) {
+      console.error('[Inventario] Error inesperado en editarCargo:', err)
+      alert('Error inesperado: ' + err.message)
     }
-
-    const cargo = movimientos[0]
-
-    // Prellenar formulario de cargo
-    const areaOpts = (await supabase.from('areas').select('nombre').eq('activo', true).order('nombre')).data
-      .map(a => ({ valor: a.nombre, texto: a.nombre }))
-    actualizarOpcionesDesplegable('wrapperAreaCargo', 'triggerAreaCargo', 'dropdownAreaCargo', areaOpts, cargo.area_solicitante)
-
-    document.getElementById('campoResponsableReceptor').value = cargo.responsable_receptor || ''
-    document.getElementById('campoObservacionCargo').value = cargo.observacion || ''
-
-    if (window.datePickerCargo && cargo.created_at) {
-      window.datePickerCargo.fechaISO = cargo.created_at.slice(0, 10)
-      document.getElementById('campoFechaCargo').value = formatearFecha(cargo.created_at.slice(0, 10))
-    }
-
-    // Cargar artículos al detalle
-    articulosSeleccionadosCargo = movimientos.map(m => ({
-      id: m.articulo_id,
-      codigo: m.inventario_articulos.codigo,
-      nombre: m.inventario_articulos.nombre,
-      cantidad: m.cantidad,
-      stock_actual: m.inventario_articulos.stock_actual + m.cantidad, // Stock original antes de la salida
-      movimiento_id: m.id // Guardar ID para actualizar
-    }))
-
-    renderizarDetalleCargo()
-
-    // Cambiar modo del botón
-    const btnTexto = document.getElementById('textoRegistrarCargo')
-    if (btnTexto) btnTexto.textContent = 'Actualizar Cargo'
-
-    // Guardar referencia al cargo que se está editando
-    document.getElementById('btnRegistrarCargo').dataset.editandoCargo = numeroCargo
-
-    // Scroll al formulario
-    document.querySelector('.cargo-formulario').scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   /* ─── ELIMINAR CARGO ─── */
@@ -1883,5 +1924,5 @@
         cargoEliminandoNumero = null
       }
     })
-
-})()
+  }
+)()
