@@ -767,3 +767,38 @@
   margin-top: var(--espaciado-md);
   min-height: 1.2em;
 }
+
+/* ─── ACCIONES EN TABLA DE ENTRADAS ─── */
+#tablaUltimasEntradas th:last-child,
+#tablaUltimasEntradas td:last-child {
+  width: 90px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#tablaUltimasEntradas .acciones-tabla {
+  justify-content: center;
+}
+
+/* ─── ACCIONES EN TABLA DE CARGOS (más botones) ─── */
+.tabla .acciones-tabla {
+  gap: 2px;
+}
+
+/* Ajustar ancho de columna de acciones en cargos */
+.tabla th:last-child,
+.tabla td:last-child {
+  width: auto;
+  min-width: 140px;
+  text-align: center;
+}
+
+/* ─── ESTADO DE EDICIÓN ─── */
+.ingresar-form-header h3[data-modo="edicion"]::after,
+.cargo-formulario h3[data-modo="edicion"]::after {
+  content: ' (Editando)';
+  color: var(--color-primario-inicio);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medium);
+  margin-left: var(--espaciado-sm);
+}

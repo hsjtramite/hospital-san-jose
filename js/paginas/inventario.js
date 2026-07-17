@@ -11,6 +11,13 @@
   let articulosSeleccionadosCargo = []
   let editandoArticuloId = null
   let datosImportacionPreview = []
+    /* Estado para editar/eliminar entradas */
+  let entradaEditandoId = null
+  let entradaEliminandoId = null
+  let datosEntradasCache = []
+
+  /* Estado para editar/eliminar cargos */
+  let cargoEliminandoNumero = null
 
   const CATEGORIAS_PREDEFINIDAS = [
     'Útiles de Oficina', 'Material de Limpieza', 'Material de Impresión',
@@ -338,8 +345,10 @@
         if (!btn) return
         e.stopPropagation()
         const id = btn.dataset.id
-        if (btn.dataset.accion === 'editar') editarArticulo(id)
-        if (btn.dataset.accion === 'eliminar' || btn.dataset.accion === 'reactivar') toggleEstadoArticulo(id, btn.dataset.accion === 'reactivar')
+        if (btn.dataset.accion === 'ver-pdf') verCargoPdf(id)
+        if (btn.dataset.accion === 'descargar-pdf') descargarCargoPdf(id)
+        if (btn.dataset.accion === 'editar-cargo') editarCargo(id)
+        if (btn.dataset.accion === 'eliminar-cargo') confirmarEliminarCargo(id)
       })
 
       document.getElementById('buscarArticulo').addEventListener('keydown', (e) => {
@@ -784,6 +793,12 @@
   }
 
   async function registrarEntrada() {
+    // Si estamos editando, llamar a actualizar
+    if (entradaEditandoId) {
+      await actualizarEntrada()
+      return
+    }
+
     limpiarErrores(document.getElementById('panelIngresar'))
 
     const articuloId = document.getElementById('triggerArticuloIngreso')?.dataset?.value || ''
@@ -849,23 +864,232 @@
     const tbody = document.getElementById('tbodyUltimasEntradas')
     if (!tbody) return
 
+    datosEntradasCache = data || []
+
     if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--color-texto-claro);padding:2rem;">No hay entradas registradas</td></tr>'
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--color-texto-claro);padding:2rem;">No hay entradas registradas</td></tr>'
       return
     }
 
     tbody.innerHTML = data.map(m => {
       const art = m.inventario_articulos || {}
       const nombreCompleto = `${art.codigo || ''} — ${art.nombre || ''}`
-      return `<tr>
+      return `<tr data-id="${m.id}">
         <td>${formatearFecha(m.created_at ? m.created_at.slice(0, 10) : '')}</td>
         <td>${escaparHtml(nombreCompleto)}</td>
         <td>${m.cantidad}</td>
         <td>${escaparHtml(m.proveedor || '—')}</td>
         <td>${m.usuario_id === perfilActual.id ? `${perfilActual.nombre_completo || ''} ${perfilActual.apellidos_completos || ''}`.trim() : '—'}</td>
         <td>${escaparHtml(m.observacion || '—')}</td>
+        <td>
+          <div class="acciones-tabla">
+            <button class="btn-accion btn-editar" data-accion="editar-entrada" data-id="${m.id}" title="Editar entrada">
+              <i class="ph ph-pencil-simple"></i>
+            </button>
+            <button class="btn-accion btn-eliminar" data-accion="eliminar-entrada" data-id="${m.id}" title="Eliminar entrada">
+              <i class="ph ph-trash-simple"></i>
+            </button>
+          </div>
+        </td>
       </tr>`
     }).join('')
+
+    // Bind eventos a los botones de acción
+    tbody.querySelectorAll('[data-accion]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const id = btn.dataset.id
+        if (btn.dataset.accion === 'editar-entrada') editarEntrada(id)
+        if (btn.dataset.accion === 'eliminar-entrada') confirmarEliminarEntrada(id)
+      })
+    })
+  }
+
+    /* ─── EDITAR ENTRADA ─── */
+  function editarEntrada(id) {
+    const entrada = datosEntradasCache.find(e => e.id === id)
+    if (!entrada) return
+
+    entradaEditandoId = id
+
+    // Prellenar el formulario con los datos de la entrada
+    const artOpts = articulos.filter(a => a.activo).map(a => ({ valor: a.id, texto: `${a.codigo} — ${a.nombre}` }))
+    actualizarOpcionesDesplegable('wrapperArticuloIngreso', 'triggerArticuloIngreso', 'dropdownArticuloIngreso', artOpts, entrada.articulo_id, 'Seleccione un artículo')
+
+    document.getElementById('campoCantidadIngreso').value = entrada.cantidad
+    document.getElementById('campoProveedor').value = entrada.proveedor || ''
+    document.getElementById('campoDocEntrada').value = entrada.numero_documento || ''
+    document.getElementById('campoMotivoEntrada').value = entrada.observacion || ''
+
+    if (window.datePickerIngreso && entrada.created_at) {
+      window.datePickerIngreso.fechaISO = entrada.created_at.slice(0, 10)
+      document.getElementById('campoFechaIngreso').value = formatearFecha(entrada.created_at.slice(0, 10))
+    }
+
+    // Cambiar el botón a "Actualizar Entrada"
+    const btnTexto = document.getElementById('textoRegistrarEntrada')
+    if (btnTexto) btnTexto.textContent = 'Actualizar Entrada'
+
+    // Scroll al formulario
+    document.querySelector('.ingresar-form').scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  async function actualizarEntrada() {
+    if (!entradaEditandoId) return
+
+    limpiarErrores(document.getElementById('panelIngresar'))
+
+    const articuloId = document.getElementById('triggerArticuloIngreso')?.dataset?.value || ''
+    const cantidadNueva = parseInt(document.getElementById('campoCantidadIngreso').value) || 0
+    const proveedor = document.getElementById('campoProveedor').value.trim()
+    const numeroDoc = document.getElementById('campoDocEntrada').value.trim()
+    const observacion = document.getElementById('campoMotivoEntrada').value.trim()
+    const fecha = window.datePickerIngreso?.obtenerValor() || new Date().toISOString().slice(0, 10)
+
+    let hayError = false
+    if (!articuloId) { mostrarError('errorArticuloIngreso', 'Seleccione un artículo'); hayError = true }
+    if (cantidadNueva <= 0) { mostrarError('errorCantidadIngreso', 'Ingrese una cantidad válida'); hayError = true }
+    if (hayError) return
+
+    setCargandoBoton('btnRegistrarEntrada', 'spinnerEntrada', 'textoRegistrarEntrada', true)
+
+    try {
+      // Obtener la entrada original para calcular diferencia de stock
+      const { data: entradaOriginal } = await supabase
+        .from('inventario_movimientos')
+        .select('articulo_id, cantidad, stock_anterior')
+        .eq('id', entradaEditandoId)
+        .single()
+
+      if (!entradaOriginal) throw new Error('Entrada no encontrada')
+
+      // Obtener stock actual del artículo
+      const { data: art } = await supabase
+        .from('inventario_articulos')
+        .select('stock_actual')
+        .eq('id', articuloId)
+        .single()
+
+      if (!art) throw new Error('Artículo no encontrado')
+
+      // Calcular nuevo stock: revertir entrada original y aplicar nueva
+      let stockBase = art.stock_actual
+      if (entradaOriginal.articulo_id === articuloId) {
+        // Mismo artículo: quitar cantidad original, sumar nueva
+        stockBase = stockBase - entradaOriginal.cantidad + cantidadNueva
+      } else {
+        // Artículo diferente: revertir en el original, sumar en el nuevo
+        const { data: artOriginal } = await supabase
+          .from('inventario_articulos')
+          .select('stock_actual')
+          .eq('id', entradaOriginal.articulo_id)
+          .single()
+        if (artOriginal) {
+          await supabase.from('inventario_articulos')
+            .update({ stock_actual: artOriginal.stock_actual - entradaOriginal.cantidad })
+            .eq('id', entradaOriginal.articulo_id)
+        }
+        stockBase = art.stock_actual + cantidadNueva
+      }
+
+      // Actualizar stock del artículo
+      await supabase.from('inventario_articulos')
+        .update({ stock_actual: stockBase })
+        .eq('id', articuloId)
+
+      // Actualizar el movimiento
+      const { error: errMov } = await supabase.from('inventario_movimientos').update({
+        articulo_id: articuloId,
+        cantidad: cantidadNueva,
+        stock_anterior: stockBase - cantidadNueva,
+        stock_actual: stockBase,
+        proveedor: proveedor || null,
+        numero_documento: numeroDoc || null,
+        observacion: observacion || null,
+        created_at: fecha + 'T00:00:00+00',
+      }).eq('id', entradaEditandoId)
+
+      if (errMov) throw new Error(errMov.message)
+
+      // Resetear formulario
+      resetearFormularioEntrada()
+
+      await cargarUltimasEntradas()
+      await cargarArticulos()
+      await renderizarResumen()
+    } catch (err) {
+      mostrarError('errorCantidadIngreso', err.message || 'Error al actualizar entrada')
+    }
+    setCargandoBoton('btnRegistrarEntrada', 'spinnerEntrada', 'textoRegistrarEntrada', false, 'Registrar Entrada')
+  }
+
+  function resetearFormularioEntrada() {
+    entradaEditandoId = null
+    document.getElementById('campoCantidadIngreso').value = ''
+    document.getElementById('campoProveedor').value = ''
+    document.getElementById('campoDocEntrada').value = ''
+    document.getElementById('campoMotivoEntrada').value = ''
+    document.getElementById('campoFechaIngreso').value = new Date().toISOString().slice(0, 10)
+    if (window.datePickerIngreso) window.datePickerIngreso.fechaISO = new Date().toISOString().slice(0, 10)
+
+    const artOpts = articulos.filter(a => a.activo).map(a => ({ valor: a.id, texto: `${a.codigo} — ${a.nombre}` }))
+    actualizarOpcionesDesplegable('wrapperArticuloIngreso', 'triggerArticuloIngreso', 'dropdownArticuloIngreso', artOpts, '', 'Seleccione un artículo')
+
+    const btnTexto = document.getElementById('textoRegistrarEntrada')
+    if (btnTexto) btnTexto.textContent = 'Registrar Entrada'
+  }
+
+  /* ─── ELIMINAR ENTRADA ─── */
+  function confirmarEliminarEntrada(id) {
+    entradaEliminandoId = id
+    document.getElementById('modalEliminarEntrada').classList.add('activo')
+  }
+
+  async function eliminarEntrada() {
+    if (!entradaEliminandoId) return
+
+    try {
+      // Obtener datos de la entrada para revertir stock
+      const { data: entrada } = await supabase
+        .from('inventario_movimientos')
+        .select('articulo_id, cantidad')
+        .eq('id', entradaEliminandoId)
+        .single()
+
+      if (!entrada) throw new Error('Entrada no encontrada')
+
+      // Revertir stock
+      const { data: art } = await supabase
+        .from('inventario_articulos')
+        .select('stock_actual')
+        .eq('id', entrada.articulo_id)
+        .single()
+
+      if (art) {
+        const nuevoStock = Math.max(0, (art.stock_actual || 0) - entrada.cantidad)
+        await supabase.from('inventario_articulos')
+          .update({ stock_actual: nuevoStock })
+          .eq('id', entrada.articulo_id)
+      }
+
+      // Eliminar movimiento
+      const { error } = await supabase
+        .from('inventario_movimientos')
+        .delete()
+        .eq('id', entradaEliminandoId)
+
+      if (error) throw new Error(error.message)
+
+      document.getElementById('modalEliminarEntrada').classList.remove('activo')
+      entradaEliminandoId = null
+
+      await cargarUltimasEntradas()
+      await cargarArticulos()
+      await renderizarResumen()
+    } catch (err) {
+      alert('Error al eliminar entrada: ' + err.message)
+      document.getElementById('modalEliminarEntrada').classList.remove('activo')
+    }
   }
 
   /* ════════════════════════════════════════════
@@ -921,6 +1145,12 @@
             clave: 'acciones', titulo: '',
             render: (v, fila) => `
             <div class="acciones-tabla">
+              <button class="btn-accion btn-editar" data-accion="editar-cargo" data-id="${fila.numero_cargo}" title="Editar cargo">
+                <i class="ph ph-pencil-simple"></i>
+              </button>
+              <button class="btn-accion btn-eliminar" data-accion="eliminar-cargo" data-id="${fila.numero_cargo}" title="Eliminar cargo">
+                <i class="ph ph-trash-simple"></i>
+              </button>
               <button class="btn-accion-pdf" data-accion="ver-pdf" data-id="${fila.numero_cargo}" title="Ver PDF">
                 <i class="ph ph-eye"></i>
               </button>
@@ -1049,6 +1279,13 @@
   }
 
   async function registrarCargo() {
+    const editandoCargo = document.getElementById('btnRegistrarCargo').dataset.editandoCargo
+
+    if (editandoCargo) {
+      await actualizarCargo(editandoCargo)
+      return
+    }
+
     limpiarErrores(document.querySelector('.cargo-formulario'))
 
     const area = document.getElementById('triggerAreaCargo')?.dataset?.value || ''
@@ -1108,6 +1345,108 @@
     setCargandoBoton('btnRegistrarCargo', 'spinnerCargo', 'textoRegistrarCargo', false, 'Registrar Cargo')
   }
 
+  async function actualizarCargo(numeroCargo) {
+    limpiarErrores(document.querySelector('.cargo-formulario'))
+
+    const area = document.getElementById('triggerAreaCargo')?.dataset?.value || ''
+    const responsable = document.getElementById('campoResponsableReceptor').value.trim()
+    const observacion = document.getElementById('campoObservacionCargo').value.trim()
+    const fecha = window.datePickerCargo?.obtenerValor() || new Date().toISOString().slice(0, 10)
+
+    let hayError = false
+    if (!area) { mostrarError('errorAreaSolicitante', 'Seleccione un área'); hayError = true }
+    if (!responsable) { mostrarError('errorResponsableReceptor', 'El responsable receptor es obligatorio'); hayError = true }
+    if (articulosSeleccionadosCargo.length === 0) { mostrarError('errorArticuloCargo', 'Agregue al menos un artículo'); hayError = true }
+    if (hayError) return
+
+    setCargandoBoton('btnRegistrarCargo', 'spinnerCargo', 'textoRegistrarCargo', true)
+
+    try {
+      // 1. Obtener movimientos originales del cargo
+      const { data: movimientosOriginales, error: errOrig } = await supabase
+        .from('inventario_movimientos')
+        .select('id, articulo_id, cantidad')
+        .eq('numero_cargo', numeroCargo)
+        .eq('tipo', 'salida')
+
+      if (errOrig) throw new Error(errOrig.message)
+
+      // 2. Revertir stock de movimientos originales
+      for (const m of movimientosOriginales) {
+        const { data: art } = await supabase
+          .from('inventario_articulos')
+          .select('stock_actual')
+          .eq('id', m.articulo_id)
+          .single()
+
+        if (art) {
+          await supabase.from('inventario_articulos')
+            .update({ stock_actual: (art.stock_actual || 0) + m.cantidad })
+            .eq('id', m.articulo_id)
+        }
+      }
+
+      // 3. Eliminar movimientos originales
+      await supabase.from('inventario_movimientos')
+        .delete()
+        .eq('numero_cargo', numeroCargo)
+        .eq('tipo', 'salida')
+
+      // 4. Crear nuevos movimientos con datos actualizados
+      for (const item of articulosSeleccionadosCargo) {
+        const { data: art } = await supabase
+          .from('inventario_articulos')
+          .select('stock_actual')
+          .eq('id', item.id)
+          .single()
+
+        if (!art) throw new Error(`Artículo ${item.nombre} no encontrado`)
+        if (item.cantidad > art.stock_actual) {
+          throw new Error(`Stock insuficiente para ${item.nombre}. Disponible: ${art.stock_actual}, solicitado: ${item.cantidad}`)
+        }
+
+        const nuevoStock = (art.stock_actual || 0) - item.cantidad
+
+        await supabase.from('inventario_articulos')
+          .update({ stock_actual: nuevoStock })
+          .eq('id', item.id)
+
+        await supabase.from('inventario_movimientos').insert({
+          articulo_id: item.id,
+          tipo: 'salida',
+          cantidad: item.cantidad,
+          stock_anterior: art.stock_actual || 0,
+          stock_actual: nuevoStock,
+          numero_cargo: numeroCargo,
+          area_solicitante: area,
+          responsable_receptor: responsable,
+          observacion: observacion || null,
+          usuario_id: perfilActual.id,
+        })
+      }
+
+      // 5. Resetear formulario
+      articulosSeleccionadosCargo = []
+      renderizarDetalleCargo()
+      document.getElementById('triggerAreaCargo').dataset.value = ''
+      document.getElementById('triggerAreaCargo').querySelector('.filtro-select-text').textContent = 'Seleccione un área'
+      document.getElementById('dropdownAreaCargo').querySelectorAll('.filtro-option').forEach(o => o.classList.remove('seleccionada'))
+      document.getElementById('campoResponsableReceptor').value = ''
+      document.getElementById('campoObservacionCargo').value = ''
+      document.getElementById('btnRegistrarCargo').dataset.editandoCargo = ''
+
+      const btnTexto = document.getElementById('textoRegistrarCargo')
+      if (btnTexto) btnTexto.textContent = 'Registrar Cargo'
+
+      await cargarCargosRecientes()
+      await cargarArticulos()
+      await renderizarResumen()
+    } catch (err) {
+      mostrarError('errorAreaSolicitante', err.message || 'Error al actualizar cargo')
+    }
+    setCargandoBoton('btnRegistrarCargo', 'spinnerCargo', 'textoRegistrarCargo', false, 'Registrar Cargo')
+  }
+
   async function cargarCargosRecientes() {
     const { data, error } = await supabase
       .from('inventario_movimientos')
@@ -1135,6 +1474,114 @@
 
     const cargos = Array.from(cargosMap.values())
     if (tablaCargos) tablaCargos.actualizar(cargos)
+  }
+
+    /* ─── EDITAR CARGO ─── */
+  async function editarCargo(numeroCargo) {
+    // Cargar los movimientos del cargo
+    const { data: movimientos, error } = await supabase
+      .from('inventario_movimientos')
+      .select('*, inventario_articulos!inner(id, nombre, codigo, stock_actual)')
+      .eq('numero_cargo', numeroCargo)
+      .eq('tipo', 'salida')
+
+    if (error || !movimientos || movimientos.length === 0) {
+      alert('No se pudieron cargar los datos del cargo')
+      return
+    }
+
+    const cargo = movimientos[0]
+
+    // Prellenar formulario de cargo
+    const areaOpts = (await supabase.from('areas').select('nombre').eq('activo', true).order('nombre')).data
+      .map(a => ({ valor: a.nombre, texto: a.nombre }))
+    actualizarOpcionesDesplegable('wrapperAreaCargo', 'triggerAreaCargo', 'dropdownAreaCargo', areaOpts, cargo.area_solicitante)
+
+    document.getElementById('campoResponsableReceptor').value = cargo.responsable_receptor || ''
+    document.getElementById('campoObservacionCargo').value = cargo.observacion || ''
+
+    if (window.datePickerCargo && cargo.created_at) {
+      window.datePickerCargo.fechaISO = cargo.created_at.slice(0, 10)
+      document.getElementById('campoFechaCargo').value = formatearFecha(cargo.created_at.slice(0, 10))
+    }
+
+    // Cargar artículos al detalle
+    articulosSeleccionadosCargo = movimientos.map(m => ({
+      id: m.articulo_id,
+      codigo: m.inventario_articulos.codigo,
+      nombre: m.inventario_articulos.nombre,
+      cantidad: m.cantidad,
+      stock_actual: m.inventario_articulos.stock_actual + m.cantidad, // Stock original antes de la salida
+      movimiento_id: m.id // Guardar ID para actualizar
+    }))
+
+    renderizarDetalleCargo()
+
+    // Cambiar modo del botón
+    const btnTexto = document.getElementById('textoRegistrarCargo')
+    if (btnTexto) btnTexto.textContent = 'Actualizar Cargo'
+
+    // Guardar referencia al cargo que se está editando
+    document.getElementById('btnRegistrarCargo').dataset.editandoCargo = numeroCargo
+
+    // Scroll al formulario
+    document.querySelector('.cargo-formulario').scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  /* ─── ELIMINAR CARGO ─── */
+  function confirmarEliminarCargo(numeroCargo) {
+    cargoEliminandoNumero = numeroCargo
+    document.getElementById('modalEliminarCargo').classList.add('activo')
+  }
+
+  async function eliminarCargo() {
+    if (!cargoEliminandoNumero) return
+
+    try {
+      // Obtener todos los movimientos del cargo
+      const { data: movimientos, error: errMov } = await supabase
+        .from('inventario_movimientos')
+        .select('articulo_id, cantidad')
+        .eq('numero_cargo', cargoEliminandoNumero)
+        .eq('tipo', 'salida')
+
+      if (errMov) throw new Error(errMov.message)
+
+      // Revertir stock de cada artículo
+      for (const m of movimientos) {
+        const { data: art } = await supabase
+          .from('inventario_articulos')
+          .select('stock_actual')
+          .eq('id', m.articulo_id)
+          .single()
+
+        if (art) {
+          const nuevoStock = (art.stock_actual || 0) + m.cantidad
+          await supabase.from('inventario_articulos')
+            .update({ stock_actual: nuevoStock })
+            .eq('id', m.articulo_id)
+        }
+      }
+
+      // Eliminar movimientos
+      const { error } = await supabase
+        .from('inventario_movimientos')
+        .delete()
+        .eq('numero_cargo', cargoEliminandoNumero)
+        .eq('tipo', 'salida')
+
+      if (error) throw new Error(error.message)
+
+      document.getElementById('modalEliminarCargo').classList.remove('activo')
+      cargoEliminandoNumero = null
+
+      await cargarCargosRecientes()
+      await cargarArticulos()
+      await renderizarResumen()
+    } catch (err) {
+      alert('Error al eliminar cargo: ' + err.message)
+      document.getElementById('modalEliminarCargo').classList.remove('activo')
+    }
   }
 
   /* ════════════════════════════════════════════
@@ -1410,4 +1857,31 @@
       if (num) await descargarCargoPdf(num)
     })
   }
+
+      /* ─── Modal Eliminar Entrada ─── */
+    document.getElementById('btnConfirmarEliminarEntrada').addEventListener('click', eliminarEntrada)
+    document.getElementById('btnCancelarEliminarEntrada').addEventListener('click', () => {
+      document.getElementById('modalEliminarEntrada').classList.remove('activo')
+      entradaEliminandoId = null
+    })
+    document.getElementById('modalEliminarEntrada').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        document.getElementById('modalEliminarEntrada').classList.remove('activo')
+        entradaEliminandoId = null
+      }
+    })
+
+    /* ─── Modal Eliminar Cargo ─── */
+    document.getElementById('btnConfirmarEliminarCargo').addEventListener('click', eliminarCargo)
+    document.getElementById('btnCancelarEliminarCargo').addEventListener('click', () => {
+      document.getElementById('modalEliminarCargo').classList.remove('activo')
+      cargoEliminandoNumero = null
+    })
+    document.getElementById('modalEliminarCargo').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        document.getElementById('modalEliminarCargo').classList.remove('activo')
+        cargoEliminandoNumero = null
+      }
+    })
+
 })()

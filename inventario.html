@@ -406,15 +406,18 @@
       </div>
       <div class="modal-body-md">
         <div class="tabla-wrapper" style="max-height:300px;overflow:auto;">
-          <table class="tabla">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Descripción</th>
-                <th>Cantidad</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
+            <table class="tabla" id="tablaUltimasEntradas">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Artículo</th>
+                  <th>Cantidad</th>
+                  <th>Proveedor</th>
+                  <th>Usuario</th>
+                  <th>Observación</th>
+                  <th></th>
+                </tr>
+              </thead>
             <tbody id="tbodyPreviewImportacion"></tbody>
           </table>
         </div>
@@ -429,6 +432,42 @@
       </div>
     </div>
   </div>
+
+  <!-- ─── MODAL CONFIRMACIÓN ELIMINAR ENTRADA ─── -->
+<div class="modal-overlay" id="modalEliminarEntrada">
+  <div class="md-modal">
+    <div class="modal-header-md modal-header-centro">
+      <div class="header-text-md">
+        <h3>Eliminar entrada</h3>
+        <p>¿Está seguro de que desea eliminar esta entrada? Se revertirá el stock del artículo.</p>
+      </div>
+    </div>
+    <div class="modal-footer-md modal-footer-centro">
+      <button class="btn-text-md" id="btnCancelarEliminarEntrada">Cancelar</button>
+      <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarEntrada">
+        <span id="textoConfirmarEliminarEntrada">Eliminar</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL CONFIRMACIÓN ELIMINAR CARGO ─── -->
+<div class="modal-overlay" id="modalEliminarCargo">
+  <div class="md-modal">
+    <div class="modal-header-md modal-header-centro">
+      <div class="header-text-md">
+        <h3>Eliminar cargo</h3>
+        <p>¿Está seguro de que desea eliminar este cargo de entrega? Se revertirá el stock de todos los artículos involucrados.</p>
+      </div>
+    </div>
+    <div class="modal-footer-md modal-footer-centro">
+      <button class="btn-text-md" id="btnCancelarEliminarCargo">Cancelar</button>
+      <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarCargo">
+        <span id="textoConfirmarEliminarCargo">Eliminar</span>
+      </button>
+    </div>
+  </div>
+</div>
 
   <!-- ─── MODAL VER CARGO PDF ─── -->
   <div class="modal-overlay" id="modalVerCargoPdf">
