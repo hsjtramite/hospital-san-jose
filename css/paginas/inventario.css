@@ -1045,3 +1045,47 @@
     width: 100%;
   }
 }
+
+
+/* ════════════════════════════════════════════
+   FIX: Dropdown de artículos en modal cargo
+   ════════════════════════════════════════════ */
+
+/* Agrandar el contenedor del select de artículos */
+.cargo-agregar-articulo-modal .cargo-agregar-select {
+  flex: 1;
+  min-width: 320px;
+  max-width: 100%;
+}
+
+/* El trigger del dropdown debe mostrar texto completo */
+#wrapperArticuloCargoModal .filtro-select-trigger {
+  white-space: normal;
+  text-align: left;
+  height: auto;
+  min-height: 40px;
+  padding: 8px 36px 8px 14px;
+  line-height: 1.4;
+}
+
+/* Las opciones del dropdown deben mostrar texto completo */
+#dropdownArticuloCargoModal .filtro-option {
+  white-space: normal;
+  text-align: left;
+  padding: 10px 14px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Agrandar el dropdown desplegado */
+#dropdownArticuloCargoModal {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* Ajustar el texto seleccionado para que no se corte con ellipsis */
+#wrapperArticuloCargoModal .filtro-select-text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
