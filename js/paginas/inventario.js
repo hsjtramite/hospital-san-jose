@@ -1926,108 +1926,175 @@
     document.getElementById("dropdownArticuloCargoModal").querySelectorAll(".filtro-option").forEach(o => o.classList.remove("seleccionada"))
   }
 
-  async function generarPDFCargo(numeroCargo) {
-    const { data: movimientos } = await supabase
-      .from('inventario_movimientos')
-      .select('*, inventario_articulos!inner(nombre, codigo)')
-      .eq('numero_cargo', numeroCargo)
-      .order('created_at', { ascending: true })
+async function generarPDFCargo(numeroCargo) {
+  const { data: movimientos } = await supabase
+    .from('inventario_movimientos')
+    .select('*, inventario_articulos!inner(nombre, codigo)')
+    .eq('numero_cargo', numeroCargo)
+    .order('created_at', { ascending: true })
 
-    if (!movimientos || movimientos.length === 0) return null
+  if (!movimientos || movimientos.length === 0) return null
 
-    const cargo = movimientos[0]
+  const cargo = movimientos[0]
 
-    let logoBase64 = ''
-    try {
-      const resp = await fetch('assets/imagenes/Logo.jpg')
-      const blob = await resp.blob()
-      logoBase64 = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result)
-        reader.readAsDataURL(blob)
-      })
-    } catch (e) {
-      console.warn('No se pudo cargar el logo:', e)
-    }
-
-    const { jsPDF } = window.jspdf
-    const doc = new jsPDF('l', 'mm', 'a5')
-
-    const pageW = 210
-    const margin = 12
-    const contentW = pageW - margin * 2
-
-    if (logoBase64) {
-      doc.addImage(logoBase64, 'JPEG', margin, 8, 28, 14)
-    }
-
-    doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
-    doc.text('CARGO DE ENTREGA DE UTILES DE OFICINA', pageW / 2, 22, { align: 'center' })
-
-    doc.setDrawColor(0, 0, 0)
-    doc.setLineWidth(0.5)
-    const anchoTitulo = doc.getTextWidth('CARGO DE ENTREGA DE UTILES DE OFICINA')
-    doc.line(pageW / 2 - anchoTitulo / 2, 24, pageW / 2 + anchoTitulo / 2, 24)
-
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
-    if (cargo.created_at) {
-      const f = new Date(cargo.created_at)
-      const mes = MESES[f.getMonth()].toUpperCase()
-      doc.text(`CHINCHA, ${f.getDate()} DE ${mes} DEL ${f.getFullYear()}`, pageW - margin, 30, { align: 'right' })
-    }
-
-    let y = 45
-
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    const parrafo = `QUE, LA OFICINA DE LA UNIDAD DE SEGUROS REALIZA LA ENTREGA DE LOS SIGUIENTES UTILES DE ESCRITORIO AL SERVICIO DE ${cargo.area_solicitante || '—'}`
-    const lines = doc.splitTextToSize(parrafo, contentW)
-    const lineHeight = 5.3
-    lines.forEach((line, i) => doc.text(line, margin, y + i * lineHeight))
-    y += lines.length * lineHeight + 8
-
-    const items = movimientos || []
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'normal')
-    items.forEach((m) => {
-      const art = m.inventario_articulos || {}
-      const nombre = art.nombre || '—'
-      doc.text(`- ${nombre} x ${m.cantidad} unidades`, margin, y)
-      y += 5
+  let logoBase64 = ''
+  try {
+    const resp = await fetch('assets/imagenes/Logo.jpg')
+    const blob = await resp.blob()
+    logoBase64 = await new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result)
+      reader.readAsDataURL(blob)
     })
-    y += 4
-
-    if (cargo.observacion) {
-      doc.setFont('helvetica', 'bold')
-      doc.text('Observacion:', margin, y)
-      y += 5
-      doc.setFont('helvetica', 'normal')
-      doc.text(cargo.observacion, margin, y)
-      y += 10
-    }
-
-    y = Math.max(y, 95)
-    y += 15
-
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text('RECIBI CONFORME:', margin, y)
-    y += 10
-
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text('______________________', pageW / 2, y, { align: 'center' })
-    y += 4
-    doc.text('NOMBRES Y APELLIDOS:', pageW / 2, y, { align: 'center' })
-    y += 4
-    doc.text('DNI:', pageW / 2, y, { align: 'center' })
-
-    return doc.output('blob')
+  } catch (e) {
+    console.warn('No se pudo cargar el logo:', e)
   }
+
+  const { jsPDF } = window.jspdf
+  const doc = new jsPDF('p', 'mm', 'a4')
+
+  const pageW = 210
+  const margin = 15
+  const contentW = pageW - margin * 2
+
+  let y = 10
+
+  // Logo
+  if (logoBase64) {
+    doc.addImage(logoBase64, 'JPEG', margin, y, 25, 20)
+  }
+
+  // Título
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.text('CARGO DE ENTREGA DE UTILES DE OFICINA', pageW / 2, y + 12, { align: 'center' })
+
+  // Línea decorativa
+  doc.setDrawColor(0, 0, 0)
+  doc.setLineWidth(0.5)
+  const anchoTitulo = doc.getTextWidth('CARGO DE ENTREGA DE UTILES DE OFICINA')
+  doc.line(pageW / 2 - anchoTitulo / 2, y + 15, pageW / 2 + anchoTitulo / 2, y + 15)
+
+  // Fecha
+  y = 45
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  if (cargo.created_at) {
+    const f = new Date(cargo.created_at)
+    const mes = MESES[f.getMonth()].toUpperCase()
+    doc.text(`CHINCHA, ${f.getDate()} DE ${mes} DEL ${f.getFullYear()}`, pageW - margin, y, { align: 'right' })
+  }
+
+  // Párrafo introductorio
+  y = 55
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  const parrafo = `QUE, LA OFICINA DE LA UNIDAD DE SEGUROS REALIZA LA ENTREGA DE LOS SIGUIENTES UTILES DE ESCRITORIO AL SERVICIO DE ${cargo.area_solicitante || '—'}`
+  const lines = doc.splitTextToSize(parrafo, contentW)
+  const lineHeight = 5.5
+  lines.forEach((line, i) => doc.text(line, margin, y + i * lineHeight))
+  y += lines.length * lineHeight + 8
+
+  // Tabla de artículos con auto-paginación
+  const items = movimientos.map((m, index) => {
+    const art = m.inventario_articulos || {}
+    return [
+      index + 1,
+      art.nombre || '—',
+      m.cantidad,
+      'unidades'
+    ]
+  })
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: margin, right: margin },
+    head: [['N°', 'ARTICULO', 'CANT.', 'UNIDAD']],
+    body: items,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [30, 136, 229],
+      textColor: 255,
+      fontSize: 9,
+      fontStyle: 'bold',
+      halign: 'center'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: 0
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 'auto', halign: 'left' },
+      2: { cellWidth: 20, halign: 'center' },
+      3: { cellWidth: 25, halign: 'center' }
+    },
+    styles: {
+      lineColor: [0, 0, 0],
+      lineWidth: 0.3,
+      cellPadding: 3
+    },
+    alternateRowStyles: {
+      fillColor: [245, 250, 255]
+    },
+    didDrawPage: function(data) {
+      // Pie de página en cada página
+      doc.setFontSize(8)
+      doc.setTextColor(128, 128, 128)
+      doc.text(`Cargo: ${numeroCargo} - Pagina ${data.pageNumber}`, pageW / 2, doc.internal.pageSize.height - 10, { align: 'center' })
+    }
+  })
+
+  // Observación (después de la tabla)
+  let finalY = doc.lastAutoTable.finalY + 10
+  if (cargo.observacion) {
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Observacion:', margin, finalY)
+    finalY += 6
+    doc.setFont('helvetica', 'normal')
+    const obsLines = doc.splitTextToSize(cargo.observacion, contentW)
+    obsLines.forEach((line) => {
+      doc.text(line, margin, finalY)
+      finalY += 5
+    })
+    finalY += 5
+  }
+
+  // Sección de firmas (siempre al final, en nueva página si es necesario)
+  finalY = Math.max(finalY, doc.internal.pageSize.height - 60)
+  
+  // Verificar si hay espacio suficiente para firmas, si no, agregar nueva página
+  if (finalY > doc.internal.pageSize.height - 50) {
+    doc.addPage()
+    finalY = 40
+  }
+
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  doc.text('RECIBI CONFORME:', margin, finalY)
+  finalY += 25
+
+  // Líneas de firma
+  const firmaY = finalY
+  const col1 = margin + 20
+  const col2 = pageW / 2
+  const col3 = pageW - margin - 20
+
+  doc.line(col1, firmaY, col1 + 50, firmaY)
+  doc.line(col2 - 25, firmaY, col2 + 25, firmaY)
+  doc.line(col3 - 50, firmaY, col3, firmaY)
+
+  finalY += 6
+  doc.setFontSize(9)
+  doc.text('ENTREGA', col1 + 25, finalY, { align: 'center' })
+  doc.text('RECIBE', col2, finalY, { align: 'center' })
+  doc.text('V°B°', col3 - 25, finalY, { align: 'center' })
+
+  return doc.output('blob')
+}
 
   async function verCargoPdf(numeroCargo) {
     const blob = await generarPDFCargo(numeroCargo)
