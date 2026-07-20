@@ -123,7 +123,7 @@
   color: var(--color-texto-secundario);
 }
 
-/* ─── CATÁLOGO LAYOUT ─── */
+/* ─── CATALOGO LAYOUT ─── */
 .inventario-catalogo-layout .tabla-encabezado {
   padding-left: var(--espaciado-md);
   padding-right: var(--espaciado-md);
@@ -207,70 +207,8 @@
   margin-right: var(--espaciado-xl);
 }
 
-/* ─── INGRESAR FORMULARIO ─── */
-.ingresar-form {
-  background: var(--color-fondo);
-  border: 1px solid var(--borde-color);
-  border-radius: var(--borde-radio-xl);
-  padding: 32px;
-  box-shadow: var(--sombra);
-}
-
-.ingresar-form-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: var(--espaciado-sm);
-}
-
-.ingresar-form-header h3 {
-  font-size: var(--texto-base);
-  font-weight: var(--peso-semibold);
-  color: var(--color-texto);
-  margin: 0;
-}
-
-.ingresar-form-campos {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 20px;
-}
-
-.ingresar-form-campos .campo-grupo .filtro-select-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.ingresar-form-campos .campo-grupo .input-wrapper {
-  display: flex;
-  width: 100%;
-}
-
-.ingresar-form-campos .campo-grupo .filtro-select-trigger {
-  flex: 1;
-}
-
-.ingresar-form-campos .campo-grupo .input-wrapper input {
-  flex: 1;
-  padding: 10px 14px;
-  font-size: var(--texto-sm);
-  width: auto;
-}
-
-.ingresar-form-campos .campo-grupo:last-child {
-  grid-column: 1 / -1;
-}
-
-.ingresar-form-footer {
-  margin-top: var(--espaciado-lg);
-  display: flex;
-  justify-content: flex-end;
-}
-
-.ingresar-tabla {
+/* ─── ENTRADA HISTORIAL (nuevo, similar a cargo-historial) ─── */
+.entrada-historial {
   background: var(--color-fondo);
   border: 1px solid var(--borde-color);
   border-radius: var(--borde-radio-lg);
@@ -278,11 +216,20 @@
   box-shadow: var(--sombra-sm);
 }
 
-.ingresar-tabla h3 {
+.entrada-historial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--espaciado-md);
+  flex-wrap: wrap;
+  gap: var(--espaciado-sm);
+}
+
+.entrada-historial-header h3 {
   font-size: var(--texto-lg);
   font-weight: var(--peso-semibold);
   color: var(--color-texto);
-  margin: 0 0 var(--espaciado-md) 0;
+  margin: 0;
 }
 
 /* ─── CARGO DE ENTREGA ─── */
@@ -391,11 +338,20 @@
   box-shadow: var(--sombra-sm);
 }
 
-.cargo-historial h3 {
+.cargo-historial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--espaciado-md);
+  flex-wrap: wrap;
+  gap: var(--espaciado-sm);
+}
+
+.cargo-historial-header h3 {
   font-size: var(--texto-lg);
   font-weight: var(--peso-semibold);
   color: var(--color-texto);
-  margin: 0 0 var(--espaciado-md) 0;
+  margin: 0;
 }
 
 /* ─── KARDEX ─── */
@@ -444,7 +400,7 @@
   width: 90vw !important;
 }
 
-/* ─── BOTONES DE ACCIÓN EN TABLAS ─── */
+/* ─── BOTONES DE ACCION EN TABLAS ─── */
 .btn-accion-pdf {
   display: inline-flex;
   align-items: center;
@@ -534,9 +490,6 @@
   .catalogo-panel .panel-card {
     width: 100%;
   }
-  .ingresar-form-campos {
-    grid-template-columns: 1fr;
-  }
   .cargo-form-campos {
     grid-template-columns: 1fr;
   }
@@ -559,7 +512,7 @@
 }
 
 /* ════════════════════════════════════════════
-   INPUTS — (copiado de areas.css)
+   INPUTS
    ════════════════════════════════════════════ */
 .input-grupo {
   margin-bottom: var(--espaciado-lg);
@@ -613,7 +566,7 @@
   padding-left: 4px;
 }
 
-/* ─── CAMPO GRUPO (ingresar / descontar) ─── */
+/* ─── CAMPO GRUPO ─── */
 .campo-grupo {
   display: flex;
   flex-direction: column;
@@ -694,7 +647,7 @@
 }
 
 /* ════════════════════════════════════════════
-   BOTONES DE ACCIÓN EN TABLAS
+   BOTONES DE ACCION EN TABLAS
    ════════════════════════════════════════════ */
 .acciones-tabla {
   display: flex;
@@ -780,12 +733,11 @@
   justify-content: center;
 }
 
-/* ─── ACCIONES EN TABLA DE CARGOS (más botones) ─── */
+/* ─── ACCIONES EN TABLA DE CARGOS ─── */
 .tabla .acciones-tabla {
   gap: 2px;
 }
 
-/* Ajustar ancho de columna de acciones en cargos */
 .tabla th:last-child,
 .tabla td:last-child {
   width: auto;
@@ -793,17 +745,37 @@
   text-align: center;
 }
 
-/* ─── ESTADO DE EDICIÓN ─── */
-.ingresar-form-header h3[data-modo="edicion"]::after,
-.cargo-formulario h3[data-modo="edicion"]::after {
-  content: ' (Editando)';
-  color: var(--color-primario-inicio);
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medium);
-  margin-left: var(--espaciado-sm);
+/* ─── MODAL ENTRADA ─── */
+.md-modal-entrada {
+  max-width: 600px !important;
+  width: 90vw !important;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
-/* ─── MODAL EDITAR CARGO ─── */
+.entrada-form-campos-modal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.entrada-form-campos-modal .input-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.entrada-form-campos-modal .input-wrapper input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: var(--texto-sm);
+  width: auto;
+}
+
+.entrada-form-campos-modal .campo-grupo:last-child {
+  grid-column: 1 / -1;
+}
+
+/* ─── MODAL CARGO ─── */
 .md-modal-cargo {
   max-width: 700px !important;
   width: 90vw !important;
@@ -849,100 +821,16 @@
   flex-wrap: wrap;
 }
 
-#modalEditarCargo .cargo-detalle-vacio {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--espaciado-2xl);
-  color: var(--color-texto-claro);
-  gap: var(--espaciado-sm);
-}
-
-#modalEditarCargo .cargo-detalle-vacio i {
-  font-size: 48px;
-}
-
-#modalEditarCargo .cargo-detalle-vacio p {
-  margin: 0;
-  font-size: var(--texto-sm);
-}
-
-@media (max-width: 768px) {
-  .cargo-form-campos-modal {
-    grid-template-columns: 1fr;
-  }
-  .md-modal-cargo {
-    width: 95vw !important;
-    max-height: 90vh;
-  }
-}
-
-/* ─── HEADER DE CARGOS HISTORIAL ─── */
-.cargo-historial-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--espaciado-md);
-  flex-wrap: wrap;
-  gap: var(--espaciado-sm);
-}
-
-.cargo-historial-header h3 {
-  font-size: var(--texto-lg);
-  font-weight: var(--peso-semibold);
-  color: var(--color-texto);
-  margin: 0;
-}
-
-/* ─── MODAL CARGO (CREAR/EDITAR) ─── */
-.md-modal-cargo {
-  max-width: 700px !important;
-  width: 90vw !important;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.cargo-form-campos-modal {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 20px;
-}
-
-.cargo-form-campos-modal .input-wrapper {
-  display: flex;
-  width: 100%;
-}
-
-.cargo-form-campos-modal .input-wrapper input {
+.cargo-agregar-articulo-modal .cargo-agregar-select {
   flex: 1;
-  padding: 10px 14px;
-  font-size: var(--texto-sm);
-  width: auto;
+  min-width: 200px;
 }
 
-.cargo-detalle-modal {
-  margin-top: var(--espaciado-lg);
-  border-top: 1px solid var(--borde-color);
-  padding-top: var(--espaciado-lg);
+.cargo-agregar-articulo-modal .cargo-agregar-cantidad {
+  width: 110px;
 }
 
-.cargo-detalle-modal h4 {
-  font-size: var(--texto-base);
-  font-weight: var(--peso-semibold);
-  color: var(--color-texto);
-  margin: 0 0 var(--espaciado-md) 0;
-}
-
-.cargo-agregar-articulo-modal {
-  display: flex;
-  gap: var(--espaciado-sm);
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-#modalEditarCargo .cargo-detalle-vacio,
-#modalNuevoCargo .cargo-detalle-vacio {
+.cargo-detalle-vacio {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -952,29 +840,74 @@
   gap: var(--espaciado-sm);
 }
 
-#modalEditarCargo .cargo-detalle-vacio i,
-#modalNuevoCargo .cargo-detalle-vacio i {
+.cargo-detalle-vacio i {
   font-size: 48px;
 }
 
-#modalEditarCargo .cargo-detalle-vacio p,
-#modalNuevoCargo .cargo-detalle-vacio p {
+.cargo-detalle-vacio p {
   margin: 0;
   font-size: var(--texto-sm);
 }
 
 @media (max-width: 768px) {
+  .entrada-form-campos-modal {
+    grid-template-columns: 1fr;
+  }
   .cargo-form-campos-modal {
     grid-template-columns: 1fr;
   }
+  .md-modal-entrada,
   .md-modal-cargo {
     width: 95vw !important;
     max-height: 90vh;
   }
+  .cargo-agregar-articulo-modal {
+    flex-direction: column;
+  }
+  .cargo-agregar-articulo-modal .cargo-agregar-select,
+  .cargo-agregar-articulo-modal .cargo-agregar-cantidad {
+    width: 100%;
+  }
+  .entrada-historial-header,
   .cargo-historial-header {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* ════════════════════════════════════════════
+   FIX: Modal Entrada layout
+   ════════════════════════════════════════════ */
+.entrada-form-campos-modal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.entrada-form-campos-modal .campo-grupo {
+  min-width: 0;
+  margin: 0;
+}
+
+.entrada-form-campos-modal .filtro-select-wrapper,
+.entrada-form-campos-modal .input-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.entrada-form-campos-modal .filtro-select-trigger,
+.entrada-form-campos-modal .input-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#modalEntrada .md-modal-entrada {
+  max-width: 620px !important;
+  width: 90vw !important;
+}
+
+#modalEntrada .modal-body-md {
+  padding: var(--espaciado-lg) var(--espaciado-xl);
 }
 
 /* ════════════════════════════════════════════
@@ -1033,32 +966,15 @@
   box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-  .cargo-form-campos-modal {
-    grid-template-columns: 1fr;
-  }
-  .cargo-agregar-articulo-modal {
-    flex-direction: column;
-  }
-  .cargo-agregar-articulo-modal .cargo-agregar-select,
-  .cargo-agregar-articulo-modal .cargo-agregar-cantidad {
-    width: 100%;
-  }
-}
-
-
 /* ════════════════════════════════════════════
-   FIX: Dropdown de artículos en modal cargo
+   FIX: Dropdown de articulos en modal cargo
    ════════════════════════════════════════════ */
-
-/* Agrandar el contenedor del select de artículos */
 .cargo-agregar-articulo-modal .cargo-agregar-select {
   flex: 1;
   min-width: 320px;
   max-width: 100%;
 }
 
-/* El trigger del dropdown debe mostrar texto completo */
 #wrapperArticuloCargoModal .filtro-select-trigger {
   white-space: normal;
   text-align: left;
@@ -1068,7 +984,6 @@
   line-height: 1.4;
 }
 
-/* Las opciones del dropdown deben mostrar texto completo */
 #dropdownArticuloCargoModal .filtro-option {
   white-space: normal;
   text-align: left;
@@ -1077,13 +992,11 @@
   word-break: break-word;
 }
 
-/* Agrandar el dropdown desplegado */
 #dropdownArticuloCargoModal {
   max-height: 280px;
   overflow-y: auto;
 }
 
-/* Ajustar el texto seleccionado para que no se corte con ellipsis */
 #wrapperArticuloCargoModal .filtro-select-text {
   white-space: normal;
   overflow: visible;

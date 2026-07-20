@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/paginas/inventario.css" />
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body data-pagina="INVENTARIO" data-ruta="Gestión de almacén" data-modulo-activo="inventario">
   <main class="contenido-principal">
@@ -183,84 +184,14 @@
 
       <!-- ─── PANEL INGRESAR ─── -->
       <div class="inventario-panel" id="panelIngresar">
-        <div class="ingresar-form">
-          <div class="ingresar-form-header">
-            <h3>Registrar Entrada</h3>
-          </div>
-          <div class="ingresar-form-campos">
-            <div class="campo-grupo">
-              <label>Artículo</label>
-              <div class="filtro-select-wrapper" id="wrapperArticuloIngreso">
-                <button type="button" class="filtro-select-trigger" id="triggerArticuloIngreso">
-                  <span class="filtro-select-text">Seleccione un artículo</span>
-                  <i class="ph ph-caret-down filtro-select-arrow"></i>
-                </button>
-                <div class="filtro-dropdown" id="dropdownArticuloIngreso"></div>
-              </div>
-              <span class="input-error" id="errorArticuloIngreso"></span>
-            </div>
-            <div class="campo-grupo">
-              <label>Fecha</label>
-              <div class="input-wrapper">
-                <input type="text" id="campoFechaIngreso" placeholder="dd/mm/aaaa" />
-              </div>
-            </div>
-            <div class="campo-grupo">
-              <label for="campoCantidadIngreso">Cantidad</label>
-              <div class="input-wrapper">
-                <input type="number" id="campoCantidadIngreso" min="1" placeholder="0" />
-              </div>
-              <span class="input-error" id="errorCantidadIngreso"></span>
-            </div>
-            <div class="campo-grupo">
-              <label>Usuario responsable</label>
-              <div class="input-wrapper">
-                <input type="text" id="campoUsuarioIngreso" readonly />
-              </div>
-            </div>
-            <div class="campo-grupo">
-              <label for="campoProveedor">Proveedor</label>
-              <div class="input-wrapper">
-                <input type="text" id="campoProveedor" placeholder="Nombre del proveedor" />
-              </div>
-            </div>
-            <div class="campo-grupo">
-              <label for="campoDocEntrada">N° Documento</label>
-              <div class="input-wrapper">
-                <input type="text" id="campoDocEntrada" placeholder="Factura, guía, etc." />
-              </div>
-            </div>
-            <div class="campo-grupo">
-              <label for="campoMotivoEntrada">Motivo / Observación</label>
-              <div class="input-wrapper">
-                <input type="text" id="campoMotivoEntrada" placeholder="Opcional" />
-              </div>
-            </div>
-          </div>
-          <div class="ingresar-form-footer">
-            <button class="btn-filled-md" id="btnRegistrarEntrada">
-              <span id="textoRegistrarEntrada">Registrar Entrada</span>
-              <span class="spinner" id="spinnerEntrada"></span>
+        <div class="entrada-historial">
+          <div class="entrada-historial-header">
+            <h3>Entradas Registradas</h3>
+            <button class="btn-filled-md" id="btnNuevaEntrada">
+              <i class="ph ph-plus"></i> Nueva Entrada
             </button>
           </div>
-        </div>
-        <div class="ingresar-tabla">
-          <h3>Últimas Entradas</h3>
-          <div class="tabla-wrapper">
-            <table class="tabla" id="tablaUltimasEntradas">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Artículo</th>
-                  <th>Cantidad</th>
-                  <th>Proveedor</th>
-                  <th>Usuario</th>
-                  <th>Observación</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyUltimasEntradas"></tbody>
-            </table>
-          </div>
+          <div class="entrada-historial-content" id="entradaHistorialContent"></div>
         </div>
       </div>
 
@@ -315,162 +246,317 @@
       </div>
 
     </div>
-  
 
-    <!-- ─── MODAL CARGO (CREAR / EDITAR) ─── -->
-  <div class="modal-overlay" id="modalCargo">
-    <div class="md-modal md-modal-cargo">
-      <div class="modal-header-md">
-        <div class="header-icon-md">
-          <i class="ph ph-package"></i>
+    <!-- ─── MODAL ENTRADA (CREAR / EDITAR) ─── -->
+    <div class="modal-overlay" id="modalEntrada">
+      <div class="md-modal md-modal-entrada">
+        <div class="modal-header-md">
+          <div class="header-icon-md">
+            <i class="ph ph-arrow-circle-up"></i>
+          </div>
+          <div class="header-text-md">
+            <h3 id="entradaModalTitulo">Nueva Entrada</h3>
+            <p id="entradaModalSubtitulo"></p>
+          </div>
+          <button class="btn-icon-md modal-cerrar" id="btnCerrarModalEntrada">
+            <i class="ph ph-x"></i>
+          </button>
         </div>
-        <div class="header-text-md">
-          <h3 id="cargoModalTitulo">Nuevo Cargo de Entrega</h3>
-          <p id="cargoModalNumero"></p>
-        </div>
-        <button class="btn-icon-md modal-cerrar" id="btnCerrarModalCargo">
-          <i class="ph ph-x"></i>
-        </button>
-      </div>
-      <div class="modal-body-md">
-        <div class="cargo-form-campos-modal">
-          <div class="campo-grupo">
-            <label>Fecha</label>
-            <div class="input-wrapper">
-              <input type="text" id="campoFechaCargoModal" placeholder="dd/mm/aaaa" />
-            </div>
-          </div>
-          <div class="campo-grupo">
-            <label>Área solicitante</label>
-            <div class="filtro-select-wrapper" id="wrapperAreaCargoModal">
-              <button type="button" class="filtro-select-trigger" id="triggerAreaCargoModal">
-                <span class="filtro-select-text">Seleccione un área</span>
-                <i class="ph ph-caret-down filtro-select-arrow"></i>
-              </button>
-              <div class="filtro-dropdown" id="dropdownAreaCargoModal"></div>
-            </div>
-            <span class="input-error" id="errorAreaSolicitanteModal"></span>
-          </div>
-          <div class="campo-grupo">
-            <label for="campoResponsableReceptorModal">Responsable receptor</label>
-            <div class="input-wrapper">
-              <input type="text" id="campoResponsableReceptorModal" placeholder="Nombre de quien recibe" required />
-            </div>
-            <span class="input-error" id="errorResponsableReceptorModal"></span>
-          </div>
-          <div class="campo-grupo">
-            <label for="campoObservacionCargoModal">Observación</label>
-            <div class="input-wrapper">
-              <input type="text" id="campoObservacionCargoModal" placeholder="Opcional" />
-            </div>
-          </div>
-        </div>
-
-        <div class="cargo-detalle-modal">
-          <h4>Detalle de Artículos</h4>
-          <div class="cargo-agregar-articulo-modal">
-            <div class="cargo-agregar-select">
-              <div class="filtro-select-wrapper" id="wrapperArticuloCargoModal">
-                <button type="button" class="filtro-select-trigger" id="triggerArticuloCargoModal">
+        <div class="modal-body-md">
+          <div class="entrada-form-campos-modal">
+            <div class="campo-grupo">
+              <label>Artículo</label>
+              <div class="filtro-select-wrapper" id="wrapperArticuloEntradaModal">
+                <button type="button" class="filtro-select-trigger" id="triggerArticuloEntradaModal">
                   <span class="filtro-select-text">Seleccione un artículo</span>
                   <i class="ph ph-caret-down filtro-select-arrow"></i>
                 </button>
-                <div class="filtro-dropdown" id="dropdownArticuloCargoModal"></div>
+                <div class="filtro-dropdown" id="dropdownArticuloEntradaModal"></div>
               </div>
+              <span class="input-error" id="errorArticuloEntradaModal"></span>
             </div>
-            <div class="cargo-agregar-cantidad">
+            <div class="campo-grupo">
+              <label>Fecha</label>
               <div class="input-wrapper">
-                <input type="number" id="campoCantidadCargoModal" min="1" placeholder="Cantidad" />
+                <input type="text" id="campoFechaEntradaModal" placeholder="dd/mm/aaaa" />
               </div>
             </div>
-            <button class="btn-filled-md" id="btnAgregarArticuloCargoModal">
-              <i class="ph ph-plus"></i> Agregar
-            </button>
+            <div class="campo-grupo">
+              <label for="campoCantidadEntradaModal">Cantidad</label>
+              <div class="input-wrapper">
+                <input type="number" id="campoCantidadEntradaModal" min="1" placeholder="0" />
+              </div>
+              <span class="input-error" id="errorCantidadEntradaModal"></span>
+            </div>
+            <div class="campo-grupo">
+              <label>Usuario responsable</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoUsuarioEntradaModal" readonly />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoProveedorEntradaModal">Proveedor</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoProveedorEntradaModal" placeholder="Nombre del proveedor" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoDocEntradaModal">N° Documento</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoDocEntradaModal" placeholder="Factura, guía, etc." />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoMotivoEntradaModal">Motivo / Observación</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoMotivoEntradaModal" placeholder="Opcional" />
+              </div>
+            </div>
           </div>
-          <span class="input-error" id="errorArticuloCargoModal"></span>
-          <div class="cargo-detalle-tabla-contenedor">
-            <table class="tabla" id="tablaDetalleCargoModal">
+        </div>
+        <div class="modal-footer-md">
+          <button class="btn-text-md" id="btnCancelarEntradaModal">Cancelar</button>
+          <button class="btn-filled-md" id="btnGuardarEntradaModal">
+            <span id="textoGuardarEntradaModal">Registrar Entrada</span>
+            <span class="spinner" id="spinnerEntradaModal"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── MODAL CARGO (CREAR / EDITAR) ─── -->
+    <div class="modal-overlay" id="modalCargo">
+      <div class="md-modal md-modal-cargo">
+        <div class="modal-header-md">
+          <div class="header-icon-md">
+            <i class="ph ph-package"></i>
+          </div>
+          <div class="header-text-md">
+            <h3 id="cargoModalTitulo">Nuevo Cargo de Entrega</h3>
+            <p id="cargoModalNumero"></p>
+          </div>
+          <button class="btn-icon-md modal-cerrar" id="btnCerrarModalCargo">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="modal-body-md">
+          <div class="cargo-form-campos-modal">
+            <div class="campo-grupo">
+              <label>Fecha</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoFechaCargoModal" placeholder="dd/mm/aaaa" />
+              </div>
+            </div>
+            <div class="campo-grupo">
+              <label>Área solicitante</label>
+              <div class="filtro-select-wrapper" id="wrapperAreaCargoModal">
+                <button type="button" class="filtro-select-trigger" id="triggerAreaCargoModal">
+                  <span class="filtro-select-text">Seleccione un área</span>
+                  <i class="ph ph-caret-down filtro-select-arrow"></i>
+                </button>
+                <div class="filtro-dropdown" id="dropdownAreaCargoModal"></div>
+              </div>
+              <span class="input-error" id="errorAreaSolicitanteModal"></span>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoResponsableReceptorModal">Responsable receptor</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoResponsableReceptorModal" placeholder="Nombre de quien recibe" required />
+              </div>
+              <span class="input-error" id="errorResponsableReceptorModal"></span>
+            </div>
+            <div class="campo-grupo">
+              <label for="campoObservacionCargoModal">Observación</label>
+              <div class="input-wrapper">
+                <input type="text" id="campoObservacionCargoModal" placeholder="Opcional" />
+              </div>
+            </div>
+          </div>
+
+          <div class="cargo-detalle-modal">
+            <h4>Detalle de Artículos</h4>
+            <div class="cargo-agregar-articulo-modal">
+              <div class="cargo-agregar-select">
+                <div class="filtro-select-wrapper" id="wrapperArticuloCargoModal">
+                  <button type="button" class="filtro-select-trigger" id="triggerArticuloCargoModal">
+                    <span class="filtro-select-text">Seleccione un artículo</span>
+                    <i class="ph ph-caret-down filtro-select-arrow"></i>
+                  </button>
+                  <div class="filtro-dropdown" id="dropdownArticuloCargoModal"></div>
+                </div>
+              </div>
+              <div class="cargo-agregar-cantidad">
+                <div class="input-wrapper">
+                  <input type="number" id="campoCantidadCargoModal" min="1" placeholder="Cantidad" />
+                </div>
+              </div>
+              <button class="btn-filled-md" id="btnAgregarArticuloCargoModal">
+                <i class="ph ph-plus"></i> Agregar
+              </button>
+            </div>
+            <span class="input-error" id="errorArticuloCargoModal"></span>
+            <div class="cargo-detalle-tabla-contenedor">
+              <table class="tabla" id="tablaDetalleCargoModal">
+                <thead>
+                  <tr><th>Artículo</th><th>Código</th><th>Cantidad</th><th>Stock Actual</th><th></th></tr>
+                </thead>
+                <tbody id="tbodyDetalleCargoModal"></tbody>
+              </table>
+            </div>
+            <div class="cargo-detalle-vacio" id="cargoDetalleVacioModal">
+              <i class="ph ph-package"></i>
+              <p>Agregue artículos al cargo de entrega</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer-md">
+          <button class="btn-text-md" id="btnCancelarCargoModal">Cancelar</button>
+          <button class="btn-filled-md" id="btnGuardarCargoModal">
+            <span id="textoGuardarCargoModal">Registrar Cargo</span>
+            <span class="spinner" id="spinnerCargoModal"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── MODAL VER CARGO PDF ─── -->
+    <div class="modal-overlay" id="modalVerCargoPdf">
+      <div class="md-modal md-modal-grande">
+        <div class="modal-header-md">
+          <div class="header-icon-md">
+            <i class="ph ph-file-pdf"></i>
+          </div>
+          <div class="header-text-md">
+            <h3>Cargo de Entrega</h3>
+            <p id="modalCargoInfo"></p>
+          </div>
+          <button class="btn-icon-md modal-cerrar" id="btnCerrarModalCargoPdf">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="modal-body-md" style="padding:0;">
+          <iframe id="iframeCargoPdf" style="width:100%;height:500px;border:none;"></iframe>
+        </div>
+        <div class="modal-footer-md">
+          <button class="btn-filled-md" id="btnDescargarCargoPdf">
+            <i class="ph ph-download"></i> Descargar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── MODAL CONFIRMACIÓN ELIMINAR ARTÍCULO ─── -->
+    <div class="modal-overlay" id="modalEliminarArticulo">
+      <div class="md-modal">
+        <div class="modal-header-md modal-header-centro">
+          <div class="header-text-md">
+            <h3 id="tituloEliminarArticulo">Desactivar artículo</h3>
+            <p id="textoEliminarArticulo">¿Está seguro de que desea desactivar este artículo?</p>
+          </div>
+        </div>
+        <div class="modal-footer-md modal-footer-centro">
+          <button class="btn-text-md" id="btnCancelarEliminarArticulo">Cancelar</button>
+          <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarArticulo">
+            <span id="textoConfirmarEliminarArticulo">Desactivar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── MODAL CONFIRMACIÓN ELIMINAR ENTRADA ─── -->
+    <div class="modal-overlay" id="modalEliminarEntrada">
+      <div class="md-modal">
+        <div class="modal-header-md modal-header-centro">
+          <div class="header-text-md">
+            <h3>Eliminar entrada</h3>
+            <p>¿Está seguro de que desea eliminar esta entrada? Se revertirá el stock del artículo.</p>
+          </div>
+        </div>
+        <div class="modal-footer-md modal-footer-centro">
+          <button class="btn-text-md" id="btnCancelarEliminarEntrada">Cancelar</button>
+          <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarEntrada">
+            <span>Eliminar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── MODAL CONFIRMACIÓN ELIMINAR CARGO ─── -->
+    <div class="modal-overlay" id="modalEliminarCargo">
+      <div class="md-modal">
+        <div class="modal-header-md modal-header-centro">
+          <div class="header-text-md">
+            <h3>Eliminar cargo</h3>
+            <p>¿Está seguro de que desea eliminar este cargo de entrega? Se revertirá el stock de todos los artículos.</p>
+          </div>
+        </div>
+        <div class="modal-footer-md modal-footer-centro">
+          <button class="btn-text-md" id="btnCancelarEliminarCargo">Cancelar</button>
+          <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarCargo">
+            <span>Eliminar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── MODAL PREVIEW IMPORTACIÓN EXCEL ─── -->
+    <div class="modal-overlay" id="modalPreviewImportacion">
+      <div class="md-modal md-modal-grande">
+        <div class="modal-header-md">
+          <div class="header-icon-md">
+            <i class="ph ph-file-xls"></i>
+          </div>
+          <div class="header-text-md">
+            <h3>Vista previa de importación</h3>
+            <p id="previewImportacionInfo">Se van a procesar 0 registro(s)</p>
+          </div>
+          <button class="btn-icon-md modal-cerrar" id="btnCerrarPreviewImportacion">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="modal-body-md">
+          <p class="mensaje-error-md" id="previewImportacionError" style="display:none;"></p>
+          <div class="tabla-wrapper">
+            <table class="tabla" id="tablaPreviewImportacion">
               <thead>
-                <tr><th>Artículo</th><th>Código</th><th>Cantidad</th><th>Stock Actual</th><th></th></tr>
+                <tr>
+                  <th>Código</th>
+                  <th>Descripción</th>
+                  <th>Cantidad</th>
+                  <th>Estado</th>
+                </tr>
               </thead>
-              <tbody id="tbodyDetalleCargoModal"></tbody>
+              <tbody id="tbodyPreviewImportacion"></tbody>
             </table>
           </div>
-          <div class="cargo-detalle-vacio" id="cargoDetalleVacioModal">
-            <i class="ph ph-package"></i>
-            <p>Agregue artículos al cargo de entrega</p>
+        </div>
+        <div class="modal-footer-md">
+          <button class="btn-text-md" id="btnCancelarPreview">Cancelar</button>
+          <button class="btn-filled-md" id="btnConfirmarPreview">
+            <span id="textoConfirmarPreview">Confirmar Importación</span>
+            <span class="spinner" id="spinnerPreview"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── MODAL CONFIRMACIÓN CERRAR SESIÓN ─── -->
+    <div class="modal-overlay" id="modalCerrarSesion">
+      <div class="md-modal">
+        <div class="modal-header-md modal-header-centro">
+          <div class="header-text-md">
+            <h3>Estás a punto de cerrar sesión</h3>
+            <p>¿Está seguro de que desea salir del sistema?</p>
           </div>
         </div>
-      </div>
-      <div class="modal-footer-md">
-        <button class="btn-text-md" id="btnCancelarCargoModal">Cancelar</button>
-        <button class="btn-filled-md" id="btnGuardarCargoModal">
-          <span id="textoGuardarCargoModal">Registrar Cargo</span>
-          <span class="spinner" id="spinnerCargoModal"></span>
-        </button>
+        <div class="modal-footer-md modal-footer-centro">
+          <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+          <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+        </div>
       </div>
     </div>
-  </div>
 
-<!-- ─── MODAL VER CARGO PDF ─── -->
-  <div class="modal-overlay" id="modalVerCargoPdf">
-    <div class="md-modal md-modal-grande">
-      <div class="modal-header-md">
-        <div class="header-icon-md">
-          <i class="ph ph-file-pdf"></i>
-        </div>
-        <div class="header-text-md">
-          <h3>Cargo de Entrega</h3>
-          <p id="modalCargoInfo"></p>
-        </div>
-        <button class="btn-icon-md modal-cerrar" id="btnCerrarModalCargoPdf">
-          <i class="ph ph-x"></i>
-        </button>
-      </div>
-      <div class="modal-body-md" style="padding:0;">
-        <iframe id="iframeCargoPdf" style="width:100%;height:500px;border:none;"></iframe>
-      </div>
-      <div class="modal-footer-md">
-        <button class="btn-filled-md" id="btnDescargarCargoPdf">
-          <i class="ph ph-download"></i> Descargar PDF
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── MODAL CONFIRMACIÓN ELIMINAR ARTÍCULO ─── -->
-  <div class="modal-overlay" id="modalEliminarArticulo">
-    <div class="md-modal">
-      <div class="modal-header-md modal-header-centro">
-        <div class="header-text-md">
-          <h3 id="tituloEliminarArticulo">Desactivar artículo</h3>
-          <p id="textoEliminarArticulo">¿Está seguro de que desea desactivar este artículo?</p>
-        </div>
-      </div>
-      <div class="modal-footer-md modal-footer-centro">
-        <button class="btn-text-md" id="btnCancelarEliminarArticulo">Cancelar</button>
-        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarArticulo">
-          <span id="textoConfirmarEliminarArticulo">Desactivar</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── MODAL CONFIRMACIÓN CERRAR SESIÓN ─── -->
-  <div class="modal-overlay" id="modalCerrarSesion">
-    <div class="md-modal">
-      <div class="modal-header-md modal-header-centro">
-        <div class="header-text-md">
-          <h3>Estás a punto de cerrar sesión</h3>
-          <p>¿Está seguro de que desea salir del sistema?</p>
-        </div>
-      </div>
-      <div class="modal-footer-md modal-footer-centro">
-        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
-        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
-      </div>
-    </div>
-  </div>
+  </main>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -484,82 +570,5 @@
   <script src="js/componentes/header.js"></script>
   <script src="js/componentes/lateral.js"></script>
   <script src="js/paginas/inventario.js"></script>
-  <!-- ─── MODAL CONFIRMACIÓN ELIMINAR ENTRADA ─── -->
-  <div class="modal-overlay" id="modalEliminarEntrada">
-    <div class="md-modal">
-      <div class="modal-header-md modal-header-centro">
-        <div class="header-text-md">
-          <h3>Eliminar entrada</h3>
-          <p>¿Está seguro de que desea eliminar esta entrada? Se revertirá el stock del artículo.</p>
-        </div>
-      </div>
-      <div class="modal-footer-md modal-footer-centro">
-        <button class="btn-text-md" id="btnCancelarEliminarEntrada">Cancelar</button>
-        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarEntrada">
-          <span>Eliminar</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── MODAL CONFIRMACIÓN ELIMINAR CARGO ─── -->
-  <div class="modal-overlay" id="modalEliminarCargo">
-    <div class="md-modal">
-      <div class="modal-header-md modal-header-centro">
-        <div class="header-text-md">
-          <h3>Eliminar cargo</h3>
-          <p>¿Está seguro de que desea eliminar este cargo de entrega? Se revertirá el stock de todos los artículos.</p>
-        </div>
-      </div>
-      <div class="modal-footer-md modal-footer-centro">
-        <button class="btn-text-md" id="btnCancelarEliminarCargo">Cancelar</button>
-        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarCargo">
-          <span>Eliminar</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── MODAL PREVIEW IMPORTACIÓN EXCEL ─── -->
-  <div class="modal-overlay" id="modalPreviewImportacion">
-    <div class="md-modal md-modal-grande">
-      <div class="modal-header-md">
-        <div class="header-icon-md">
-          <i class="ph ph-file-xls"></i>
-        </div>
-        <div class="header-text-md">
-          <h3>Vista previa de importación</h3>
-          <p id="previewImportacionInfo">Se van a procesar 0 registro(s)</p>
-        </div>
-        <button class="btn-icon-md modal-cerrar" id="btnCerrarPreviewImportacion">
-          <i class="ph ph-x"></i>
-        </button>
-      </div>
-      <div class="modal-body-md">
-        <p class="mensaje-error-md" id="previewImportacionError" style="display:none;"></p>
-        <div class="tabla-wrapper">
-          <table class="tabla" id="tablaPreviewImportacion">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Descripción</th>
-                <th>Cantidad</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyPreviewImportacion"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer-md">
-        <button class="btn-text-md" id="btnCancelarPreview">Cancelar</button>
-        <button class="btn-filled-md" id="btnConfirmarPreview">
-          <span id="textoConfirmarPreview">Confirmar Importación</span>
-          <span class="spinner" id="spinnerPreview"></span>
-        </button>
-      </div>
-    </div>
-  </div>
-
 </body>
 </html>

@@ -11,7 +11,8 @@
   let articulosSeleccionadosCargo = []
   let editandoArticuloId = null
   let datosImportacionPreview = []
-    /* Estado para editar/eliminar entradas */
+
+  /* Estado para editar/eliminar entradas */
   let entradaEditandoId = null
   let entradaEliminandoId = null
   let datosEntradasCache = []
@@ -20,11 +21,15 @@
   let cargoEliminandoNumero = null
   let articulosSeleccionadosCargoModal = []
   let numeroCargoModal = null
-  let modoCargoModal = 'crear'  // 'crear' o 'editar'
+  let modoCargoModal = 'crear'
+
+  /* Estado para modal de entrada */
+  let modoEntradaModal = 'crear'
+  let entradaModalInicializado = false
 
   const CATEGORIAS_PREDEFINIDAS = [
-    'Útiles de Oficina', 'Material de Limpieza', 'Material de Impresión',
-    'Equipos de Cómputo', 'Papelería', 'Archivamiento', 'Otros'
+    'Utiles de Oficina', 'Material de Limpieza', 'Material de Impresion',
+    'Equipos de Computo', 'Papeleria', 'Archivamiento', 'Otros'
   ]
   const UNIDADES_PREDEFINIDAS = [
     'Unidad', 'Caja', 'Paquete', 'Resma', 'Millar', 'Docena', 'Bolsa', 'Sobre', 'Juego', 'Kit'
@@ -34,12 +39,13 @@
   let tablaCatalogo = null
   let tablaCargos = null
   let tablaKardex = null
+  let tablaEntradas = null
   let ingresoInicializado = false
   let descontarInicializado = false
   let panelArticuloInicializado = false
 
   /* ════════════════════════════════════════════
-     INICIALIZACIÓN
+     INICIALIZACION
      ════════════════════════════════════════════ */
   document.addEventListener('lateral:listo', inicializar)
 
@@ -52,7 +58,7 @@
 
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError || !session) {
-        console.error('[Inventario] Sin sesión:', sessionError)
+        console.error('[Inventario] Sin sesion:', sessionError)
         window.location.href = 'index.html'
         return
       }
@@ -72,11 +78,6 @@
         return
       }
       perfilActual = perfil
-
-      document.getElementById('campoUsuarioIngreso').value =
-        `${perfil.nombre_completo || ''} ${perfil.apellidos_completos || ''}`.trim()
-
-      document.getElementById('campoFechaIngreso').value = new Date().toISOString().slice(0, 10)
 
       document.querySelectorAll('.inventario-tab').forEach(tab => {
         tab.addEventListener('click', () => cambiarTab(tab.dataset.tab))
@@ -279,7 +280,7 @@
   }
 
   /* ════════════════════════════════════════════
-     TAB: CATÁLOGO
+     TAB: CATALOGO
      ════════════════════════════════════════════ */
   async function renderizarCatalogo() {
     try {
@@ -291,25 +292,25 @@
       <div class="tabla-header-filtros">
         <div class="filtro-search">
           <i class="ph ph-magnifying-glass"></i>
-          <input type="text" class="filtro-input" id="buscarArticulo" placeholder="Buscar artículo..." />
+          <input type="text" class="filtro-input" id="buscarArticulo" placeholder="Buscar articulo..." />
         </div>
         <button class="btn-filled-md" id="btnImportarExcel">
           <i class="ph ph-file-xls"></i> Importar Excel
         </button>
         <input type="file" id="inputImportarExcel" accept=".xlsx,.xls" style="display:none;" />
-        <button class="btn-filled-md" id="btnNuevoArticulo" style="margin-left:auto;">Nuevo Artículo</button>
+        <button class="btn-filled-md" id="btnNuevoArticulo" style="margin-left:auto;">Nuevo Articulo</button>
       </div>
     `
 
       tablaCatalogo = new Tabla({
         headerHTML,
         columnas: [
-          { clave: 'codigo', titulo: 'Código' },
+          { clave: 'codigo', titulo: 'Codigo' },
           { clave: 'nombre', titulo: 'Nombre' },
-          { clave: 'categoria', titulo: 'Categoría' },
+          { clave: 'categoria', titulo: 'Categoria' },
           { clave: 'unidad_medida', titulo: 'Unidad' },
           { clave: 'stock_actual', titulo: 'Stock Actual' },
-          { clave: 'stock_minimo', titulo: 'Stock Mínimo' },
+          { clave: 'stock_minimo', titulo: 'Stock Minimo' },
           {
             clave: 'activo', titulo: 'Estado',
             render: (v) => v
@@ -404,7 +405,7 @@
     tablaCatalogo.actualizar(filtrados)
   }
 
-  /* ─── CRUD ARTÍCULOS ─── */
+  /* ─── CRUD ARTICULOS ─── */
   function abrirPanelNuevoArticulo() {
     editandoArticuloId = null
     document.getElementById('formArticulo').reset()
@@ -423,7 +424,7 @@
       panelArticuloInicializado = true
     }
 
-    actualizarOpcionesDesplegable('wrapperCategoria', 'triggerCategoria', 'dropdownCategoria', catOpts, '', 'Seleccione una categoría')
+    actualizarOpcionesDesplegable('wrapperCategoria', 'triggerCategoria', 'dropdownCategoria', catOpts, '', 'Seleccione una categoria')
     actualizarOpcionesDesplegable('wrapperUnidad', 'triggerUnidad', 'dropdownUnidad', uniOpts, '', 'Seleccione una unidad')
 
     document.getElementById('panelFormArticulo').classList.add('abierto')
@@ -492,7 +493,7 @@
 
     let hayError = false
     if (!nombre) { mostrarError('errorNombreArticulo', 'El nombre es obligatorio'); hayError = true }
-    if (!categoria) { mostrarError('errorCategoria', 'Seleccione una categoría'); hayError = true }
+    if (!categoria) { mostrarError('errorCategoria', 'Seleccione una categoria'); hayError = true }
     if (!unidadMedida) { mostrarError('errorUnidad', 'Seleccione una unidad'); hayError = true }
     if (hayError) return
 
@@ -511,7 +512,7 @@
 
         if (error) {
           if (error.code === '23505') {
-            mostrarError('errorCodigo', 'El código ya existe')
+            mostrarError('errorCodigo', 'El codigo ya existe')
           } else {
             mostrarError('errorNombreArticulo', error.message || 'Error al actualizar')
           }
@@ -525,7 +526,7 @@
 
         if (error) {
           if (error.code === '23505') {
-            mostrarError('errorCodigo', 'El código ya existe')
+            mostrarError('errorCodigo', 'El codigo ya existe')
           } else {
             mostrarError('errorNombreArticulo', error.message || 'Error al crear')
           }
@@ -537,7 +538,7 @@
       cerrarPanelArticulo()
       await cargarArticulos()
     } catch (err) {
-      mostrarError('errorNombreArticulo', 'Error de conexión')
+      mostrarError('errorNombreArticulo', 'Error de conexion')
     }
     setCargandoBoton('btnGuardarArticulo', 'spinnerArticulo', 'textoGuardarArticulo', false, editandoArticuloId ? 'Actualizar' : 'Guardar')
   }
@@ -551,10 +552,10 @@
     eliminarArticuloPendiente = id
     reactivarArticuloPendiente = reactivar
 
-    document.getElementById('tituloEliminarArticulo').textContent = reactivar ? 'Reactivar artículo' : 'Desactivar artículo'
+    document.getElementById('tituloEliminarArticulo').textContent = reactivar ? 'Reactivar articulo' : 'Desactivar articulo'
     document.getElementById('textoEliminarArticulo').textContent = reactivar
-      ? '¿Está seguro de que desea reactivar este artículo?'
-      : '¿Está seguro de que desea desactivar este artículo?'
+      ? 'Esta seguro de que desea reactivar este articulo?'
+      : 'Esta seguro de que desea desactivar este articulo?'
     document.getElementById('textoConfirmarEliminarArticulo').textContent = reactivar ? 'Activar' : 'Desactivar'
     const btn = document.getElementById('btnConfirmarEliminarArticulo')
     btn.className = reactivar ? 'btn-filled-md' : 'btn-filled-md btn-peligro-md'
@@ -563,7 +564,7 @@
   }
 
   /* ════════════════════════════════════════════
-     IMPORTACIÓN EXCEL — CATÁLOGO
+     IMPORTACION EXCEL — CATALOGO
      ════════════════════════════════════════════ */
   async function procesarExcelCatalogo(event) {
     const file = event.target.files[0]
@@ -596,7 +597,7 @@
       }
 
       if (headerRow === -1) {
-        alert('El archivo Excel debe contener las columnas "DESCRIPCION" y "UNIDAD DE SEGUROS" para poder importar. Verifique que los encabezados estén escritos correctamente.')
+        alert('El archivo Excel debe contener las columnas "DESCRIPCION" y "UNIDAD DE SEGUROS" para poder importar. Verifique que los encabezados esten escritos correctamente.')
         event.target.value = ''
         return
       }
@@ -619,15 +620,15 @@
         datosImportacionPreview.push({ codigo: '', descripcion, cantidad, index: i })
       }
 
-      console.log(`[Inventario] Diagnóstico Excel:
+      console.log(`[Inventario] Diagnostico Excel:
   Total filas analizadas: ${totalFilas}
-  Descripción vacía: ${descVacia}
-  Cantidad vacía: ${cantVacia}
+  Descripcion vacia: ${descVacia}
+  Cantidad vacia: ${cantVacia}
   Cantidad <= 0: ${cantCero}
-  Registros válidos: ${datosImportacionPreview.length}`)
+  Registros validos: ${datosImportacionPreview.length}`)
 
       if (datosImportacionPreview.length === 0) {
-        alert('No se encontraron datos válidos después de la fila de encabezados. Asegúrese de que las filas contengan descripción y cantidad (UNIDAD DE SEGUROS).')
+        alert('No se encontraron datos validos despues de la fila de encabezados. Asegurese de que las filas contengan descripcion y cantidad (UNIDAD DE SEGUROS).')
         event.target.value = ''
         return
       }
@@ -703,7 +704,7 @@
             cantidad: item.cantidad,
             stock_anterior: stockAnterior,
             stock_actual: nuevoStock,
-            observacion: 'Importación desde Excel',
+            observacion: 'Importacion desde Excel',
             usuario_id: perfilActual.id,
           })
         } else {
@@ -720,7 +721,7 @@
             cantidad: item.cantidad,
             stock_anterior: 0,
             stock_actual: item.cantidad,
-            observacion: 'Importación desde Excel',
+            observacion: 'Importacion desde Excel',
             usuario_id: perfilActual.id,
           })
         }
@@ -740,7 +741,7 @@
           .insert(nuevosList)
           .select('id')
 
-        if (errArt) throw new Error('Error al crear artículos: ' + errArt.message)
+        if (errArt) throw new Error('Error al crear articulos: ' + errArt.message)
 
         let idx = 0
         for (const m of movimientos) {
@@ -759,17 +760,17 @@
         if (errMov) throw new Error('Error al registrar movimientos: ' + errMov.message)
       }
 
-      setCargandoBoton('btnConfirmarPreview', 'spinnerPreview', 'textoConfirmarPreview', false, 'Confirmar Importación')
+      setCargandoBoton('btnConfirmarPreview', 'spinnerPreview', 'textoConfirmarPreview', false, 'Confirmar Importacion')
       document.getElementById('modalPreviewImportacion').classList.remove('activo')
 
-      alert(`Importación completada.\nProcesados: ${datosImportacionPreview.length}\nErrores: 0`)
+      alert(`Importacion completada.\nProcesados: ${datosImportacionPreview.length}\nErrores: 0`)
       datosImportacionPreview = []
       await cargarArticulos()
       await renderizarResumen()
 
     } catch (err) {
-      alert('Error en la importación: ' + err.message)
-      setCargandoBoton('btnConfirmarPreview', 'spinnerPreview', 'textoConfirmarPreview', false, 'Confirmar Importación')
+      alert('Error en la importacion: ' + err.message)
+      setCargandoBoton('btnConfirmarPreview', 'spinnerPreview', 'textoConfirmarPreview', false, 'Confirmar Importacion')
     }
   }
 
@@ -779,48 +780,203 @@
   async function renderizarIngresar() {
     try {
       await cargarArticulos()
-      const artOpts = articulos.filter(a => a.activo).map(a => ({ valor: a.id, texto: `${a.codigo} — ${a.nombre}` }))
-      refrescarOpcionesDropdown('dropdownArticuloIngreso', 'triggerArticuloIngreso', artOpts)
 
-      if (!ingresoInicializado) {
-        ingresoInicializado = true
-        inicializarDesplegable('wrapperArticuloIngreso', 'triggerArticuloIngreso', 'dropdownArticuloIngreso', artOpts)
-        document.getElementById('btnRegistrarEntrada').addEventListener('click', registrarEntrada)
-        window.datePickerIngreso = new DatePicker('campoFechaIngreso')
-      }
+      const contenedor = document.getElementById('entradaHistorialContent')
+      if (!contenedor) { console.error('[Inventario] #entradaHistorialContent no encontrado'); return }
 
-      await cargarUltimasEntradas()
+      if (tablaEntradas) { await cargarEntradasRecientes(); return }
+
+      const headerHTML = `<div class="tabla-header-filtros" style="border-bottom:none;padding-bottom:0;"></div>`
+
+      tablaEntradas = new Tabla({
+        headerHTML,
+        columnas: [
+          { clave: 'fecha', titulo: 'Fecha', render: (v) => formatearFecha(v) },
+          { clave: 'articulo_nombre', titulo: 'Articulo' },
+          { clave: 'cantidad', titulo: 'Cantidad' },
+          { clave: 'proveedor', titulo: 'Proveedor', render: (v) => escaparHtml(v || '—') },
+          { clave: 'usuario_nombre', titulo: 'Usuario', render: (v) => escaparHtml(v || '—') },
+          { clave: 'observacion', titulo: 'Observacion', render: (v) => escaparHtml(v || '—') },
+          {
+            clave: 'acciones', titulo: '',
+            render: (v, fila) => `
+              <div class="acciones-tabla">
+                <button class="btn-accion btn-editar" data-accion="editar-entrada" data-id="${fila.id}" title="Editar entrada">
+                  <i class="ph ph-pencil-simple"></i>
+                </button>
+                <button class="btn-accion btn-eliminar" data-accion="eliminar-entrada" data-id="${fila.id}" title="Eliminar entrada">
+                  <i class="ph ph-trash-simple"></i>
+                </button>
+              </div>
+            `,
+          },
+        ],
+      })
+
+      contenedor.appendChild(tablaEntradas.obtenerElemento())
+      await cargarEntradasRecientes()
+
+      contenedor.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-accion]')
+        if (!btn) return
+        e.stopPropagation()
+        e.preventDefault()
+        const id = btn.dataset.id
+        console.log('[Inventario] Click en accion entrada:', btn.dataset.accion, 'ID:', id)
+
+        try {
+          if (btn.dataset.accion === 'editar-entrada') await editarEntrada(id)
+          if (btn.dataset.accion === 'eliminar-entrada') confirmarEliminarEntrada(id)
+        } catch (err) {
+          console.error('[Inventario] Error en accion entrada:', btn.dataset.accion, err)
+        }
+      })
     } catch (err) {
       console.error('[Inventario] Error en renderizarIngresar():', err)
     }
   }
 
-  async function registrarEntrada() {
+  async function cargarEntradasRecientes() {
+    const { data, error } = await supabase
+      .from('inventario_movimientos')
+      .select('*, inventario_articulos!inner(nombre, codigo)')
+      .eq('tipo', 'entrada')
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (error) { console.error('[Inventario] Error cargarEntradasRecientes:', error); return }
+
+    datosEntradasCache = data || []
+
+    const entradas = (data || []).map(m => {
+      const art = m.inventario_articulos || {}
+      return {
+        id: m.id,
+        fecha: m.created_at ? m.created_at.slice(0, 10) : '',
+        articulo_nombre: `${art.codigo || ''} — ${art.nombre || ''}`,
+        cantidad: m.cantidad,
+        proveedor: m.proveedor,
+        usuario_nombre: m.usuario_id === perfilActual.id
+          ? `${perfilActual.nombre_completo || ''} ${perfilActual.apellidos_completos || ''}`.trim()
+          : '—',
+        observacion: m.observacion,
+      }
+    })
+
+    if (tablaEntradas) tablaEntradas.actualizar(entradas)
+  }
+
+  /* ─── MODAL ENTRADA ─── */
+  function abrirModalNuevaEntrada() {
+    modoEntradaModal = 'crear'
+    entradaEditandoId = null
+
+    // Prellenar usuario
+    document.getElementById('campoUsuarioEntradaModal').value =
+      `${perfilActual.nombre_completo || ''} ${perfilActual.apellidos_completos || ''}`.trim()
+
+    // Resetear campos
+    document.getElementById('campoCantidadEntradaModal').value = ''
+    document.getElementById('campoProveedorEntradaModal').value = ''
+    document.getElementById('campoDocEntradaModal').value = ''
+    document.getElementById('campoMotivoEntradaModal').value = ''
+    document.getElementById('campoFechaEntradaModal').value = new Date().toISOString().slice(0, 10)
+
+    // Titulos
+    document.getElementById('entradaModalTitulo').textContent = 'Nueva Entrada'
+    document.getElementById('entradaModalSubtitulo').textContent = ''
+    document.getElementById('textoGuardarEntradaModal').textContent = 'Registrar Entrada'
+
+    // Inicializar dropdown de articulos
+    const artOpts = articulos.filter(a => a.activo).map(a => ({ valor: a.id, texto: `${a.codigo} — ${a.nombre}` }))
+
+    if (!entradaModalInicializado) {
+      inicializarDesplegable('wrapperArticuloEntradaModal', 'triggerArticuloEntradaModal', 'dropdownArticuloEntradaModal', artOpts)
+      window.datePickerEntradaModal = new DatePicker('campoFechaEntradaModal')
+      entradaModalInicializado = true
+    } else {
+      actualizarOpcionesDesplegable('wrapperArticuloEntradaModal', 'triggerArticuloEntradaModal', 'dropdownArticuloEntradaModal', artOpts, '', 'Seleccione un articulo')
+    }
+
+    limpiarErrores(document.getElementById('modalEntrada'))
+    document.getElementById('modalEntrada').classList.add('activo')
+  }
+
+  async function editarEntrada(id) {
+    const entrada = datosEntradasCache.find(e => e.id === id)
+    if (!entrada) return
+
+    modoEntradaModal = 'editar'
+    entradaEditandoId = id
+
+    // Prellenar usuario
+    document.getElementById('campoUsuarioEntradaModal').value =
+      `${perfilActual.nombre_completo || ''} ${perfilActual.apellidos_completos || ''}`.trim()
+
+    // Prellenar campos
+    document.getElementById('campoCantidadEntradaModal').value = entrada.cantidad
+    document.getElementById('campoProveedorEntradaModal').value = entrada.proveedor || ''
+    document.getElementById('campoDocEntradaModal').value = entrada.numero_documento || ''
+    document.getElementById('campoMotivoEntradaModal').value = entrada.observacion || ''
+
+    // Fecha
+    if (entrada.created_at) {
+      document.getElementById('campoFechaEntradaModal').value = entrada.created_at.slice(0, 10)
+      if (window.datePickerEntradaModal) window.datePickerEntradaModal.fechaISO = entrada.created_at.slice(0, 10)
+    }
+
+    // Titulos
+    document.getElementById('entradaModalTitulo').textContent = 'Editar Entrada'
+    document.getElementById('entradaModalSubtitulo').textContent = `Entrada ID: ${id}`
+    document.getElementById('textoGuardarEntradaModal').textContent = 'Actualizar Entrada'
+
+    // Inicializar dropdown de articulos con valor seleccionado
+    const artOpts = articulos.filter(a => a.activo).map(a => ({ valor: a.id, texto: `${a.codigo} — ${a.nombre}` }))
+
+    if (!entradaModalInicializado) {
+      inicializarDesplegable('wrapperArticuloEntradaModal', 'triggerArticuloEntradaModal', 'dropdownArticuloEntradaModal', artOpts)
+      window.datePickerEntradaModal = new DatePicker('campoFechaEntradaModal')
+      entradaModalInicializado = true
+    }
+
+    actualizarOpcionesDesplegable('wrapperArticuloEntradaModal', 'triggerArticuloEntradaModal', 'dropdownArticuloEntradaModal', artOpts, entrada.articulo_id, 'Seleccione un articulo')
+
+    limpiarErrores(document.getElementById('modalEntrada'))
+    document.getElementById('modalEntrada').classList.add('activo')
+  }
+
+  function cerrarModalEntrada() {
+    document.getElementById('modalEntrada').classList.remove('activo')
+    entradaEditandoId = null
+    modoEntradaModal = 'crear'
+  }
+
+  async function guardarEntradaModal() {
     // Si estamos editando, llamar a actualizar
-    if (entradaEditandoId) {
-      await actualizarEntrada()
+    if (modoEntradaModal === 'editar' && entradaEditandoId) {
+      await actualizarEntradaModal()
       return
     }
 
-    limpiarErrores(document.getElementById('panelIngresar'))
+    limpiarErrores(document.getElementById('modalEntrada'))
 
-    const articuloId = document.getElementById('triggerArticuloIngreso')?.dataset?.value || ''
-    const cantidad = parseInt(document.getElementById('campoCantidadIngreso').value) || 0
-    const proveedor = document.getElementById('campoProveedor').value.trim()
-    const numeroDoc = document.getElementById('campoDocEntrada').value.trim()
-    const observacion = document.getElementById('campoMotivoEntrada').value.trim()
-    const fecha = window.datePickerIngreso?.obtenerValor() || new Date().toISOString().slice(0, 10)
+    const articuloId = document.getElementById('triggerArticuloEntradaModal')?.dataset?.value || ''
+    const cantidad = parseInt(document.getElementById('campoCantidadEntradaModal').value) || 0
+    const proveedor = document.getElementById('campoProveedorEntradaModal').value.trim()
+    const numeroDoc = document.getElementById('campoDocEntradaModal').value.trim()
+    const observacion = document.getElementById('campoMotivoEntradaModal').value.trim()
+    const fecha = window.datePickerEntradaModal?.obtenerValor() || new Date().toISOString().slice(0, 10)
 
     let hayError = false
-    if (!articuloId) { mostrarError('errorArticuloIngreso', 'Seleccione un artículo'); hayError = true }
-    if (cantidad <= 0) { mostrarError('errorCantidadIngreso', 'Ingrese una cantidad válida'); hayError = true }
+    if (!articuloId) { mostrarError('errorArticuloEntradaModal', 'Seleccione un articulo'); hayError = true }
+    if (cantidad <= 0) { mostrarError('errorCantidadEntradaModal', 'Ingrese una cantidad valida'); hayError = true }
     if (hayError) return
 
-    setCargandoBoton('btnRegistrarEntrada', 'spinnerEntrada', 'textoRegistrarEntrada', true)
+    setCargandoBoton('btnGuardarEntradaModal', 'spinnerEntradaModal', 'textoGuardarEntradaModal', true)
 
     try {
       const { data: art } = await supabase.from('inventario_articulos').select('stock_actual').eq('id', articuloId).single()
-      if (!art) throw new Error('Artículo no encontrado')
+      if (!art) throw new Error('Articulo no encontrado')
 
       const nuevoStock = (art.stock_actual || 0) + cantidad
 
@@ -840,121 +996,34 @@
       })
       if (errMov) throw new Error(errMov.message)
 
-      document.getElementById('campoCantidadIngreso').value = ''
-      document.getElementById('campoProveedor').value = ''
-      document.getElementById('campoDocEntrada').value = ''
-      document.getElementById('campoMotivoEntrada').value = ''
-
-      await cargarUltimasEntradas()
+      cerrarModalEntrada()
+      await cargarEntradasRecientes()
       await cargarArticulos()
       await renderizarResumen()
     } catch (err) {
-      mostrarError('errorCantidadIngreso', err.message || 'Error al registrar entrada')
+      mostrarError('errorCantidadEntradaModal', err.message || 'Error al registrar entrada')
     }
-    setCargandoBoton('btnRegistrarEntrada', 'spinnerEntrada', 'textoRegistrarEntrada', false, 'Registrar Entrada')
+    setCargandoBoton('btnGuardarEntradaModal', 'spinnerEntradaModal', 'textoGuardarEntradaModal', false, 'Registrar Entrada')
   }
 
-  async function cargarUltimasEntradas() {
-    const { data, error } = await supabase
-      .from('inventario_movimientos')
-      .select('*, inventario_articulos!inner(nombre, codigo)')
-      .eq('tipo', 'entrada')
-      .order('created_at', { ascending: false })
-      .limit(20)
-
-    if (error) { console.error('[Inventario] Error cargarUltimasEntradas:', error); return }
-
-    const tbody = document.getElementById('tbodyUltimasEntradas')
-    if (!tbody) return
-
-    datosEntradasCache = data || []
-
-    if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--color-texto-claro);padding:2rem;">No hay entradas registradas</td></tr>'
-      return
-    }
-
-    tbody.innerHTML = data.map(m => {
-      const art = m.inventario_articulos || {}
-      const nombreCompleto = `${art.codigo || ''} — ${art.nombre || ''}`
-      return `<tr data-id="${m.id}">
-        <td>${formatearFecha(m.created_at ? m.created_at.slice(0, 10) : '')}</td>
-        <td>${escaparHtml(nombreCompleto)}</td>
-        <td>${m.cantidad}</td>
-        <td>${escaparHtml(m.proveedor || '—')}</td>
-        <td>${m.usuario_id === perfilActual.id ? `${perfilActual.nombre_completo || ''} ${perfilActual.apellidos_completos || ''}`.trim() : '—'}</td>
-        <td>${escaparHtml(m.observacion || '—')}</td>
-        <td>
-          <div class="acciones-tabla">
-            <button class="btn-accion btn-editar" data-accion="editar-entrada" data-id="${m.id}" title="Editar entrada">
-              <i class="ph ph-pencil-simple"></i>
-            </button>
-            <button class="btn-accion btn-eliminar" data-accion="eliminar-entrada" data-id="${m.id}" title="Eliminar entrada">
-              <i class="ph ph-trash-simple"></i>
-            </button>
-          </div>
-        </td>
-      </tr>`
-    }).join('')
-
-    // Bind eventos a los botones de acción
-    tbody.querySelectorAll('[data-accion]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation()
-        const id = btn.dataset.id
-        if (btn.dataset.accion === 'editar-entrada') editarEntrada(id)
-        if (btn.dataset.accion === 'eliminar-entrada') confirmarEliminarEntrada(id)
-      })
-    })
-  }
-
-    /* ─── EDITAR ENTRADA ─── */
-  function editarEntrada(id) {
-    const entrada = datosEntradasCache.find(e => e.id === id)
-    if (!entrada) return
-
-    entradaEditandoId = id
-
-    // Prellenar el formulario con los datos de la entrada
-    const artOpts = articulos.filter(a => a.activo).map(a => ({ valor: a.id, texto: `${a.codigo} — ${a.nombre}` }))
-    actualizarOpcionesDesplegable('wrapperArticuloIngreso', 'triggerArticuloIngreso', 'dropdownArticuloIngreso', artOpts, entrada.articulo_id, 'Seleccione un artículo')
-
-    document.getElementById('campoCantidadIngreso').value = entrada.cantidad
-    document.getElementById('campoProveedor').value = entrada.proveedor || ''
-    document.getElementById('campoDocEntrada').value = entrada.numero_documento || ''
-    document.getElementById('campoMotivoEntrada').value = entrada.observacion || ''
-
-    if (window.datePickerIngreso && entrada.created_at) {
-      window.datePickerIngreso.fechaISO = entrada.created_at.slice(0, 10)
-      document.getElementById('campoFechaIngreso').value = formatearFecha(entrada.created_at.slice(0, 10))
-    }
-
-    // Cambiar el botón a "Actualizar Entrada"
-    const btnTexto = document.getElementById('textoRegistrarEntrada')
-    if (btnTexto) btnTexto.textContent = 'Actualizar Entrada'
-
-    // Scroll al formulario
-    document.querySelector('.ingresar-form').scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  async function actualizarEntrada() {
+  async function actualizarEntradaModal() {
     if (!entradaEditandoId) return
 
-    limpiarErrores(document.getElementById('panelIngresar'))
+    limpiarErrores(document.getElementById('modalEntrada'))
 
-    const articuloId = document.getElementById('triggerArticuloIngreso')?.dataset?.value || ''
-    const cantidadNueva = parseInt(document.getElementById('campoCantidadIngreso').value) || 0
-    const proveedor = document.getElementById('campoProveedor').value.trim()
-    const numeroDoc = document.getElementById('campoDocEntrada').value.trim()
-    const observacion = document.getElementById('campoMotivoEntrada').value.trim()
-    const fecha = window.datePickerIngreso?.obtenerValor() || new Date().toISOString().slice(0, 10)
+    const articuloId = document.getElementById('triggerArticuloEntradaModal')?.dataset?.value || ''
+    const cantidadNueva = parseInt(document.getElementById('campoCantidadEntradaModal').value) || 0
+    const proveedor = document.getElementById('campoProveedorEntradaModal').value.trim()
+    const numeroDoc = document.getElementById('campoDocEntradaModal').value.trim()
+    const observacion = document.getElementById('campoMotivoEntradaModal').value.trim()
+    const fecha = window.datePickerEntradaModal?.obtenerValor() || new Date().toISOString().slice(0, 10)
 
     let hayError = false
-    if (!articuloId) { mostrarError('errorArticuloIngreso', 'Seleccione un artículo'); hayError = true }
-    if (cantidadNueva <= 0) { mostrarError('errorCantidadIngreso', 'Ingrese una cantidad válida'); hayError = true }
+    if (!articuloId) { mostrarError('errorArticuloEntradaModal', 'Seleccione un articulo'); hayError = true }
+    if (cantidadNueva <= 0) { mostrarError('errorCantidadEntradaModal', 'Ingrese una cantidad valida'); hayError = true }
     if (hayError) return
 
-    setCargandoBoton('btnRegistrarEntrada', 'spinnerEntrada', 'textoRegistrarEntrada', true)
+    setCargandoBoton('btnGuardarEntradaModal', 'spinnerEntradaModal', 'textoGuardarEntradaModal', true)
 
     try {
       // Obtener la entrada original para calcular diferencia de stock
@@ -966,22 +1035,22 @@
 
       if (!entradaOriginal) throw new Error('Entrada no encontrada')
 
-      // Obtener stock actual del artículo
+      // Obtener stock actual del articulo
       const { data: art } = await supabase
         .from('inventario_articulos')
         .select('stock_actual')
         .eq('id', articuloId)
         .single()
 
-      if (!art) throw new Error('Artículo no encontrado')
+      if (!art) throw new Error('Articulo no encontrado')
 
       // Calcular nuevo stock: revertir entrada original y aplicar nueva
       let stockBase = art.stock_actual
       if (entradaOriginal.articulo_id === articuloId) {
-        // Mismo artículo: quitar cantidad original, sumar nueva
+        // Mismo articulo: quitar cantidad original, sumar nueva
         stockBase = stockBase - entradaOriginal.cantidad + cantidadNueva
       } else {
-        // Artículo diferente: revertir en el original, sumar en el nuevo
+        // Articulo diferente: revertir en el original, sumar en el nuevo
         const { data: artOriginal } = await supabase
           .from('inventario_articulos')
           .select('stock_actual')
@@ -995,7 +1064,7 @@
         stockBase = art.stock_actual + cantidadNueva
       }
 
-      // Actualizar stock del artículo
+      // Actualizar stock del articulo
       await supabase.from('inventario_articulos')
         .update({ stock_actual: stockBase })
         .eq('id', articuloId)
@@ -1014,32 +1083,14 @@
 
       if (errMov) throw new Error(errMov.message)
 
-      // Resetear formulario
-      resetearFormularioEntrada()
-
-      await cargarUltimasEntradas()
+      cerrarModalEntrada()
+      await cargarEntradasRecientes()
       await cargarArticulos()
       await renderizarResumen()
     } catch (err) {
-      mostrarError('errorCantidadIngreso', err.message || 'Error al actualizar entrada')
+      mostrarError('errorCantidadEntradaModal', err.message || 'Error al actualizar entrada')
     }
-    setCargandoBoton('btnRegistrarEntrada', 'spinnerEntrada', 'textoRegistrarEntrada', false, 'Registrar Entrada')
-  }
-
-  function resetearFormularioEntrada() {
-    entradaEditandoId = null
-    document.getElementById('campoCantidadIngreso').value = ''
-    document.getElementById('campoProveedor').value = ''
-    document.getElementById('campoDocEntrada').value = ''
-    document.getElementById('campoMotivoEntrada').value = ''
-    document.getElementById('campoFechaIngreso').value = new Date().toISOString().slice(0, 10)
-    if (window.datePickerIngreso) window.datePickerIngreso.fechaISO = new Date().toISOString().slice(0, 10)
-
-    const artOpts = articulos.filter(a => a.activo).map(a => ({ valor: a.id, texto: `${a.codigo} — ${a.nombre}` }))
-    actualizarOpcionesDesplegable('wrapperArticuloIngreso', 'triggerArticuloIngreso', 'dropdownArticuloIngreso', artOpts, '', 'Seleccione un artículo')
-
-    const btnTexto = document.getElementById('textoRegistrarEntrada')
-    if (btnTexto) btnTexto.textContent = 'Registrar Entrada'
+    setCargandoBoton('btnGuardarEntradaModal', 'spinnerEntradaModal', 'textoGuardarEntradaModal', false, 'Registrar Entrada')
   }
 
   /* ─── ELIMINAR ENTRADA ─── */
@@ -1086,7 +1137,7 @@
       document.getElementById('modalEliminarEntrada').classList.remove('activo')
       entradaEliminandoId = null
 
-      await cargarUltimasEntradas()
+      await cargarEntradasRecientes()
       await cargarArticulos()
       await renderizarResumen()
     } catch (err) {
@@ -1140,11 +1191,11 @@
         columnas: [
           { clave: 'numero_cargo', titulo: 'N° Cargo' },
           { clave: 'fecha', titulo: 'Fecha', render: (v) => formatearFecha(v) },
-          { clave: 'area_solicitante', titulo: 'Área solicitante' },
+          { clave: 'area_solicitante', titulo: 'Area solicitante' },
           { clave: 'responsable_receptor', titulo: 'Responsable' },
           {
-            clave: 'total_articulos', titulo: 'Artículos',
-            render: (v) => `${v || 0} ítem(s)`,
+            clave: 'total_articulos', titulo: 'Articulos',
+            render: (v) => `${v || 0} item(s)`,
           },
           {
             clave: 'acciones', titulo: '',
@@ -1177,15 +1228,15 @@
         e.stopPropagation()
         e.preventDefault()
         const id = btn.dataset.id
-        console.log('[Inventario] Click en acción:', btn.dataset.accion, 'ID:', id)
-        
+        console.log('[Inventario] Click en accion:', btn.dataset.accion, 'ID:', id)
+
         try {
           if (btn.dataset.accion === 'ver-pdf') await verCargoPdf(id)
           if (btn.dataset.accion === 'descargar-pdf') await descargarCargoPdf(id)
           if (btn.dataset.accion === 'editar-cargo') await editarCargo(id)
           if (btn.dataset.accion === 'eliminar-cargo') confirmarEliminarCargo(id)
         } catch (err) {
-          console.error('[Inventario] Error en acción:', btn.dataset.accion, err)
+          console.error('[Inventario] Error en accion:', btn.dataset.accion, err)
         }
       })
     } catch (err) {
@@ -1221,11 +1272,11 @@
     document.getElementById('errorArticuloCargo').textContent = ''
 
     if (!articuloId) {
-      document.getElementById('errorArticuloCargo').textContent = 'Seleccione un artículo'
+      document.getElementById('errorArticuloCargo').textContent = 'Seleccione un articulo'
       return
     }
     if (cantidad <= 0) {
-      document.getElementById('errorArticuloCargo').textContent = 'Ingrese una cantidad válida'
+      document.getElementById('errorArticuloCargo').textContent = 'Ingrese una cantidad valida'
       return
     }
 
@@ -1249,7 +1300,7 @@
     }
 
     document.getElementById('triggerArticuloCargo').dataset.value = ''
-    document.getElementById('triggerArticuloCargo').querySelector('.filtro-select-text').textContent = 'Seleccione un artículo'
+    document.getElementById('triggerArticuloCargo').querySelector('.filtro-select-text').textContent = 'Seleccione un articulo'
     document.getElementById('campoCantidadCargo').value = ''
     document.getElementById('dropdownArticuloCargo').querySelectorAll('.filtro-option').forEach(o => o.classList.remove('seleccionada'))
 
@@ -1308,9 +1359,9 @@
     const fecha = window.datePickerCargo?.obtenerValor() || new Date().toISOString().slice(0, 10)
 
     let hayError = false
-    if (!area) { mostrarError('errorAreaSolicitante', 'Seleccione un área'); hayError = true }
+    if (!area) { mostrarError('errorAreaSolicitante', 'Seleccione un area'); hayError = true }
     if (!responsable) { mostrarError('errorResponsableReceptor', 'El responsable receptor es obligatorio'); hayError = true }
-    if (articulosSeleccionadosCargo.length === 0) { mostrarError('errorArticuloCargo', 'Agregue al menos un artículo'); hayError = true }
+    if (articulosSeleccionadosCargo.length === 0) { mostrarError('errorArticuloCargo', 'Agregue al menos un articulo'); hayError = true }
     if (hayError) return
 
     setCargandoBoton('btnRegistrarCargo', 'spinnerCargo', 'textoRegistrarCargo', true)
@@ -1320,7 +1371,7 @@
 
       for (const item of articulosSeleccionadosCargo) {
         const { data: art } = await supabase.from('inventario_articulos').select('stock_actual').eq('id', item.id).single()
-        if (!art) throw new Error(`Artículo ${item.nombre} no encontrado`)
+        if (!art) throw new Error(`Articulo ${item.nombre} no encontrado`)
         if (item.cantidad > art.stock_actual) {
           throw new Error(`Stock insuficiente para ${item.nombre}. Disponible: ${art.stock_actual}, solicitado: ${item.cantidad}`)
         }
@@ -1343,7 +1394,7 @@
       articulosSeleccionadosCargo = []
       renderizarDetalleCargo()
       document.getElementById('triggerAreaCargo').dataset.value = ''
-      document.getElementById('triggerAreaCargo').querySelector('.filtro-select-text').textContent = 'Seleccione un área'
+      document.getElementById('triggerAreaCargo').querySelector('.filtro-select-text').textContent = 'Seleccione un area'
       document.getElementById('dropdownAreaCargo').querySelectorAll('.filtro-option').forEach(o => o.classList.remove('seleccionada'))
       document.getElementById('campoResponsableReceptor').value = ''
       document.getElementById('campoObservacionCargo').value = ''
@@ -1368,9 +1419,9 @@
     const fecha = window.datePickerCargo?.obtenerValor() || new Date().toISOString().slice(0, 10)
 
     let hayError = false
-    if (!area) { mostrarError('errorAreaSolicitante', 'Seleccione un área'); hayError = true }
+    if (!area) { mostrarError('errorAreaSolicitante', 'Seleccione un area'); hayError = true }
     if (!responsable) { mostrarError('errorResponsableReceptor', 'El responsable receptor es obligatorio'); hayError = true }
-    if (articulosSeleccionadosCargo.length === 0) { mostrarError('errorArticuloCargo', 'Agregue al menos un artículo'); hayError = true }
+    if (articulosSeleccionadosCargo.length === 0) { mostrarError('errorArticuloCargo', 'Agregue al menos un articulo'); hayError = true }
     if (hayError) return
 
     setCargandoBoton('btnRegistrarCargo', 'spinnerCargo', 'textoRegistrarCargo', true)
@@ -1414,7 +1465,7 @@
           .eq('id', item.id)
           .single()
 
-        if (!art) throw new Error(`Artículo ${item.nombre} no encontrado`)
+        if (!art) throw new Error(`Articulo ${item.nombre} no encontrado`)
         if (item.cantidad > art.stock_actual) {
           throw new Error(`Stock insuficiente para ${item.nombre}. Disponible: ${art.stock_actual}, solicitado: ${item.cantidad}`)
         }
@@ -1443,7 +1494,7 @@
       articulosSeleccionadosCargo = []
       renderizarDetalleCargo()
       document.getElementById('triggerAreaCargo').dataset.value = ''
-      document.getElementById('triggerAreaCargo').querySelector('.filtro-select-text').textContent = 'Seleccione un área'
+      document.getElementById('triggerAreaCargo').querySelector('.filtro-select-text').textContent = 'Seleccione un area'
       document.getElementById('dropdownAreaCargo').querySelectorAll('.filtro-option').forEach(o => o.classList.remove('seleccionada'))
       document.getElementById('campoResponsableReceptor').value = ''
       document.getElementById('campoObservacionCargo').value = ''
@@ -1494,7 +1545,7 @@
     console.log("[Inventario] Editando cargo:", numeroCargo)
     modoCargoModal = 'editar'
     numeroCargoModal = numeroCargo
-    
+
     try {
       // 1. Cargar los movimientos del cargo
       const { data: movimientos, error } = await supabase
@@ -1516,7 +1567,7 @@
 
       const cargo = movimientos[0]
 
-      // 2. Cargar áreas
+      // 2. Cargar areas
       const { data: areasData, error: areasError } = await supabase
         .from("areas")
         .select("nombre")
@@ -1524,11 +1575,11 @@
         .order("nombre")
 
       if (areasError) {
-        console.error("[Inventario] Error al cargar áreas:", areasError)
+        console.error("[Inventario] Error al cargar areas:", areasError)
       }
 
       const areaOpts = (areasData || []).map(a => ({ valor: a.nombre, texto: a.nombre }))
-      
+
       // 3. Inicializar desplegables del modal
       inicializarModalCargo(areaOpts, cargo.area_solicitante)
 
@@ -1544,7 +1595,7 @@
         document.getElementById("campoFechaCargoModal").value = formatearFecha(cargo.created_at.slice(0, 10))
       }
 
-      // 6. Cargar artículos al detalle del modal
+      // 6. Cargar articulos al detalle del modal
       articulosSeleccionadosCargoModal = movimientos.map(m => ({
         id: m.articulo_id,
         codigo: m.inventario_articulos?.codigo || '',
@@ -1558,9 +1609,9 @@
 
       // 7. Abrir el modal
       document.getElementById("modalCargo").classList.add("activo")
-      
+
       console.log("[Inventario] Cargo listo para editar:", numeroCargo)
-      
+
     } catch (err) {
       console.error("[Inventario] Error inesperado en editarCargo:", err)
       alert("Error inesperado: " + err.message)
@@ -1586,7 +1637,7 @@
 
       if (errMov) throw new Error(errMov.message)
 
-      // Revertir stock de cada artículo
+      // Revertir stock de cada articulo
       for (const m of movimientos) {
         const { data: art } = await supabase
           .from('inventario_articulos')
@@ -1629,19 +1680,19 @@
   /* ════════════════════════════════════════════
      MODAL CARGO (CREAR / EDITAR)
      ════════════════════════════════════════════ */
-  
+
   function abrirModalNuevoCargo() {
     modoCargoModal = 'crear'
     numeroCargoModal = null
     articulosSeleccionadosCargoModal = []
-    
-    // Cargar áreas
+
+    // Cargar areas
     supabase.from("areas").select("nombre").eq("activo", true).order("nombre")
       .then(({ data: areasData }) => {
         const areaOpts = (areasData || []).map(a => ({ valor: a.nombre, texto: a.nombre }))
         inicializarModalCargo(areaOpts, '')
       })
-    
+
     // Resetear campos
     document.getElementById("campoResponsableReceptorModal").value = ''
     document.getElementById("campoObservacionCargoModal").value = ''
@@ -1649,20 +1700,20 @@
     document.getElementById("cargoModalTitulo").textContent = "Nuevo Cargo de Entrega"
     document.getElementById("cargoModalNumero").textContent = ""
     document.getElementById("textoGuardarCargoModal").textContent = "Registrar Cargo"
-    
+
     renderizarDetalleCargoModal()
     document.getElementById("modalCargo").classList.add("activo")
   }
-  
+
   function inicializarModalCargo(areaOpts, areaSeleccionada) {
-    // Inicializar área
+    // Inicializar area
     if (!document.getElementById("triggerAreaCargoModal").dataset.inicializado) {
       inicializarDesplegable("wrapperAreaCargoModal", "triggerAreaCargoModal", "dropdownAreaCargoModal", areaOpts)
       document.getElementById("triggerAreaCargoModal").dataset.inicializado = "true"
     }
-    actualizarOpcionesDesplegable("wrapperAreaCargoModal", "triggerAreaCargoModal", "dropdownAreaCargoModal", areaOpts, areaSeleccionada, "Seleccione un área")
-    
-    // Inicializar artículo
+    actualizarOpcionesDesplegable("wrapperAreaCargoModal", "triggerAreaCargoModal", "dropdownAreaCargoModal", areaOpts, areaSeleccionada, "Seleccione un area")
+
+    // Inicializar articulo
     const artOpts = articulos.filter(a => a.activo && a.stock_actual > 0).map(a => ({
       valor: a.id, texto: `${a.codigo} — ${a.nombre} (Stock: ${a.stock_actual})`
     }))
@@ -1670,10 +1721,10 @@
       inicializarDesplegable("wrapperArticuloCargoModal", "triggerArticuloCargoModal", "dropdownArticuloCargoModal", artOpts)
       document.getElementById("triggerArticuloCargoModal").dataset.inicializado = "true"
     } else {
-      actualizarOpcionesDesplegable("wrapperArticuloCargoModal", "triggerArticuloCargoModal", "dropdownArticuloCargoModal", artOpts, '', "Seleccione un artículo")
+      actualizarOpcionesDesplegable("wrapperArticuloCargoModal", "triggerArticuloCargoModal", "dropdownArticuloCargoModal", artOpts, '', "Seleccione un articulo")
     }
   }
-  
+
   function renderizarDetalleCargoModal() {
     const tbody = document.getElementById("tbodyDetalleCargoModal")
     const vacio = document.getElementById("cargoDetalleVacioModal")
@@ -1704,12 +1755,12 @@
       btn.addEventListener('click', () => quitarArticuloDeCargoModal(parseInt(btn.dataset.index)))
     })
   }
-  
+
   function quitarArticuloDeCargoModal(index) {
     articulosSeleccionadosCargoModal.splice(index, 1)
     renderizarDetalleCargoModal()
   }
-  
+
   function agregarArticuloACargoModal() {
     const articuloId = document.getElementById("triggerArticuloCargoModal")?.dataset?.value
     const cantidad = parseInt(document.getElementById("campoCantidadCargoModal").value) || 0
@@ -1717,11 +1768,11 @@
     document.getElementById("errorArticuloCargoModal").textContent = ''
 
     if (!articuloId) {
-      document.getElementById("errorArticuloCargoModal").textContent = 'Seleccione un artículo'
+      document.getElementById("errorArticuloCargoModal").textContent = 'Seleccione un articulo'
       return
     }
     if (cantidad <= 0) {
-      document.getElementById("errorArticuloCargoModal").textContent = 'Ingrese una cantidad válida'
+      document.getElementById("errorArticuloCargoModal").textContent = 'Ingrese una cantidad valida'
       return
     }
 
@@ -1745,13 +1796,13 @@
     }
 
     document.getElementById("triggerArticuloCargoModal").dataset.value = ''
-    document.getElementById("triggerArticuloCargoModal").querySelector(".filtro-select-text").textContent = 'Seleccione un artículo'
+    document.getElementById("triggerArticuloCargoModal").querySelector(".filtro-select-text").textContent = 'Seleccione un articulo'
     document.getElementById("campoCantidadCargoModal").value = ''
     document.getElementById("dropdownArticuloCargoModal").querySelectorAll(".filtro-option").forEach(o => o.classList.remove("seleccionada"))
 
     renderizarDetalleCargoModal()
   }
-  
+
   async function guardarCargoModal() {
     limpiarErrores(document.getElementById("modalCargo"))
 
@@ -1761,20 +1812,20 @@
     const fecha = document.getElementById("campoFechaCargoModal").value || new Date().toISOString().slice(0, 10)
 
     let hayError = false
-    if (!area) { mostrarError("errorAreaSolicitanteModal", "Seleccione un área"); hayError = true }
+    if (!area) { mostrarError("errorAreaSolicitanteModal", "Seleccione un area"); hayError = true }
     if (!responsable) { mostrarError("errorResponsableReceptorModal", "El responsable receptor es obligatorio"); hayError = true }
-    if (articulosSeleccionadosCargoModal.length === 0) { mostrarError("errorArticuloCargoModal", "Agregue al menos un artículo"); hayError = true }
+    if (articulosSeleccionadosCargoModal.length === 0) { mostrarError("errorArticuloCargoModal", "Agregue al menos un articulo"); hayError = true }
     if (hayError) return
 
     setCargandoBoton("btnGuardarCargoModal", "spinnerCargoModal", "textoGuardarCargoModal", true)
 
     try {
       let numeroCargo
-      
+
       if (modoCargoModal === 'editar' && numeroCargoModal) {
         // MODO EDITAR: Revertir stock anterior y eliminar movimientos
         numeroCargo = numeroCargoModal
-        
+
         const { data: movimientosOriginales, error: errOrig } = await supabase
           .from("inventario_movimientos")
           .select("id, articulo_id, cantidad")
@@ -1804,7 +1855,7 @@
           .eq("numero_cargo", numeroCargo)
           .eq("tipo", "salida")
       } else {
-        // MODO CREAR: Generar nuevo número de cargo
+        // MODO CREAR: Generar nuevo numero de cargo
         numeroCargo = await generarNumeroCargo()
       }
 
@@ -1816,7 +1867,7 @@
           .eq("id", item.id)
           .single()
 
-        if (!art) throw new Error(`Artículo ${item.nombre} no encontrado`)
+        if (!art) throw new Error(`Articulo ${item.nombre} no encontrado`)
         if (item.cantidad > art.stock_actual) {
           throw new Error(`Stock insuficiente para ${item.nombre}. Disponible: ${art.stock_actual}, solicitado: ${item.cantidad}`)
         }
@@ -1857,7 +1908,7 @@
     }
     setCargandoBoton("btnGuardarCargoModal", "spinnerCargoModal", "textoGuardarCargoModal", false, modoCargoModal === 'editar' ? "Actualizar Cargo" : "Registrar Cargo")
   }
-  
+
   function cerrarModalCargo() {
     document.getElementById("modalCargo").classList.remove("activo")
     numeroCargoModal = null
@@ -1868,10 +1919,10 @@
     document.getElementById("campoObservacionCargoModal").value = ''
     document.getElementById("campoFechaCargoModal").value = ''
     document.getElementById("triggerAreaCargoModal").dataset.value = ''
-    document.getElementById("triggerAreaCargoModal").querySelector(".filtro-select-text").textContent = 'Seleccione un área'
+    document.getElementById("triggerAreaCargoModal").querySelector(".filtro-select-text").textContent = 'Seleccione un area'
     document.getElementById("dropdownAreaCargoModal").querySelectorAll(".filtro-option").forEach(o => o.classList.remove("seleccionada"))
     document.getElementById("triggerArticuloCargoModal").dataset.value = ''
-    document.getElementById("triggerArticuloCargoModal").querySelector(".filtro-select-text").textContent = 'Seleccione un artículo'
+    document.getElementById("triggerArticuloCargoModal").querySelector(".filtro-select-text").textContent = 'Seleccione un articulo'
     document.getElementById("dropdownArticuloCargoModal").querySelectorAll(".filtro-option").forEach(o => o.classList.remove("seleccionada"))
   }
 
@@ -1912,11 +1963,11 @@
 
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
-    doc.text('CARGO DE ENTREGA DE ÚTILES DE OFICINA', pageW / 2, 22, { align: 'center' })
+    doc.text('CARGO DE ENTREGA DE UTILES DE OFICINA', pageW / 2, 22, { align: 'center' })
 
     doc.setDrawColor(0, 0, 0)
     doc.setLineWidth(0.5)
-    const anchoTitulo = doc.getTextWidth('CARGO DE ENTREGA DE ÚTILES DE OFICINA')
+    const anchoTitulo = doc.getTextWidth('CARGO DE ENTREGA DE UTILES DE OFICINA')
     doc.line(pageW / 2 - anchoTitulo / 2, 24, pageW / 2 + anchoTitulo / 2, 24)
 
     doc.setFontSize(10)
@@ -1933,7 +1984,7 @@
 
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    const parrafo = `QUE, LA OFICINA DE LA UNIDAD DE SEGUROS REALIZA LA ENTREGA DE LOS SIGUIENTES ÚTILES DE ESCRITORIO AL SERVICIO DE ${cargo.area_solicitante || '—'}`
+    const parrafo = `QUE, LA OFICINA DE LA UNIDAD DE SEGUROS REALIZA LA ENTREGA DE LOS SIGUIENTES UTILES DE ESCRITORIO AL SERVICIO DE ${cargo.area_solicitante || '—'}`
     const lines = doc.splitTextToSize(parrafo, contentW)
     const lineHeight = 5.3
     lines.forEach((line, i) => doc.text(line, margin, y + i * lineHeight))
@@ -1945,14 +1996,14 @@
     items.forEach((m) => {
       const art = m.inventario_articulos || {}
       const nombre = art.nombre || '—'
-      doc.text(`- ${nombre} × ${m.cantidad} unidades`, margin, y)
+      doc.text(`- ${nombre} x ${m.cantidad} unidades`, margin, y)
       y += 5
     })
     y += 4
 
     if (cargo.observacion) {
       doc.setFont('helvetica', 'bold')
-      doc.text('Observación:', margin, y)
+      doc.text('Observacion:', margin, y)
       y += 5
       doc.setFont('helvetica', 'normal')
       doc.text(cargo.observacion, margin, y)
@@ -1964,7 +2015,7 @@
 
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
-    doc.text('RECIBÍ CONFORME:', margin, y)
+    doc.text('RECIBI CONFORME:', margin, y)
     y += 10
 
     doc.setFont('helvetica', 'normal')
@@ -2025,7 +2076,7 @@
         { valor: '', texto: 'Todos', seleccionada: true },
         { valor: 'entrada', texto: 'Entrada' },
         { valor: 'salida', texto: 'Salida' },
-        { valor: 'importacion', texto: 'Importación' },
+        { valor: 'importacion', texto: 'Importacion' },
       ]
       inicializarDesplegable('wrapperFiltroTipoKardex', 'triggerFiltroTipoKardex', 'dropdownFiltroTipoKardex', tipoOpts)
 
@@ -2041,15 +2092,15 @@
             render: (v) => {
               if (v === 'entrada') return '<span class="tabla-badge activo"><i class="ph ph-arrow-circle-up"></i> Entrada</span>'
               if (v === 'salida') return '<span class="tabla-badge inactivo"><i class="ph ph-arrow-circle-down"></i> Salida</span>'
-              return '<span class="tabla-badge" style="background:#fef3c7;color:#92400e;"><i class="ph ph-file-import"></i> Importación</span>'
+              return '<span class="tabla-badge" style="background:#fef3c7;color:#92400e;"><i class="ph ph-file-import"></i> Importacion</span>'
             },
           },
-          { clave: 'articulo_nombre', titulo: 'Artículo' },
+          { clave: 'articulo_nombre', titulo: 'Articulo' },
           { clave: 'cantidad', titulo: 'Cantidad' },
           { clave: 'stock_anterior', titulo: 'Stock Anterior' },
           { clave: 'stock_actual', titulo: 'Stock Actual' },
           { clave: 'usuario_nombre', titulo: 'Usuario' },
-          { clave: 'observacion', titulo: 'Observación', render: (v) => v ? escaparHtml(v) : '—' },
+          { clave: 'observacion', titulo: 'Observacion', render: (v) => v ? escaparHtml(v) : '—' },
         ],
       })
 
@@ -2101,7 +2152,7 @@
      MODALES — BINDING
      ════════════════════════════════════════════ */
   function bindModales() {
-    /* ─── Modal Preview Importación ─── */
+    /* ─── Modal Preview Importacion ─── */
     const btnCerrarPreviewImportacion = document.getElementById('btnCerrarPreviewImportacion')
     const modalPreviewImportacion = document.getElementById('modalPreviewImportacion')
     const btnCancelarPreview = document.getElementById('btnCancelarPreview')
@@ -2122,7 +2173,7 @@
       })
     }
 
-    /* ─── Modal Eliminar Artículo ─── */
+    /* ─── Modal Eliminar Articulo ─── */
     const btnConfirmarEliminarArticulo = document.getElementById('btnConfirmarEliminarArticulo')
     const modalEliminarArticulo = document.getElementById('modalEliminarArticulo')
     const btnCancelarEliminarArticulo = document.getElementById('btnCancelarEliminarArticulo')
@@ -2173,6 +2224,23 @@
       btnDescargarCargoPdf.addEventListener('click', async () => {
         const num = btnDescargarCargoPdf.dataset.numeroCargo
         if (num) await descargarCargoPdf(num)
+      })
+    }
+
+    /* ─── Modal Entrada (Crear/Editar) ─── */
+    const btnNuevaEntrada = document.getElementById('btnNuevaEntrada')
+    const btnGuardarEntradaModal = document.getElementById('btnGuardarEntradaModal')
+    const btnCerrarModalEntrada = document.getElementById('btnCerrarModalEntrada')
+    const btnCancelarEntradaModal = document.getElementById('btnCancelarEntradaModal')
+    const modalEntrada = document.getElementById('modalEntrada')
+
+    if (btnNuevaEntrada) btnNuevaEntrada.addEventListener('click', abrirModalNuevaEntrada)
+    if (btnGuardarEntradaModal) btnGuardarEntradaModal.addEventListener('click', guardarEntradaModal)
+    if (btnCerrarModalEntrada) btnCerrarModalEntrada.addEventListener('click', cerrarModalEntrada)
+    if (btnCancelarEntradaModal) btnCancelarEntradaModal.addEventListener('click', cerrarModalEntrada)
+    if (modalEntrada) {
+      modalEntrada.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) cerrarModalEntrada()
       })
     }
 
@@ -2237,31 +2305,4 @@
       })
     }
   }
-
-      /* ─── Modal Eliminar Entrada ─── */
-    document.getElementById('btnConfirmarEliminarEntrada').addEventListener('click', eliminarEntrada)
-    document.getElementById('btnCancelarEliminarEntrada').addEventListener('click', () => {
-      document.getElementById('modalEliminarEntrada').classList.remove('activo')
-      entradaEliminandoId = null
-    })
-    document.getElementById('modalEliminarEntrada').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-        document.getElementById('modalEliminarEntrada').classList.remove('activo')
-        entradaEliminandoId = null
-      }
-    })
-
-    /* ─── Modal Eliminar Cargo ─── */
-    document.getElementById('btnConfirmarEliminarCargo').addEventListener('click', eliminarCargo)
-    document.getElementById('btnCancelarEliminarCargo').addEventListener('click', () => {
-      document.getElementById('modalEliminarCargo').classList.remove('activo')
-      cargoEliminandoNumero = null
-    })
-    document.getElementById('modalEliminarCargo').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-        document.getElementById('modalEliminarCargo').classList.remove('activo')
-        cargoEliminandoNumero = null
-      }
-    })
-  }
-)()
+})()
