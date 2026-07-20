@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="css/componentes/fecha.css" />
   <link rel="stylesheet" href="css/paginas/inventario.css" />
 <base target="_blank">
+<base target="_blank">
 </head>
 <body data-pagina="INVENTARIO" data-ruta="Gestión de almacén" data-modulo-activo="inventario">
   <main class="contenido-principal">
@@ -422,7 +423,7 @@
           <h3>Cargo de Entrega</h3>
           <p id="modalCargoInfo"></p>
         </div>
-        <button class="btn-icon-md modal-cerrar" id="btnCerrarModalCargo">
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarModalCargoPdf">
           <i class="ph ph-x"></i>
         </button>
       </div>
@@ -483,5 +484,41 @@
   <script src="js/componentes/header.js"></script>
   <script src="js/componentes/lateral.js"></script>
   <script src="js/paginas/inventario.js"></script>
+  <!-- ─── MODAL CONFIRMACIÓN ELIMINAR ENTRADA ─── -->
+  <div class="modal-overlay" id="modalEliminarEntrada">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Eliminar entrada</h3>
+          <p>¿Está seguro de que desea eliminar esta entrada? Se revertirá el stock del artículo.</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarEliminarEntrada">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarEntrada">
+          <span>Eliminar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODAL CONFIRMACIÓN ELIMINAR CARGO ─── -->
+  <div class="modal-overlay" id="modalEliminarCargo">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Eliminar cargo</h3>
+          <p>¿Está seguro de que desea eliminar este cargo de entrega? Se revertirá el stock de todos los artículos.</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarEliminarCargo">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarEliminarCargo">
+          <span>Eliminar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

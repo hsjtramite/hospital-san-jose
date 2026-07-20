@@ -2132,13 +2132,17 @@
       }
     })
 
-    document.getElementById('btnCerrarModalCargo').addEventListener('click', () => {
+    /* ─── Modal Ver Cargo PDF ─── */
+    document.getElementById('btnCerrarModalCargoPdf').addEventListener('click', () => {
       document.getElementById('modalVerCargoPdf').classList.remove('activo')
     })
     document.getElementById('modalVerCargoPdf').addEventListener('click', (e) => {
       if (e.target === e.currentTarget) document.getElementById('modalVerCargoPdf').classList.remove('activo')
     })
     document.getElementById('btnDescargarCargoPdf').addEventListener('click', async () => {
+      const num = document.getElementById('btnDescargarCargoPdf').dataset.numeroCargo
+      if (num) await descargarCargoPdf(num)
+    })
 
     /* ─── Modal Cargo (Crear/Editar) ─── */
     document.getElementById('btnNuevoCargo').addEventListener('click', abrirModalNuevoCargo)
@@ -2149,8 +2153,31 @@
     document.getElementById('modalCargo').addEventListener('click', (e) => {
       if (e.target === e.currentTarget) cerrarModalCargo()
     })
-      const num = document.getElementById('btnDescargarCargoPdf').dataset.numeroCargo
-      if (num) await descargarCargoPdf(num)
+
+    /* ─── Modal Eliminar Entrada ─── */
+    document.getElementById('btnConfirmarEliminarEntrada').addEventListener('click', eliminarEntrada)
+    document.getElementById('btnCancelarEliminarEntrada').addEventListener('click', () => {
+      document.getElementById('modalEliminarEntrada').classList.remove('activo')
+      entradaEliminandoId = null
+    })
+    document.getElementById('modalEliminarEntrada').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        document.getElementById('modalEliminarEntrada').classList.remove('activo')
+        entradaEliminandoId = null
+      }
+    })
+
+    /* ─── Modal Eliminar Cargo ─── */
+    document.getElementById('btnConfirmarEliminarCargo').addEventListener('click', eliminarCargo)
+    document.getElementById('btnCancelarEliminarCargo').addEventListener('click', () => {
+      document.getElementById('modalEliminarCargo').classList.remove('activo')
+      cargoEliminandoNumero = null
+    })
+    document.getElementById('modalEliminarCargo').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        document.getElementById('modalEliminarCargo').classList.remove('activo')
+        cargoEliminandoNumero = null
+      }
     })
   }
 
