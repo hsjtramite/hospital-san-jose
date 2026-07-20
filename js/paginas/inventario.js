@@ -1122,8 +1122,10 @@
         descontarInicializado = true
         inicializarDesplegable('wrapperArticuloCargo', 'triggerArticuloCargo', 'dropdownArticuloCargo', artOpts)
         inicializarDesplegable('wrapperAreaCargo', 'triggerAreaCargo', 'dropdownAreaCargo', areaOpts)
-        document.getElementById('btnAgregarArticuloCargo').addEventListener('click', agregarArticuloACargo)
-        document.getElementById('btnRegistrarCargo').addEventListener('click', registrarCargo)
+        const btnAgregarArticuloCargo = document.getElementById('btnAgregarArticuloCargo')
+        const btnRegistrarCargoEl = document.getElementById('btnRegistrarCargo')
+        if (btnAgregarArticuloCargo) btnAgregarArticuloCargo.addEventListener('click', agregarArticuloACargo)
+        if (btnRegistrarCargoEl) btnRegistrarCargoEl.addEventListener('click', registrarCargo)
         window.datePickerCargo = new DatePicker('campoFechaCargo')
       }
 

@@ -976,3 +976,72 @@
     align-items: flex-start;
   }
 }
+
+/* ════════════════════════════════════════════
+   FIX: Modal Cargo layout
+   ════════════════════════════════════════════ */
+.cargo-form-campos-modal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.cargo-form-campos-modal .campo-grupo {
+  min-width: 0;
+  margin: 0;
+}
+
+.cargo-form-campos-modal .filtro-select-wrapper,
+.cargo-form-campos-modal .input-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.cargo-form-campos-modal .filtro-select-trigger,
+.cargo-form-campos-modal .input-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#modalCargo .md-modal-cargo {
+  max-width: 720px !important;
+  width: 90vw !important;
+}
+
+#modalCargo .modal-body-md {
+  padding: var(--espaciado-lg) var(--espaciado-xl);
+}
+
+.cargo-agregar-articulo-modal {
+  display: flex;
+  gap: var(--espaciado-sm);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.cargo-agregar-articulo-modal .cargo-agregar-select {
+  flex: 1;
+  min-width: 200px;
+}
+
+.cargo-agregar-articulo-modal .cargo-agregar-cantidad {
+  width: 110px;
+}
+
+.cargo-agregar-articulo-modal .cargo-agregar-cantidad .input-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .cargo-form-campos-modal {
+    grid-template-columns: 1fr;
+  }
+  .cargo-agregar-articulo-modal {
+    flex-direction: column;
+  }
+  .cargo-agregar-articulo-modal .cargo-agregar-select,
+  .cargo-agregar-articulo-modal .cargo-agregar-cantidad {
+    width: 100%;
+  }
+}

@@ -520,5 +520,46 @@
     </div>
   </div>
 
+  <!-- ─── MODAL PREVIEW IMPORTACIÓN EXCEL ─── -->
+  <div class="modal-overlay" id="modalPreviewImportacion">
+    <div class="md-modal md-modal-grande">
+      <div class="modal-header-md">
+        <div class="header-icon-md">
+          <i class="ph ph-file-xls"></i>
+        </div>
+        <div class="header-text-md">
+          <h3>Vista previa de importación</h3>
+          <p id="previewImportacionInfo">Se van a procesar 0 registro(s)</p>
+        </div>
+        <button class="btn-icon-md modal-cerrar" id="btnCerrarPreviewImportacion">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body-md">
+        <p class="mensaje-error-md" id="previewImportacionError" style="display:none;"></p>
+        <div class="tabla-wrapper">
+          <table class="tabla" id="tablaPreviewImportacion">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPreviewImportacion"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer-md">
+        <button class="btn-text-md" id="btnCancelarPreview">Cancelar</button>
+        <button class="btn-filled-md" id="btnConfirmarPreview">
+          <span id="textoConfirmarPreview">Confirmar Importación</span>
+          <span class="spinner" id="spinnerPreview"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
