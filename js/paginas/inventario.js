@@ -18,8 +18,9 @@
 
   /* Estado para editar/eliminar cargos */
   let cargoEliminandoNumero = null
-  let articulosSeleccionadosCargoEditar = []
-  let numeroCargoEditando = null
+  let articulosSeleccionadosCargoModal = []
+  let numeroCargoModal = null
+  let modoCargoModal = 'crear'  // 'crear' o 'editar'
 
   const CATEGORIAS_PREDEFINIDAS = [
     'Útiles de Oficina', 'Material de Limpieza', 'Material de Impresión',
@@ -1489,6 +1490,8 @@
 
   async function editarCargo(numeroCargo) {
     console.log("[Inventario] Editando cargo:", numeroCargo)
+    modoCargoModal = 'editar'
+    numeroCargoModal = numeroCargo
     
     try {
       // 1. Cargar los movimientos del cargo
@@ -1497,8 +1500,6 @@
         .select("*, inventario_articulos!inner(id, nombre, codigo, stock_actual)")
         .eq("numero_cargo", numeroCargo)
         .eq("tipo", "salida")
-
-      console.log("[Inventario] Movimientos cargados:", movimientos, "Error:", error)
 
       if (error) {
         console.error("[Inventario] Error al cargar movimientos:", error)
@@ -1526,37 +1527,23 @@
 
       const areaOpts = (areasData || []).map(a => ({ valor: a.nombre, texto: a.nombre }))
       
-      // 3. Inicializar desplegable de área en el modal si no está inicializado
-      if (!document.getElementById("triggerAreaCargoEditar").dataset.inicializado) {
-        inicializarDesplegable("wrapperAreaCargoEditar", "triggerAreaCargoEditar", "dropdownAreaCargoEditar", areaOpts)
-        document.getElementById("triggerAreaCargoEditar").dataset.inicializado = "true"
-      } else {
-        actualizarOpcionesDesplegable("wrapperAreaCargoEditar", "triggerAreaCargoEditar", "dropdownAreaCargoEditar", areaOpts, cargo.area_solicitante, "Seleccione un área")
-      }
+      // 3. Inicializar desplegables del modal
+      inicializarModalCargo(areaOpts, cargo.area_solicitante)
 
       // 4. Prellenar campos del modal
-      document.getElementById("campoResponsableReceptorEditar").value = cargo.responsable_receptor || ''
-      document.getElementById("campoObservacionCargoEditar").value = cargo.observacion || ''
-      document.getElementById("editarCargoNumero").textContent = "Cargo: " + numeroCargo
+      document.getElementById("campoResponsableReceptorModal").value = cargo.responsable_receptor || ''
+      document.getElementById("campoObservacionCargoModal").value = cargo.observacion || ''
+      document.getElementById("cargoModalTitulo").textContent = "Editar Cargo de Entrega"
+      document.getElementById("cargoModalNumero").textContent = "Cargo: " + numeroCargo
+      document.getElementById("textoGuardarCargoModal").textContent = "Actualizar Cargo"
 
       // 5. Prellenar fecha
       if (cargo.created_at) {
-        document.getElementById("campoFechaCargoEditar").value = formatearFecha(cargo.created_at.slice(0, 10))
+        document.getElementById("campoFechaCargoModal").value = formatearFecha(cargo.created_at.slice(0, 10))
       }
 
-      // 6. Inicializar desplegable de artículo en el modal
-      const artOpts = articulos.filter(a => a.activo && a.stock_actual > 0).map(a => ({
-        valor: a.id, texto: `${a.codigo} — ${a.nombre} (Stock: ${a.stock_actual})`
-      }))
-      if (!document.getElementById("triggerArticuloCargoEditar").dataset.inicializado) {
-        inicializarDesplegable("wrapperArticuloCargoEditar", "triggerArticuloCargoEditar", "dropdownArticuloCargoEditar", artOpts)
-        document.getElementById("triggerArticuloCargoEditar").dataset.inicializado = "true"
-      } else {
-        actualizarOpcionesDesplegable("wrapperArticuloCargoEditar", "triggerArticuloCargoEditar", "dropdownArticuloCargoEditar", artOpts, '', "Seleccione un artículo")
-      }
-
-      // 7. Cargar artículos al detalle del modal
-      articulosSeleccionadosCargoEditar = movimientos.map(m => ({
+      // 6. Cargar artículos al detalle del modal
+      articulosSeleccionadosCargoModal = movimientos.map(m => ({
         id: m.articulo_id,
         codigo: m.inventario_articulos?.codigo || '',
         nombre: m.inventario_articulos?.nombre || '',
@@ -1565,13 +1552,12 @@
         movimiento_id: m.id
       }))
 
-      numeroCargoEditando = numeroCargo
-      renderizarDetalleCargoEditar()
+      renderizarDetalleCargoModal()
 
-      // 8. Abrir el modal
-      document.getElementById("modalEditarCargo").classList.add("activo")
+      // 7. Abrir el modal
+      document.getElementById("modalCargo").classList.add("activo")
       
-      console.log("[Inventario] Cargo listo para editar en modal:", numeroCargo)
+      console.log("[Inventario] Cargo listo para editar:", numeroCargo)
       
     } catch (err) {
       console.error("[Inventario] Error inesperado en editarCargo:", err)
@@ -1639,22 +1625,66 @@
      PDF — CARGO DE ENTREGA
      ════════════════════════════════════════════ */
   /* ════════════════════════════════════════════
-     MODAL EDITAR CARGO — FUNCIONES AUXILIARES
+     MODAL CARGO (CREAR / EDITAR)
      ════════════════════════════════════════════ */
   
-  function renderizarDetalleCargoEditar() {
-    const tbody = document.getElementById('tbodyDetalleCargoEditar')
-    const vacio = document.getElementById('cargoDetalleVacioEditar')
+  function abrirModalNuevoCargo() {
+    modoCargoModal = 'crear'
+    numeroCargoModal = null
+    articulosSeleccionadosCargoModal = []
+    
+    // Cargar áreas
+    supabase.from("areas").select("nombre").eq("activo", true).order("nombre")
+      .then(({ data: areasData }) => {
+        const areaOpts = (areasData || []).map(a => ({ valor: a.nombre, texto: a.nombre }))
+        inicializarModalCargo(areaOpts, '')
+      })
+    
+    // Resetear campos
+    document.getElementById("campoResponsableReceptorModal").value = ''
+    document.getElementById("campoObservacionCargoModal").value = ''
+    document.getElementById("campoFechaCargoModal").value = ''
+    document.getElementById("cargoModalTitulo").textContent = "Nuevo Cargo de Entrega"
+    document.getElementById("cargoModalNumero").textContent = ""
+    document.getElementById("textoGuardarCargoModal").textContent = "Registrar Cargo"
+    
+    renderizarDetalleCargoModal()
+    document.getElementById("modalCargo").classList.add("activo")
+  }
+  
+  function inicializarModalCargo(areaOpts, areaSeleccionada) {
+    // Inicializar área
+    if (!document.getElementById("triggerAreaCargoModal").dataset.inicializado) {
+      inicializarDesplegable("wrapperAreaCargoModal", "triggerAreaCargoModal", "dropdownAreaCargoModal", areaOpts)
+      document.getElementById("triggerAreaCargoModal").dataset.inicializado = "true"
+    }
+    actualizarOpcionesDesplegable("wrapperAreaCargoModal", "triggerAreaCargoModal", "dropdownAreaCargoModal", areaOpts, areaSeleccionada, "Seleccione un área")
+    
+    // Inicializar artículo
+    const artOpts = articulos.filter(a => a.activo && a.stock_actual > 0).map(a => ({
+      valor: a.id, texto: `${a.codigo} — ${a.nombre} (Stock: ${a.stock_actual})`
+    }))
+    if (!document.getElementById("triggerArticuloCargoModal").dataset.inicializado) {
+      inicializarDesplegable("wrapperArticuloCargoModal", "triggerArticuloCargoModal", "dropdownArticuloCargoModal", artOpts)
+      document.getElementById("triggerArticuloCargoModal").dataset.inicializado = "true"
+    } else {
+      actualizarOpcionesDesplegable("wrapperArticuloCargoModal", "triggerArticuloCargoModal", "dropdownArticuloCargoModal", artOpts, '', "Seleccione un artículo")
+    }
+  }
+  
+  function renderizarDetalleCargoModal() {
+    const tbody = document.getElementById("tbodyDetalleCargoModal")
+    const vacio = document.getElementById("cargoDetalleVacioModal")
     if (!tbody || !vacio) return
 
-    if (articulosSeleccionadosCargoEditar.length === 0) {
+    if (articulosSeleccionadosCargoModal.length === 0) {
       tbody.innerHTML = ''
       vacio.style.display = 'flex'
       return
     }
 
     vacio.style.display = 'none'
-    tbody.innerHTML = articulosSeleccionadosCargoEditar.map((a, i) => `
+    tbody.innerHTML = articulosSeleccionadosCargoModal.map((a, i) => `
       <tr>
         <td>${escaparHtml(a.nombre)}</td>
         <td>${escaparHtml(a.codigo)}</td>
@@ -1669,112 +1699,119 @@
     `).join('')
 
     tbody.querySelectorAll('[data-index]').forEach(btn => {
-      btn.addEventListener('click', () => quitarArticuloDeCargoEditar(parseInt(btn.dataset.index)))
+      btn.addEventListener('click', () => quitarArticuloDeCargoModal(parseInt(btn.dataset.index)))
     })
   }
-
-  function quitarArticuloDeCargoEditar(index) {
-    articulosSeleccionadosCargoEditar.splice(index, 1)
-    renderizarDetalleCargoEditar()
+  
+  function quitarArticuloDeCargoModal(index) {
+    articulosSeleccionadosCargoModal.splice(index, 1)
+    renderizarDetalleCargoModal()
   }
+  
+  function agregarArticuloACargoModal() {
+    const articuloId = document.getElementById("triggerArticuloCargoModal")?.dataset?.value
+    const cantidad = parseInt(document.getElementById("campoCantidadCargoModal").value) || 0
 
-  function agregarArticuloACargoEditar() {
-    const articuloId = document.getElementById('triggerArticuloCargoEditar')?.dataset?.value
-    const cantidad = parseInt(document.getElementById('campoCantidadCargoEditar').value) || 0
-
-    document.getElementById('errorArticuloCargoEditar').textContent = ''
+    document.getElementById("errorArticuloCargoModal").textContent = ''
 
     if (!articuloId) {
-      document.getElementById('errorArticuloCargoEditar').textContent = 'Seleccione un artículo'
+      document.getElementById("errorArticuloCargoModal").textContent = 'Seleccione un artículo'
       return
     }
     if (cantidad <= 0) {
-      document.getElementById('errorArticuloCargoEditar').textContent = 'Ingrese una cantidad válida'
+      document.getElementById("errorArticuloCargoModal").textContent = 'Ingrese una cantidad válida'
       return
     }
 
     const art = articulos.find(a => a.id === articuloId)
     if (!art) return
     if (cantidad > art.stock_actual) {
-      document.getElementById('errorArticuloCargoEditar').textContent = `Stock insuficiente. Stock actual: ${art.stock_actual}`
+      document.getElementById("errorArticuloCargoModal").textContent = `Stock insuficiente. Stock actual: ${art.stock_actual}`
       return
     }
 
-    const existente = articulosSeleccionadosCargoEditar.find(a => a.id === articuloId)
+    const existente = articulosSeleccionadosCargoModal.find(a => a.id === articuloId)
     if (existente) {
       const nuevaCant = existente.cantidad + cantidad
       if (nuevaCant > art.stock_actual) {
-        document.getElementById('errorArticuloCargoEditar').textContent = `Stock insuficiente para la cantidad total. Stock actual: ${art.stock_actual}`
+        document.getElementById("errorArticuloCargoModal").textContent = `Stock insuficiente para la cantidad total. Stock actual: ${art.stock_actual}`
         return
       }
       existente.cantidad = nuevaCant
     } else {
-      articulosSeleccionadosCargoEditar.push({ id: articuloId, codigo: art.codigo, nombre: art.nombre, cantidad, stock_actual: art.stock_actual })
+      articulosSeleccionadosCargoModal.push({ id: articuloId, codigo: art.codigo, nombre: art.nombre, cantidad, stock_actual: art.stock_actual })
     }
 
-    document.getElementById('triggerArticuloCargoEditar').dataset.value = ''
-    document.getElementById('triggerArticuloCargoEditar').querySelector('.filtro-select-text').textContent = 'Seleccione un artículo'
-    document.getElementById('campoCantidadCargoEditar').value = ''
-    document.getElementById('dropdownArticuloCargoEditar').querySelectorAll('.filtro-option').forEach(o => o.classList.remove('seleccionada'))
+    document.getElementById("triggerArticuloCargoModal").dataset.value = ''
+    document.getElementById("triggerArticuloCargoModal").querySelector(".filtro-select-text").textContent = 'Seleccione un artículo'
+    document.getElementById("campoCantidadCargoModal").value = ''
+    document.getElementById("dropdownArticuloCargoModal").querySelectorAll(".filtro-option").forEach(o => o.classList.remove("seleccionada"))
 
-    renderizarDetalleCargoEditar()
+    renderizarDetalleCargoModal()
   }
+  
+  async function guardarCargoModal() {
+    limpiarErrores(document.getElementById("modalCargo"))
 
-  async function actualizarCargoEditar() {
-    if (!numeroCargoEditando) return
-
-    limpiarErrores(document.getElementById('modalEditarCargo'))
-
-    const area = document.getElementById('triggerAreaCargoEditar')?.dataset?.value || ''
-    const responsable = document.getElementById('campoResponsableReceptorEditar').value.trim()
-    const observacion = document.getElementById('campoObservacionCargoEditar').value.trim()
-    const fecha = document.getElementById('campoFechaCargoEditar').value || new Date().toISOString().slice(0, 10)
+    const area = document.getElementById("triggerAreaCargoModal")?.dataset?.value || ''
+    const responsable = document.getElementById("campoResponsableReceptorModal").value.trim()
+    const observacion = document.getElementById("campoObservacionCargoModal").value.trim()
+    const fecha = document.getElementById("campoFechaCargoModal").value || new Date().toISOString().slice(0, 10)
 
     let hayError = false
-    if (!area) { mostrarError('errorAreaSolicitanteEditar', 'Seleccione un área'); hayError = true }
-    if (!responsable) { mostrarError('errorResponsableReceptorEditar', 'El responsable receptor es obligatorio'); hayError = true }
-    if (articulosSeleccionadosCargoEditar.length === 0) { mostrarError('errorArticuloCargoEditar', 'Agregue al menos un artículo'); hayError = true }
+    if (!area) { mostrarError("errorAreaSolicitanteModal", "Seleccione un área"); hayError = true }
+    if (!responsable) { mostrarError("errorResponsableReceptorModal", "El responsable receptor es obligatorio"); hayError = true }
+    if (articulosSeleccionadosCargoModal.length === 0) { mostrarError("errorArticuloCargoModal", "Agregue al menos un artículo"); hayError = true }
     if (hayError) return
 
-    setCargandoBoton('btnActualizarCargoEditar', 'spinnerCargoEditar', 'textoActualizarCargoEditar', true)
+    setCargandoBoton("btnGuardarCargoModal", "spinnerCargoModal", "textoGuardarCargoModal", true)
 
     try {
-      // 1. Obtener movimientos originales del cargo
-      const { data: movimientosOriginales, error: errOrig } = await supabase
-        .from('inventario_movimientos')
-        .select('id, articulo_id, cantidad')
-        .eq('numero_cargo', numeroCargoEditando)
-        .eq('tipo', 'salida')
+      let numeroCargo
+      
+      if (modoCargoModal === 'editar' && numeroCargoModal) {
+        // MODO EDITAR: Revertir stock anterior y eliminar movimientos
+        numeroCargo = numeroCargoModal
+        
+        const { data: movimientosOriginales, error: errOrig } = await supabase
+          .from("inventario_movimientos")
+          .select("id, articulo_id, cantidad")
+          .eq("numero_cargo", numeroCargo)
+          .eq("tipo", "salida")
 
-      if (errOrig) throw new Error(errOrig.message)
+        if (errOrig) throw new Error(errOrig.message)
 
-      // 2. Revertir stock de movimientos originales
-      for (const m of movimientosOriginales) {
-        const { data: art } = await supabase
-          .from('inventario_articulos')
-          .select('stock_actual')
-          .eq('id', m.articulo_id)
-          .single()
+        // Revertir stock de movimientos originales
+        for (const m of movimientosOriginales) {
+          const { data: art } = await supabase
+            .from("inventario_articulos")
+            .select("stock_actual")
+            .eq("id", m.articulo_id)
+            .single()
 
-        if (art) {
-          await supabase.from('inventario_articulos')
-            .update({ stock_actual: (art.stock_actual || 0) + m.cantidad })
-            .eq('id', m.articulo_id)
+          if (art) {
+            await supabase.from("inventario_articulos")
+              .update({ stock_actual: (art.stock_actual || 0) + m.cantidad })
+              .eq("id", m.articulo_id)
+          }
         }
+
+        // Eliminar movimientos originales
+        await supabase.from("inventario_movimientos")
+          .delete()
+          .eq("numero_cargo", numeroCargo)
+          .eq("tipo", "salida")
+      } else {
+        // MODO CREAR: Generar nuevo número de cargo
+        numeroCargo = await generarNumeroCargo()
       }
 
-      // 3. Eliminar movimientos originales
-      await supabase.from('inventario_movimientos')
-        .delete()
-        .eq('numero_cargo', numeroCargoEditando)
-        .eq('tipo', 'salida')
-
-      // 4. Crear nuevos movimientos con datos actualizados
-      for (const item of articulosSeleccionadosCargoEditar) {
+      // Crear nuevos movimientos
+      for (const item of articulosSeleccionadosCargoModal) {
         const { data: art } = await supabase
-          .from('inventario_articulos')
-          .select('stock_actual')
-          .eq('id', item.id)
+          .from("inventario_articulos")
+          .select("stock_actual")
+          .eq("id", item.id)
           .single()
 
         if (!art) throw new Error(`Artículo ${item.nombre} no encontrado`)
@@ -1784,17 +1821,17 @@
 
         const nuevoStock = (art.stock_actual || 0) - item.cantidad
 
-        await supabase.from('inventario_articulos')
+        await supabase.from("inventario_articulos")
           .update({ stock_actual: nuevoStock })
-          .eq('id', item.id)
+          .eq("id", item.id)
 
-        await supabase.from('inventario_movimientos').insert({
+        await supabase.from("inventario_movimientos").insert({
           articulo_id: item.id,
-          tipo: 'salida',
+          tipo: "salida",
           cantidad: item.cantidad,
           stock_anterior: art.stock_actual || 0,
           stock_actual: nuevoStock,
-          numero_cargo: numeroCargoEditando,
+          numero_cargo: numeroCargo,
           area_solicitante: area,
           responsable_receptor: responsable,
           observacion: observacion || null,
@@ -1802,29 +1839,38 @@
         })
       }
 
-      // 5. Cerrar modal y resetear
-      cerrarModalEditarCargo()
+      // Cerrar modal y resetear
+      cerrarModalCargo()
+
+      // Si es modo crear, generar PDF
+      if (modoCargoModal === 'crear') {
+        generarPDFyDescargar(numeroCargo)
+      }
 
       await cargarCargosRecientes()
       await cargarArticulos()
       await renderizarResumen()
     } catch (err) {
-      mostrarError('errorAreaSolicitanteEditar', err.message || 'Error al actualizar cargo')
+      mostrarError("errorAreaSolicitanteModal", err.message || "Error al guardar cargo")
     }
-    setCargandoBoton('btnActualizarCargoEditar', 'spinnerCargoEditar', 'textoActualizarCargoEditar', false, 'Actualizar Cargo')
+    setCargandoBoton("btnGuardarCargoModal", "spinnerCargoModal", "textoGuardarCargoModal", false, modoCargoModal === 'editar' ? "Actualizar Cargo" : "Registrar Cargo")
   }
-
-  function cerrarModalEditarCargo() {
-    document.getElementById('modalEditarCargo').classList.remove('activo')
-    numeroCargoEditando = null
-    articulosSeleccionadosCargoEditar = []
-    renderizarDetalleCargoEditar()
-    document.getElementById('campoResponsableReceptorEditar').value = ''
-    document.getElementById('campoObservacionCargoEditar').value = ''
-    document.getElementById('campoFechaCargoEditar').value = ''
-    document.getElementById('triggerAreaCargoEditar').dataset.value = ''
-    document.getElementById('triggerAreaCargoEditar').querySelector('.filtro-select-text').textContent = 'Seleccione un área'
-    document.getElementById('dropdownAreaCargoEditar').querySelectorAll('.filtro-option').forEach(o => o.classList.remove('seleccionada'))
+  
+  function cerrarModalCargo() {
+    document.getElementById("modalCargo").classList.remove("activo")
+    numeroCargoModal = null
+    modoCargoModal = 'crear'
+    articulosSeleccionadosCargoModal = []
+    renderizarDetalleCargoModal()
+    document.getElementById("campoResponsableReceptorModal").value = ''
+    document.getElementById("campoObservacionCargoModal").value = ''
+    document.getElementById("campoFechaCargoModal").value = ''
+    document.getElementById("triggerAreaCargoModal").dataset.value = ''
+    document.getElementById("triggerAreaCargoModal").querySelector(".filtro-select-text").textContent = 'Seleccione un área'
+    document.getElementById("dropdownAreaCargoModal").querySelectorAll(".filtro-option").forEach(o => o.classList.remove("seleccionada"))
+    document.getElementById("triggerArticuloCargoModal").dataset.value = ''
+    document.getElementById("triggerArticuloCargoModal").querySelector(".filtro-select-text").textContent = 'Seleccione un artículo'
+    document.getElementById("dropdownArticuloCargoModal").querySelectorAll(".filtro-option").forEach(o => o.classList.remove("seleccionada"))
   }
 
   async function generarPDFCargo(numeroCargo) {
@@ -2094,13 +2140,14 @@
     })
     document.getElementById('btnDescargarCargoPdf').addEventListener('click', async () => {
 
-    /* ─── Modal Editar Cargo ─── */
-    document.getElementById('btnAgregarArticuloCargoEditar').addEventListener('click', agregarArticuloACargoEditar)
-    document.getElementById('btnActualizarCargoEditar').addEventListener('click', actualizarCargoEditar)
-    document.getElementById('btnCerrarModalEditarCargo').addEventListener('click', cerrarModalEditarCargo)
-    document.getElementById('btnCancelarEditarCargo').addEventListener('click', cerrarModalEditarCargo)
-    document.getElementById('modalEditarCargo').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) cerrarModalEditarCargo()
+    /* ─── Modal Cargo (Crear/Editar) ─── */
+    document.getElementById('btnNuevoCargo').addEventListener('click', abrirModalNuevoCargo)
+    document.getElementById('btnAgregarArticuloCargoModal').addEventListener('click', agregarArticuloACargoModal)
+    document.getElementById('btnGuardarCargoModal').addEventListener('click', guardarCargoModal)
+    document.getElementById('btnCerrarModalCargo').addEventListener('click', cerrarModalCargo)
+    document.getElementById('btnCancelarCargoModal').addEventListener('click', cerrarModalCargo)
+    document.getElementById('modalCargo').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) cerrarModalCargo()
     })
       const num = document.getElementById('btnDescargarCargoPdf').dataset.numeroCargo
       if (num) await descargarCargoPdf(num)
