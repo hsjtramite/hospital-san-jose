@@ -123,7 +123,7 @@
   color: var(--color-texto-secundario);
 }
 
-/* ─── CATALOGO LAYOUT ─── */
+/* ─── CATÁLOGO LAYOUT ─── */
 .inventario-catalogo-layout .tabla-encabezado {
   padding-left: var(--espaciado-md);
   padding-right: var(--espaciado-md);
@@ -207,7 +207,7 @@
   margin-right: var(--espaciado-xl);
 }
 
-/* ─── ENTRADA HISTORIAL (nuevo, similar a cargo-historial) ─── */
+/* ─── ENTRADA HISTORIAL ─── */
 .entrada-historial {
   background: var(--color-fondo);
   border: 1px solid var(--borde-color);
@@ -400,7 +400,7 @@
   width: 90vw !important;
 }
 
-/* ─── BOTONES DE ACCION EN TABLAS ─── */
+/* ─── BOTONES DE ACCIÓN EN TABLAS ─── */
 .btn-accion-pdf {
   display: inline-flex;
   align-items: center;
@@ -647,7 +647,7 @@
 }
 
 /* ════════════════════════════════════════════
-   BOTONES DE ACCION EN TABLAS
+   BOTONES DE ACCIÓN EN TABLAS
    ════════════════════════════════════════════ */
 .acciones-tabla {
   display: flex;
@@ -745,9 +745,11 @@
   text-align: center;
 }
 
-/* ─── MODAL ENTRADA ─── */
+/* ════════════════════════════════════════════
+   MODAL ENTRADA
+   ════════════════════════════════════════════ */
 .md-modal-entrada {
-  max-width: 600px !important;
+  max-width: 620px !important;
   width: 90vw !important;
   max-height: 85vh;
   overflow-y: auto;
@@ -759,25 +761,94 @@
   gap: 16px 20px;
 }
 
-.entrada-form-campos-modal .input-wrapper {
-  display: flex;
-  width: 100%;
+.entrada-form-campos-modal .campo-grupo {
+  min-width: 0;
+  margin: 0;
 }
 
+.entrada-form-campos-modal .filtro-select-wrapper,
+.entrada-form-campos-modal .input-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.entrada-form-campos-modal .filtro-select-trigger,
 .entrada-form-campos-modal .input-wrapper input {
-  flex: 1;
-  padding: 10px 14px;
-  font-size: var(--texto-sm);
-  width: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .entrada-form-campos-modal .campo-grupo:last-child {
   grid-column: 1 / -1;
 }
 
-/* ─── MODAL CARGO ─── */
+#modalEntrada .modal-body-md {
+  padding: var(--espaciado-lg) var(--espaciado-xl);
+}
+
+/* ════════════════════════════════════════════
+   FIX: Dropdown de articulos en modal ENTRADA
+   ════════════════════════════════════════════ */
+
+/* Agrandar el contenedor del select de articulos */
+#wrapperArticuloEntradaModal {
+  min-width: 100%;
+  position: relative;
+}
+
+/* El trigger del dropdown debe mostrar texto completo */
+#wrapperArticuloEntradaModal .filtro-select-trigger {
+  white-space: normal;
+  text-align: left;
+  height: auto;
+  min-height: 40px;
+  padding: 8px 36px 8px 14px;
+  line-height: 1.4;
+  word-break: break-word;
+  overflow: visible;
+}
+
+/* Las opciones del dropdown deben mostrar texto completo */
+#dropdownArticuloEntradaModal .filtro-option {
+  white-space: normal;
+  text-align: left;
+  padding: 10px 14px;
+  line-height: 1.4;
+  word-break: break-word;
+  font-size: var(--texto-sm);
+}
+
+/* Agrandar el dropdown desplegado */
+#dropdownArticuloEntradaModal {
+  max-height: 280px;
+  overflow-y: auto;
+  width: 100% !important;
+  min-width: 100% !important;
+  left: 0 !important;
+  right: auto !important;
+}
+
+/* Ajustar el texto seleccionado para que no se corte */
+#wrapperArticuloEntradaModal .filtro-select-text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  display: block;
+  width: 100%;
+}
+
+/* Asegurar que el dropdown tenga suficiente ancho */
+#wrapperArticuloEntradaModal.abierto #dropdownArticuloEntradaModal {
+  min-width: 320px;
+  width: max-content;
+  max-width: 90vw;
+}
+
+/* ════════════════════════════════════════════
+   MODAL CARGO
+   ════════════════════════════════════════════ */
 .md-modal-cargo {
-  max-width: 700px !important;
+  max-width: 720px !important;
   width: 90vw !important;
   max-height: 85vh;
   overflow-y: auto;
@@ -789,16 +860,25 @@
   gap: 16px 20px;
 }
 
-.cargo-form-campos-modal .input-wrapper {
-  display: flex;
-  width: 100%;
+.cargo-form-campos-modal .campo-grupo {
+  min-width: 0;
+  margin: 0;
 }
 
+.cargo-form-campos-modal .filtro-select-wrapper,
+.cargo-form-campos-modal .input-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.cargo-form-campos-modal .filtro-select-trigger,
 .cargo-form-campos-modal .input-wrapper input {
-  flex: 1;
-  padding: 10px 14px;
-  font-size: var(--texto-sm);
-  width: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#modalCargo .modal-body-md {
+  padding: var(--espaciado-lg) var(--espaciado-xl);
 }
 
 .cargo-detalle-modal {
@@ -823,11 +903,17 @@
 
 .cargo-agregar-articulo-modal .cargo-agregar-select {
   flex: 1;
-  min-width: 200px;
+  min-width: 320px;
+  max-width: 100%;
 }
 
 .cargo-agregar-articulo-modal .cargo-agregar-cantidad {
   width: 110px;
+}
+
+.cargo-agregar-articulo-modal .cargo-agregar-cantidad .input-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .cargo-detalle-vacio {
@@ -849,6 +935,67 @@
   font-size: var(--texto-sm);
 }
 
+/* ════════════════════════════════════════════
+   FIX: Dropdown de articulos en modal CARGO
+   ════════════════════════════════════════════ */
+
+/* Agrandar el contenedor del select de articulos */
+#wrapperArticuloCargoModal {
+  min-width: 100%;
+  position: relative;
+}
+
+/* El trigger del dropdown debe mostrar texto completo */
+#wrapperArticuloCargoModal .filtro-select-trigger {
+  white-space: normal;
+  text-align: left;
+  height: auto;
+  min-height: 40px;
+  padding: 8px 36px 8px 14px;
+  line-height: 1.4;
+  word-break: break-word;
+  overflow: visible;
+}
+
+/* Las opciones del dropdown deben mostrar texto completo */
+#dropdownArticuloCargoModal .filtro-option {
+  white-space: normal;
+  text-align: left;
+  padding: 10px 14px;
+  line-height: 1.4;
+  word-break: break-word;
+  font-size: var(--texto-sm);
+}
+
+/* Agrandar el dropdown desplegado */
+#dropdownArticuloCargoModal {
+  max-height: 280px;
+  overflow-y: auto;
+  width: 100% !important;
+  min-width: 100% !important;
+  left: 0 !important;
+  right: auto !important;
+}
+
+/* Ajustar el texto seleccionado para que no se corte */
+#wrapperArticuloCargoModal .filtro-select-text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  display: block;
+  width: 100%;
+}
+
+/* Asegurar que el dropdown tenga suficiente ancho */
+#wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal {
+  min-width: 320px;
+  width: max-content;
+  max-width: 90vw;
+}
+
+/* ════════════════════════════════════════════
+   RESPONSIVE MODALES
+   ════════════════════════════════════════════ */
 @media (max-width: 768px) {
   .entrada-form-campos-modal {
     grid-template-columns: 1fr;
@@ -873,132 +1020,9 @@
     flex-direction: column;
     align-items: flex-start;
   }
-}
-
-/* ════════════════════════════════════════════
-   FIX: Modal Entrada layout
-   ════════════════════════════════════════════ */
-.entrada-form-campos-modal {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 20px;
-}
-
-.entrada-form-campos-modal .campo-grupo {
-  min-width: 0;
-  margin: 0;
-}
-
-.entrada-form-campos-modal .filtro-select-wrapper,
-.entrada-form-campos-modal .input-wrapper {
-  width: 100%;
-  min-width: 0;
-}
-
-.entrada-form-campos-modal .filtro-select-trigger,
-.entrada-form-campos-modal .input-wrapper input {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-#modalEntrada .md-modal-entrada {
-  max-width: 620px !important;
-  width: 90vw !important;
-}
-
-#modalEntrada .modal-body-md {
-  padding: var(--espaciado-lg) var(--espaciado-xl);
-}
-
-/* ════════════════════════════════════════════
-   FIX: Modal Cargo layout
-   ════════════════════════════════════════════ */
-.cargo-form-campos-modal {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 20px;
-}
-
-.cargo-form-campos-modal .campo-grupo {
-  min-width: 0;
-  margin: 0;
-}
-
-.cargo-form-campos-modal .filtro-select-wrapper,
-.cargo-form-campos-modal .input-wrapper {
-  width: 100%;
-  min-width: 0;
-}
-
-.cargo-form-campos-modal .filtro-select-trigger,
-.cargo-form-campos-modal .input-wrapper input {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-#modalCargo .md-modal-cargo {
-  max-width: 720px !important;
-  width: 90vw !important;
-}
-
-#modalCargo .modal-body-md {
-  padding: var(--espaciado-lg) var(--espaciado-xl);
-}
-
-.cargo-agregar-articulo-modal {
-  display: flex;
-  gap: var(--espaciado-sm);
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-.cargo-agregar-articulo-modal .cargo-agregar-select {
-  flex: 1;
-  min-width: 200px;
-}
-
-.cargo-agregar-articulo-modal .cargo-agregar-cantidad {
-  width: 110px;
-}
-
-.cargo-agregar-articulo-modal .cargo-agregar-cantidad .input-wrapper input {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* ════════════════════════════════════════════
-   FIX: Dropdown de articulos en modal cargo
-   ════════════════════════════════════════════ */
-.cargo-agregar-articulo-modal .cargo-agregar-select {
-  flex: 1;
-  min-width: 320px;
-  max-width: 100%;
-}
-
-#wrapperArticuloCargoModal .filtro-select-trigger {
-  white-space: normal;
-  text-align: left;
-  height: auto;
-  min-height: 40px;
-  padding: 8px 36px 8px 14px;
-  line-height: 1.4;
-}
-
-#dropdownArticuloCargoModal .filtro-option {
-  white-space: normal;
-  text-align: left;
-  padding: 10px 14px;
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-#dropdownArticuloCargoModal {
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-#wrapperArticuloCargoModal .filtro-select-text {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
+  #wrapperArticuloEntradaModal.abierto #dropdownArticuloEntradaModal,
+  #wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal {
+    min-width: 100%;
+    max-width: 95vw;
+  }
 }
