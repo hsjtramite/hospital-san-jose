@@ -2101,86 +2101,141 @@
      MODALES — BINDING
      ════════════════════════════════════════════ */
   function bindModales() {
-    document.getElementById('btnCerrarPreviewImportacion').addEventListener('click', () => {
-      document.getElementById('modalPreviewImportacion').classList.remove('activo')
-    })
-    document.getElementById('btnCancelarPreview').addEventListener('click', () => {
-      document.getElementById('modalPreviewImportacion').classList.remove('activo')
-    })
-    document.getElementById('modalPreviewImportacion').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) document.getElementById('modalPreviewImportacion').classList.remove('activo')
-    })
+    /* ─── Modal Preview Importación ─── */
+    const btnCerrarPreviewImportacion = document.getElementById('btnCerrarPreviewImportacion')
+    const modalPreviewImportacion = document.getElementById('modalPreviewImportacion')
+    const btnCancelarPreview = document.getElementById('btnCancelarPreview')
 
-    document.getElementById('btnConfirmarEliminarArticulo').addEventListener('click', async () => {
-      if (!eliminarArticuloPendiente) return
-      document.getElementById('modalEliminarArticulo').classList.remove('activo')
-      await supabase.from('inventario_articulos').update({ activo: reactivarArticuloPendiente }).eq('id', eliminarArticuloPendiente)
-      eliminarArticuloPendiente = null
-      reactivarArticuloPendiente = false
-      await cargarArticulos()
-    })
+    if (btnCerrarPreviewImportacion && modalPreviewImportacion) {
+      btnCerrarPreviewImportacion.addEventListener('click', () => {
+        modalPreviewImportacion.classList.remove('activo')
+      })
+    }
+    if (btnCancelarPreview && modalPreviewImportacion) {
+      btnCancelarPreview.addEventListener('click', () => {
+        modalPreviewImportacion.classList.remove('activo')
+      })
+    }
+    if (modalPreviewImportacion) {
+      modalPreviewImportacion.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) modalPreviewImportacion.classList.remove('activo')
+      })
+    }
 
-    document.getElementById('btnCancelarEliminarArticulo').addEventListener('click', () => {
-      document.getElementById('modalEliminarArticulo').classList.remove('activo')
-      eliminarArticuloPendiente = null
-      reactivarArticuloPendiente = false
-    })
+    /* ─── Modal Eliminar Artículo ─── */
+    const btnConfirmarEliminarArticulo = document.getElementById('btnConfirmarEliminarArticulo')
+    const modalEliminarArticulo = document.getElementById('modalEliminarArticulo')
+    const btnCancelarEliminarArticulo = document.getElementById('btnCancelarEliminarArticulo')
 
-    document.getElementById('modalEliminarArticulo').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-        document.getElementById('modalEliminarArticulo').classList.remove('activo')
+    if (btnConfirmarEliminarArticulo) {
+      btnConfirmarEliminarArticulo.addEventListener('click', async () => {
+        if (!eliminarArticuloPendiente) return
+        if (modalEliminarArticulo) modalEliminarArticulo.classList.remove('activo')
+        await supabase.from('inventario_articulos').update({ activo: reactivarArticuloPendiente }).eq('id', eliminarArticuloPendiente)
         eliminarArticuloPendiente = null
         reactivarArticuloPendiente = false
-      }
-    })
+        await cargarArticulos()
+      })
+    }
+    if (btnCancelarEliminarArticulo && modalEliminarArticulo) {
+      btnCancelarEliminarArticulo.addEventListener('click', () => {
+        modalEliminarArticulo.classList.remove('activo')
+        eliminarArticuloPendiente = null
+        reactivarArticuloPendiente = false
+      })
+    }
+    if (modalEliminarArticulo) {
+      modalEliminarArticulo.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+          modalEliminarArticulo.classList.remove('activo')
+          eliminarArticuloPendiente = null
+          reactivarArticuloPendiente = false
+        }
+      })
+    }
 
     /* ─── Modal Ver Cargo PDF ─── */
-    document.getElementById('btnCerrarModalCargoPdf').addEventListener('click', () => {
-      document.getElementById('modalVerCargoPdf').classList.remove('activo')
-    })
-    document.getElementById('modalVerCargoPdf').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) document.getElementById('modalVerCargoPdf').classList.remove('activo')
-    })
-    document.getElementById('btnDescargarCargoPdf').addEventListener('click', async () => {
-      const num = document.getElementById('btnDescargarCargoPdf').dataset.numeroCargo
-      if (num) await descargarCargoPdf(num)
-    })
+    const btnCerrarModalCargoPdf = document.getElementById('btnCerrarModalCargoPdf')
+    const modalVerCargoPdf = document.getElementById('modalVerCargoPdf')
+    const btnDescargarCargoPdf = document.getElementById('btnDescargarCargoPdf')
+
+    if (btnCerrarModalCargoPdf && modalVerCargoPdf) {
+      btnCerrarModalCargoPdf.addEventListener('click', () => {
+        modalVerCargoPdf.classList.remove('activo')
+      })
+    }
+    if (modalVerCargoPdf) {
+      modalVerCargoPdf.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) modalVerCargoPdf.classList.remove('activo')
+      })
+    }
+    if (btnDescargarCargoPdf) {
+      btnDescargarCargoPdf.addEventListener('click', async () => {
+        const num = btnDescargarCargoPdf.dataset.numeroCargo
+        if (num) await descargarCargoPdf(num)
+      })
+    }
 
     /* ─── Modal Cargo (Crear/Editar) ─── */
-    document.getElementById('btnNuevoCargo').addEventListener('click', abrirModalNuevoCargo)
-    document.getElementById('btnAgregarArticuloCargoModal').addEventListener('click', agregarArticuloACargoModal)
-    document.getElementById('btnGuardarCargoModal').addEventListener('click', guardarCargoModal)
-    document.getElementById('btnCerrarModalCargo').addEventListener('click', cerrarModalCargo)
-    document.getElementById('btnCancelarCargoModal').addEventListener('click', cerrarModalCargo)
-    document.getElementById('modalCargo').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) cerrarModalCargo()
-    })
+    const btnNuevoCargo = document.getElementById('btnNuevoCargo')
+    const btnAgregarArticuloCargoModal = document.getElementById('btnAgregarArticuloCargoModal')
+    const btnGuardarCargoModal = document.getElementById('btnGuardarCargoModal')
+    const btnCerrarModalCargo = document.getElementById('btnCerrarModalCargo')
+    const btnCancelarCargoModal = document.getElementById('btnCancelarCargoModal')
+    const modalCargo = document.getElementById('modalCargo')
+
+    if (btnNuevoCargo) btnNuevoCargo.addEventListener('click', abrirModalNuevoCargo)
+    if (btnAgregarArticuloCargoModal) btnAgregarArticuloCargoModal.addEventListener('click', agregarArticuloACargoModal)
+    if (btnGuardarCargoModal) btnGuardarCargoModal.addEventListener('click', guardarCargoModal)
+    if (btnCerrarModalCargo) btnCerrarModalCargo.addEventListener('click', cerrarModalCargo)
+    if (btnCancelarCargoModal) btnCancelarCargoModal.addEventListener('click', cerrarModalCargo)
+    if (modalCargo) {
+      modalCargo.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) cerrarModalCargo()
+      })
+    }
 
     /* ─── Modal Eliminar Entrada ─── */
-    document.getElementById('btnConfirmarEliminarEntrada').addEventListener('click', eliminarEntrada)
-    document.getElementById('btnCancelarEliminarEntrada').addEventListener('click', () => {
-      document.getElementById('modalEliminarEntrada').classList.remove('activo')
-      entradaEliminandoId = null
-    })
-    document.getElementById('modalEliminarEntrada').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-        document.getElementById('modalEliminarEntrada').classList.remove('activo')
+    const btnConfirmarEliminarEntrada = document.getElementById('btnConfirmarEliminarEntrada')
+    const modalEliminarEntrada = document.getElementById('modalEliminarEntrada')
+    const btnCancelarEliminarEntrada = document.getElementById('btnCancelarEliminarEntrada')
+
+    if (btnConfirmarEliminarEntrada) btnConfirmarEliminarEntrada.addEventListener('click', eliminarEntrada)
+    if (btnCancelarEliminarEntrada && modalEliminarEntrada) {
+      btnCancelarEliminarEntrada.addEventListener('click', () => {
+        modalEliminarEntrada.classList.remove('activo')
         entradaEliminandoId = null
-      }
-    })
+      })
+    }
+    if (modalEliminarEntrada) {
+      modalEliminarEntrada.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+          modalEliminarEntrada.classList.remove('activo')
+          entradaEliminandoId = null
+        }
+      })
+    }
 
     /* ─── Modal Eliminar Cargo ─── */
-    document.getElementById('btnConfirmarEliminarCargo').addEventListener('click', eliminarCargo)
-    document.getElementById('btnCancelarEliminarCargo').addEventListener('click', () => {
-      document.getElementById('modalEliminarCargo').classList.remove('activo')
-      cargoEliminandoNumero = null
-    })
-    document.getElementById('modalEliminarCargo').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-        document.getElementById('modalEliminarCargo').classList.remove('activo')
+    const btnConfirmarEliminarCargo = document.getElementById('btnConfirmarEliminarCargo')
+    const modalEliminarCargo = document.getElementById('modalEliminarCargo')
+    const btnCancelarEliminarCargo = document.getElementById('btnCancelarEliminarCargo')
+
+    if (btnConfirmarEliminarCargo) btnConfirmarEliminarCargo.addEventListener('click', eliminarCargo)
+    if (btnCancelarEliminarCargo && modalEliminarCargo) {
+      btnCancelarEliminarCargo.addEventListener('click', () => {
+        modalEliminarCargo.classList.remove('activo')
         cargoEliminandoNumero = null
-      }
-    })
+      })
+    }
+    if (modalEliminarCargo) {
+      modalEliminarCargo.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+          modalEliminarCargo.classList.remove('activo')
+          cargoEliminandoNumero = null
+        }
+      })
+    }
   }
 
       /* ─── Modal Eliminar Entrada ─── */
