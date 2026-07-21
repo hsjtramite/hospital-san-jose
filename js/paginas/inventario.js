@@ -265,13 +265,15 @@
 
       const total = resArticulos.data ? resArticulos.data.length : 0
       const stockTotal = resArticulos.data ? resArticulos.data.reduce((s, a) => s + a.stock_actual, 0) : 0
-      const stockBajo = resArticulos.data ? resArticulos.data.filter(a => a.stock_actual <= a.stock_minimo && a.stock_minimo > 0).length : 0
+      const desabastecidos = resArticulos.data ? resArticulos.data.filter(a => a.stock_actual === 0).length : 0
+      const stockBajo = resArticulos.data ? resArticulos.data.filter(a => a.stock_actual > 0 && a.stock_actual <= 10).length : 0
       const entradas = resEntradas.count || 0
       const salidas = resSalidas.count || 0
       const ultimo = resUltimo.data ? formatearFechaHora(resUltimo.data.created_at) : '—'
 
       document.getElementById('resumenTotalArticulos').textContent = total
       document.getElementById('resumenStockDisponible').textContent = stockTotal
+      document.getElementById('resumenDesabastecidos').textContent = desabastecidos
       document.getElementById('resumenStockBajo').textContent = stockBajo
       document.getElementById('resumenEntradas').textContent = entradas
       document.getElementById('resumenSalidas').textContent = salidas
