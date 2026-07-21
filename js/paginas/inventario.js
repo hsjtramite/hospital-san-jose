@@ -27,6 +27,9 @@
   let modoEntradaModal = 'crear'
   let entradaModalInicializado = false
 
+  /* Estado para modal de artículo */
+  let articuloModalInicializado = false
+
   const CATEGORIAS_PREDEFINIDAS = [
     'Utiles de Oficina', 'Material de Limpieza', 'Material de Impresion',
     'Equipos de Computo', 'Papeleria', 'Archivamiento', 'Otros'
@@ -42,7 +45,6 @@
   let tablaEntradas = null
   let ingresoInicializado = false
   let descontarInicializado = false
-  let panelArticuloInicializado = false
 
   /* ════════════════════════════════════════════
      INICIALIZACION
@@ -344,37 +346,34 @@
 
       await cargarArticulos()
 
+      /* ════════════════════════════════════════════
+         FIX #1: Listener de acciones del CATÁLOGO
+         Antes tenía acciones de CARGO (ver-pdf, descargar-pdf, 
+         editar-cargo, eliminar-cargo). Ahora tiene las
+         acciones correctas de ARTÍCULO.
+         ════════════════════════════════════════════ */
       contenedor.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-accion]')
         if (!btn) return
         e.stopPropagation()
         const id = btn.dataset.id
-        if (btn.dataset.accion === 'ver-pdf') verCargoPdf(id)
-        if (btn.dataset.accion === 'descargar-pdf') descargarCargoPdf(id)
-        if (btn.dataset.accion === 'editar-cargo') editarCargo(id)
-        if (btn.dataset.accion === 'eliminar-cargo') confirmarEliminarCargo(id)
+
+        // Acciones de ARTÍCULO (corregido)
+        if (btn.dataset.accion === 'editar') editarArticulo(id)
+        if (btn.dataset.accion === 'eliminar') toggleEstadoArticulo(id, false)
+        if (btn.dataset.accion === 'reactivar') toggleEstadoArticulo(id, true)
       })
 
       document.getElementById('buscarArticulo').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') aplicarFiltrosCatalogo()
       })
 
-      document.getElementById('btnNuevoArticulo').addEventListener('click', abrirPanelNuevoArticulo)
+      document.getElementById('btnNuevoArticulo').addEventListener('click', abrirModalNuevoArticulo)
       document.getElementById('btnImportarExcel').addEventListener('click', () => {
         document.getElementById('inputImportarExcel').click()
       })
       document.getElementById('inputImportarExcel').addEventListener('change', procesarExcelCatalogo)
 
-      document.getElementById('btnCancelarArticulo').addEventListener('click', cerrarPanelArticulo)
-      document.getElementById('btnGuardarArticulo').addEventListener('click', guardarArticulo)
-
-      document.addEventListener('click', (e) => {
-        const panel = document.getElementById('panelFormArticulo')
-        if (panel.classList.contains('abierto') && !panel.contains(e.target) &&
-          !e.target.closest('#btnNuevoArticulo') && !e.target.closest('[data-accion="editar"]')) {
-          cerrarPanelArticulo()
-        }
-      })
     } catch (err) {
       console.error('[Inventario] Error en renderizarCatalogo():', err)
     }
@@ -405,30 +404,37 @@
     tablaCatalogo.actualizar(filtrados)
   }
 
-  /* ─── CRUD ARTICULOS ─── */
-  function abrirPanelNuevoArticulo() {
+  /* ════════════════════════════════════════════
+     MODAL ARTÍCULO (CREAR / EDITAR)
+     Reemplaza el panel lateral anterior
+     ════════════════════════════════════════════ */
+  function abrirModalNuevoArticulo() {
     editandoArticuloId = null
-    document.getElementById('formArticulo').reset()
-    limpiarErrores(document.getElementById('panelFormArticulo'))
-    document.getElementById('campoCodigo').value = ''
-    document.getElementById('campoArticuloActivo').checked = true
-    document.getElementById('campoStockMinimo').value = ''
-    document.getElementById('textoGuardarArticulo').textContent = 'Guardar'
+    document.getElementById('articuloModalTitulo').textContent = 'Nuevo Artículo'
+    document.getElementById('articuloModalSubtitulo').textContent = ''
+    document.getElementById('textoGuardarArticuloModal').textContent = 'Guardar'
+
+    // Resetear campos
+    document.getElementById('campoCodigoModal').value = ''
+    document.getElementById('campoNombreArticuloModal').value = ''
+    document.getElementById('campoStockMinimoModal').value = ''
+    document.getElementById('campoArticuloActivoModal').checked = true
 
     const catOpts = CATEGORIAS_PREDEFINIDAS.map(c => ({ valor: c, texto: c }))
     const uniOpts = UNIDADES_PREDEFINIDAS.map(u => ({ valor: u, texto: u }))
 
-    if (!panelArticuloInicializado) {
-      inicializarDesplegable('wrapperCategoria', 'triggerCategoria', 'dropdownCategoria', catOpts)
-      inicializarDesplegable('wrapperUnidad', 'triggerUnidad', 'dropdownUnidad', uniOpts)
-      panelArticuloInicializado = true
+    if (!articuloModalInicializado) {
+      inicializarDesplegable('wrapperCategoriaModal', 'triggerCategoriaModal', 'dropdownCategoriaModal', catOpts)
+      inicializarDesplegable('wrapperUnidadModal', 'triggerUnidadModal', 'dropdownUnidadModal', uniOpts)
+      articuloModalInicializado = true
     }
 
-    actualizarOpcionesDesplegable('wrapperCategoria', 'triggerCategoria', 'dropdownCategoria', catOpts, '', 'Seleccione una categoria')
-    actualizarOpcionesDesplegable('wrapperUnidad', 'triggerUnidad', 'dropdownUnidad', uniOpts, '', 'Seleccione una unidad')
+    actualizarOpcionesDesplegable('wrapperCategoriaModal', 'triggerCategoriaModal', 'dropdownCategoriaModal', catOpts, '', 'Seleccione una categoria')
+    actualizarOpcionesDesplegable('wrapperUnidadModal', 'triggerUnidadModal', 'dropdownUnidadModal', uniOpts, '', 'Seleccione una unidad')
 
-    document.getElementById('panelFormArticulo').classList.add('abierto')
-    setTimeout(() => document.getElementById('campoNombreArticulo').focus(), 200)
+    limpiarErrores(document.getElementById('modalArticulo'))
+    document.getElementById('modalArticulo').classList.add('activo')
+    setTimeout(() => document.getElementById('campoNombreArticuloModal').focus(), 200)
   }
 
   function editarArticulo(id) {
@@ -436,31 +442,35 @@
     if (!art) return
 
     editandoArticuloId = id
-    document.getElementById('campoCodigo').value = art.codigo || ''
-    document.getElementById('campoNombreArticulo').value = art.nombre || ''
-    document.getElementById('campoStockMinimo').value = art.stock_minimo || 0
-    document.getElementById('campoArticuloActivo').checked = art.activo ?? true
-    document.getElementById('textoGuardarArticulo').textContent = 'Actualizar'
+    document.getElementById('articuloModalTitulo').textContent = 'Editar Artículo'
+    document.getElementById('articuloModalSubtitulo').textContent = `Código: ${art.codigo || '—'}`
+    document.getElementById('textoGuardarArticuloModal').textContent = 'Actualizar'
+
+    // Prellenar campos
+    document.getElementById('campoCodigoModal').value = art.codigo || ''
+    document.getElementById('campoNombreArticuloModal').value = art.nombre || ''
+    document.getElementById('campoStockMinimoModal').value = art.stock_minimo || 0
+    document.getElementById('campoArticuloActivoModal').checked = art.activo ?? true
 
     const catOpts = CATEGORIAS_PREDEFINIDAS.map(c => ({ valor: c, texto: c }))
     const uniOpts = UNIDADES_PREDEFINIDAS.map(u => ({ valor: u, texto: u }))
 
-    if (!panelArticuloInicializado) {
-      inicializarDesplegable('wrapperCategoria', 'triggerCategoria', 'dropdownCategoria', catOpts)
-      inicializarDesplegable('wrapperUnidad', 'triggerUnidad', 'dropdownUnidad', uniOpts)
-      panelArticuloInicializado = true
+    if (!articuloModalInicializado) {
+      inicializarDesplegable('wrapperCategoriaModal', 'triggerCategoriaModal', 'dropdownCategoriaModal', catOpts)
+      inicializarDesplegable('wrapperUnidadModal', 'triggerUnidadModal', 'dropdownUnidadModal', uniOpts)
+      articuloModalInicializado = true
     }
 
-    actualizarOpcionesDesplegable('wrapperCategoria', 'triggerCategoria', 'dropdownCategoria', catOpts, art.categoria)
-    actualizarOpcionesDesplegable('wrapperUnidad', 'triggerUnidad', 'dropdownUnidad', uniOpts, art.unidad_medida)
+    actualizarOpcionesDesplegable('wrapperCategoriaModal', 'triggerCategoriaModal', 'dropdownCategoriaModal', catOpts, art.categoria)
+    actualizarOpcionesDesplegable('wrapperUnidadModal', 'triggerUnidadModal', 'dropdownUnidadModal', uniOpts, art.unidad_medida)
 
-    limpiarErrores(document.getElementById('panelFormArticulo'))
-    document.getElementById('panelFormArticulo').classList.add('abierto')
-    setTimeout(() => document.getElementById('campoNombreArticulo').focus(), 200)
+    limpiarErrores(document.getElementById('modalArticulo'))
+    document.getElementById('modalArticulo').classList.add('activo')
+    setTimeout(() => document.getElementById('campoNombreArticuloModal').focus(), 200)
   }
 
-  function cerrarPanelArticulo() {
-    document.getElementById('panelFormArticulo').classList.remove('abierto')
+  function cerrarModalArticulo() {
+    document.getElementById('modalArticulo').classList.remove('activo')
     editandoArticuloId = null
   }
 
@@ -481,23 +491,23 @@
     return `ART-${String(next).padStart(4, '0')}`
   }
 
-  async function guardarArticulo() {
-    limpiarErrores(document.getElementById('panelFormArticulo'))
+  async function guardarArticuloModal() {
+    limpiarErrores(document.getElementById('modalArticulo'))
 
-    let codigo = document.getElementById('campoCodigo').value.trim()
-    const nombre = document.getElementById('campoNombreArticulo').value.trim()
-    const categoria = document.getElementById('triggerCategoria')?.dataset?.value || ''
-    const unidadMedida = document.getElementById('triggerUnidad')?.dataset?.value || ''
-    const stockMinimo = parseInt(document.getElementById('campoStockMinimo').value) || 0
-    const activo = document.getElementById('campoArticuloActivo').checked
+    let codigo = document.getElementById('campoCodigoModal').value.trim()
+    const nombre = document.getElementById('campoNombreArticuloModal').value.trim()
+    const categoria = document.getElementById('triggerCategoriaModal')?.dataset?.value || ''
+    const unidadMedida = document.getElementById('triggerUnidadModal')?.dataset?.value || ''
+    const stockMinimo = parseInt(document.getElementById('campoStockMinimoModal').value) || 0
+    const activo = document.getElementById('campoArticuloActivoModal').checked
 
     let hayError = false
-    if (!nombre) { mostrarError('errorNombreArticulo', 'El nombre es obligatorio'); hayError = true }
-    if (!categoria) { mostrarError('errorCategoria', 'Seleccione una categoria'); hayError = true }
-    if (!unidadMedida) { mostrarError('errorUnidad', 'Seleccione una unidad'); hayError = true }
+    if (!nombre) { mostrarError('errorNombreArticuloModal', 'El nombre es obligatorio'); hayError = true }
+    if (!categoria) { mostrarError('errorCategoriaModal', 'Seleccione una categoria'); hayError = true }
+    if (!unidadMedida) { mostrarError('errorUnidadModal', 'Seleccione una unidad'); hayError = true }
     if (hayError) return
 
-    setCargandoBoton('btnGuardarArticulo', 'spinnerArticulo', 'textoGuardarArticulo', true)
+    setCargandoBoton('btnGuardarArticuloModal', 'spinnerArticuloModal', 'textoGuardarArticuloModal', true)
 
     try {
       if (!codigo) {
@@ -512,11 +522,11 @@
 
         if (error) {
           if (error.code === '23505') {
-            mostrarError('errorCodigo', 'El codigo ya existe')
+            mostrarError('errorCodigoModal', 'El codigo ya existe')
           } else {
-            mostrarError('errorNombreArticulo', error.message || 'Error al actualizar')
+            mostrarError('errorNombreArticuloModal', error.message || 'Error al actualizar')
           }
-          setCargandoBoton('btnGuardarArticulo', 'spinnerArticulo', 'textoGuardarArticulo', false, 'Actualizar')
+          setCargandoBoton('btnGuardarArticuloModal', 'spinnerArticuloModal', 'textoGuardarArticuloModal', false, 'Actualizar')
           return
         }
       } else {
@@ -526,21 +536,21 @@
 
         if (error) {
           if (error.code === '23505') {
-            mostrarError('errorCodigo', 'El codigo ya existe')
+            mostrarError('errorCodigoModal', 'El codigo ya existe')
           } else {
-            mostrarError('errorNombreArticulo', error.message || 'Error al crear')
+            mostrarError('errorNombreArticuloModal', error.message || 'Error al crear')
           }
-          setCargandoBoton('btnGuardarArticulo', 'spinnerArticulo', 'textoGuardarArticulo', false, 'Guardar')
+          setCargandoBoton('btnGuardarArticuloModal', 'spinnerArticuloModal', 'textoGuardarArticuloModal', false, 'Guardar')
           return
         }
       }
 
-      cerrarPanelArticulo()
+      cerrarModalArticulo()
       await cargarArticulos()
     } catch (err) {
-      mostrarError('errorNombreArticulo', 'Error de conexion')
+      mostrarError('errorNombreArticuloModal', 'Error de conexion')
     }
-    setCargandoBoton('btnGuardarArticulo', 'spinnerArticulo', 'textoGuardarArticulo', false, editandoArticuloId ? 'Actualizar' : 'Guardar')
+    setCargandoBoton('btnGuardarArticuloModal', 'spinnerArticuloModal', 'textoGuardarArticuloModal', false, editandoArticuloId ? 'Actualizar' : 'Guardar')
   }
 
   let eliminarArticuloPendiente = null
@@ -2065,7 +2075,7 @@ async function generarPDFCargo(numeroCargo) {
 
   // Sección de firmas (siempre al final, en nueva página si es necesario)
   finalY = Math.max(finalY, doc.internal.pageSize.height - 60)
-  
+
   // Verificar si hay espacio suficiente para firmas, si no, agregar nueva página
   if (finalY > doc.internal.pageSize.height - 50) {
     doc.addPage()
@@ -2291,6 +2301,21 @@ async function generarPDFCargo(numeroCargo) {
       btnDescargarCargoPdf.addEventListener('click', async () => {
         const num = btnDescargarCargoPdf.dataset.numeroCargo
         if (num) await descargarCargoPdf(num)
+      })
+    }
+
+    /* ─── Modal Articulo (Crear/Editar) — NUEVO ─── */
+    const btnGuardarArticuloModal = document.getElementById('btnGuardarArticuloModal')
+    const btnCerrarModalArticulo = document.getElementById('btnCerrarModalArticulo')
+    const btnCancelarArticuloModal = document.getElementById('btnCancelarArticuloModal')
+    const modalArticulo = document.getElementById('modalArticulo')
+
+    if (btnGuardarArticuloModal) btnGuardarArticuloModal.addEventListener('click', guardarArticuloModal)
+    if (btnCerrarModalArticulo) btnCerrarModalArticulo.addEventListener('click', cerrarModalArticulo)
+    if (btnCancelarArticuloModal) btnCancelarArticuloModal.addEventListener('click', cerrarModalArticulo)
+    if (modalArticulo) {
+      modalArticulo.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) cerrarModalArticulo()
       })
     }
 

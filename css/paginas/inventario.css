@@ -123,7 +123,7 @@
   color: var(--color-texto-secundario);
 }
 
-/* ─── CATALOGO LAYOUT ─── */
+/* ─── CATÁLOGO LAYOUT (SIN PANEL LATERAL) ─── */
 .inventario-catalogo-layout .tabla-encabezado {
   padding-left: var(--espaciado-md);
   padding-right: var(--espaciado-md);
@@ -143,68 +143,10 @@
 #btnImportarExcel {
   background: var(--color-exito);
 }
-.inventario-catalogo-layout {
-  display: flex;
-  gap: var(--espaciado-lg);
-  flex: 1;
-  min-height: 0;
-}
 
 .catalogo-content {
   flex: 1;
   min-width: 0;
-}
-
-.catalogo-panel {
-  width: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity var(--transicion-normal), padding-left var(--transicion-normal);
-  flex-shrink: 0;
-}
-
-.catalogo-panel.abierto {
-  width: fit-content;
-  opacity: 1;
-  padding-left: var(--espaciado-lg);
-  overflow-y: auto;
-  max-height: calc(100vh - 94px);
-}
-
-.catalogo-panel .panel-card {
-  background: var(--color-fondo);
-  border: 1px solid var(--borde-color);
-  border-radius: var(--borde-radio-xl);
-  box-shadow: var(--sombra-sm);
-  width: fit-content;
-  min-width: 0;
-}
-
-.panel-body {
-  padding: var(--espaciado-xl);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;  /* FIX: cambiado de center a stretch */
-}
-
-.panel-footer {
-  width: 100%;
-  padding: 0;
-}
-
-.panel-footer-interior {
-  border-top: 1px solid var(--borde-color);
-}
-
-.panel-footer-botones {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--espaciado-md);
-  padding-top: var(--espaciado-sm);
-}
-
-.panel-footer-botones .btn-filled-md {
-  margin-right: var(--espaciado-xl);
 }
 
 /* ─── ENTRADA HISTORIAL ─── */
@@ -400,7 +342,7 @@
   width: 90vw !important;
 }
 
-/* ─── BOTONES DE ACCION EN TABLAS ─── */
+/* ─── BOTONES DE ACCIÓN EN TABLAS ─── */
 .btn-accion-pdf {
   display: inline-flex;
   align-items: center;
@@ -437,78 +379,6 @@
 
 .btn-accion-descargar:hover {
   background: rgba(0, 103, 79, 0.1);
-}
-
-/* ─── ADAPTACIONES RESPONSIVE ─── */
-@media (max-width: 768px) {
-  .inventario-tabs {
-    gap: 0;
-    padding: 4px;
-  }
-  .inventario-tab {
-    padding: var(--espaciado-xs) var(--espaciado-sm);
-    font-size: var(--texto-xs);
-    flex: 1;
-    justify-content: center;
-  }
-  .inventario-tab i {
-    font-size: var(--texto-base);
-  }
-  .resumen-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: var(--espaciado-md);
-  }
-  .card-resumen {
-    padding: var(--espaciado-md);
-    gap: var(--espaciado-md);
-  }
-  .card-resumen-icono {
-    width: 40px;
-    height: 40px;
-  }
-  .card-resumen-icono i {
-    font-size: 20px;
-  }
-  .card-resumen-valor {
-    font-size: var(--texto-xl);
-  }
-  .inventario-catalogo-layout {
-    flex-direction: column;
-  }
-  .catalogo-panel {
-    width: 100% !important;
-    max-height: none !important;
-    padding-left: 0 !important;
-    display: none;
-    opacity: 1;
-    overflow: visible;
-  }
-  .catalogo-panel.abierto {
-    display: block;
-    padding-top: var(--espaciado-lg);
-  }
-  .catalogo-panel .panel-card {
-    width: 100%;
-  }
-  .cargo-form-campos {
-    grid-template-columns: 1fr;
-  }
-  .cargo-agregar-select {
-    min-width: 200px;
-  }
-  .kardex-filtros {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-@media (max-width: 480px) {
-  .resumen-grid {
-    grid-template-columns: 1fr;
-  }
-  .card-resumen {
-    flex-direction: row;
-  }
 }
 
 /* ════════════════════════════════════════════
@@ -647,7 +517,7 @@
 }
 
 /* ════════════════════════════════════════════
-   BOTONES DE ACCION EN TABLAS
+   BOTONES DE ACCIÓN EN TABLAS
    ════════════════════════════════════════════ */
 .acciones-tabla {
   display: flex;
@@ -789,11 +659,14 @@
 /* ════════════════════════════════════════════
    FIX: Dropdown de articulos en modal ENTRADA
    ════════════════════════════════════════════ */
+
+/* Agrandar el contenedor del select de articulos */
 #wrapperArticuloEntradaModal {
   min-width: 100%;
   position: relative;
 }
 
+/* El trigger del dropdown debe mostrar texto completo */
 #wrapperArticuloEntradaModal .filtro-select-trigger {
   white-space: normal;
   text-align: left;
@@ -805,6 +678,7 @@
   overflow: visible;
 }
 
+/* Las opciones del dropdown deben mostrar texto completo */
 #dropdownArticuloEntradaModal .filtro-option {
   white-space: normal;
   text-align: left;
@@ -814,6 +688,7 @@
   font-size: var(--texto-sm);
 }
 
+/* Agrandar el dropdown desplegado */
 #dropdownArticuloEntradaModal {
   max-height: 280px;
   overflow-y: auto;
@@ -823,6 +698,7 @@
   right: auto !important;
 }
 
+/* Ajustar el texto seleccionado para que no se corte */
 #wrapperArticuloEntradaModal .filtro-select-text {
   white-space: normal;
   overflow: visible;
@@ -831,6 +707,7 @@
   width: 100%;
 }
 
+/* Asegurar que el dropdown tenga suficiente ancho */
 #wrapperArticuloEntradaModal.abierto #dropdownArticuloEntradaModal {
   min-width: 320px;
   width: max-content;
@@ -931,11 +808,14 @@
 /* ════════════════════════════════════════════
    FIX: Dropdown de articulos en modal CARGO
    ════════════════════════════════════════════ */
+
+/* Agrandar el contenedor del select de articulos */
 #wrapperArticuloCargoModal {
   min-width: 100%;
   position: relative;
 }
 
+/* El trigger del dropdown debe mostrar texto completo */
 #wrapperArticuloCargoModal .filtro-select-trigger {
   white-space: normal;
   text-align: left;
@@ -947,6 +827,7 @@
   overflow: visible;
 }
 
+/* Las opciones del dropdown deben mostrar texto completo */
 #dropdownArticuloCargoModal .filtro-option {
   white-space: normal;
   text-align: left;
@@ -956,6 +837,7 @@
   font-size: var(--texto-sm);
 }
 
+/* Agrandar el dropdown desplegado */
 #dropdownArticuloCargoModal {
   max-height: 280px;
   overflow-y: auto;
@@ -965,6 +847,7 @@
   right: auto !important;
 }
 
+/* Ajustar el texto seleccionado para que no se corte */
 #wrapperArticuloCargoModal .filtro-select-text {
   white-space: normal;
   overflow: visible;
@@ -973,8 +856,109 @@
   width: 100%;
 }
 
+/* Asegurar que el dropdown tenga suficiente ancho */
 #wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal {
   min-width: 320px;
+  width: max-content;
+  max-width: 90vw;
+}
+
+/* ════════════════════════════════════════════
+   MODAL ARTÍCULO (NUEVO — REEMPLAZA PANEL LATERAL)
+   ════════════════════════════════════════════ */
+.md-modal-articulo {
+  max-width: 520px !important;
+  width: 90vw !important;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.articulo-form-campos-modal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.articulo-form-campos-modal .campo-grupo {
+  min-width: 0;
+  margin: 0;
+}
+
+.articulo-form-campos-modal .campo-grupo:nth-child(2) {
+  grid-column: 1 / -1;
+}
+
+.articulo-form-campos-modal .filtro-select-wrapper,
+.articulo-form-campos-modal .input-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.articulo-form-campos-modal .filtro-select-trigger,
+.articulo-form-campos-modal .input-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.articulo-form-campos-modal .campo-grupo:last-child {
+  grid-column: 1 / -1;
+}
+
+#modalArticulo .modal-body-md {
+  padding: var(--espaciado-lg) var(--espaciado-xl);
+}
+
+/* Fix dropdowns en modal artículo */
+#wrapperCategoriaModal,
+#wrapperUnidadModal {
+  min-width: 100%;
+  position: relative;
+}
+
+#wrapperCategoriaModal .filtro-select-trigger,
+#wrapperUnidadModal .filtro-select-trigger {
+  white-space: normal;
+  text-align: left;
+  height: auto;
+  min-height: 40px;
+  padding: 8px 36px 8px 14px;
+  line-height: 1.4;
+  word-break: break-word;
+  overflow: visible;
+}
+
+#dropdownCategoriaModal .filtro-option,
+#dropdownUnidadModal .filtro-option {
+  white-space: normal;
+  text-align: left;
+  padding: 10px 14px;
+  line-height: 1.4;
+  word-break: break-word;
+  font-size: var(--texto-sm);
+}
+
+#dropdownCategoriaModal,
+#dropdownUnidadModal {
+  max-height: 280px;
+  overflow-y: auto;
+  width: 100% !important;
+  min-width: 100% !important;
+  left: 0 !important;
+  right: auto !important;
+}
+
+#wrapperCategoriaModal .filtro-select-text,
+#wrapperUnidadModal .filtro-select-text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  display: block;
+  width: 100%;
+}
+
+#wrapperCategoriaModal.abierto #dropdownCategoriaModal,
+#wrapperUnidadModal.abierto #dropdownUnidadModal {
+  min-width: 100%;
   width: max-content;
   max-width: 90vw;
 }
@@ -989,8 +973,15 @@
   .cargo-form-campos-modal {
     grid-template-columns: 1fr;
   }
+  .articulo-form-campos-modal {
+    grid-template-columns: 1fr;
+  }
+  .articulo-form-campos-modal .campo-grupo:nth-child(2) {
+    grid-column: 1 / -1;
+  }
   .md-modal-entrada,
-  .md-modal-cargo {
+  .md-modal-cargo,
+  .md-modal-articulo {
     width: 95vw !important;
     max-height: 90vh;
   }
@@ -1007,102 +998,66 @@
     align-items: flex-start;
   }
   #wrapperArticuloEntradaModal.abierto #dropdownArticuloEntradaModal,
-  #wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal {
+  #wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal,
+  #wrapperCategoriaModal.abierto #dropdownCategoriaModal,
+  #wrapperUnidadModal.abierto #dropdownUnidadModal {
     min-width: 100%;
     max-width: 95vw;
   }
 }
 
 /* ════════════════════════════════════════════
-   FIX: Panel de formulario de articulos (Catalogo)
+   ADAPTACIONES RESPONSIVE GENERALES
    ════════════════════════════════════════════ */
-.catalogo-panel.abierto {
-  width: 380px;
-  min-width: 380px;
-  opacity: 1;
-  padding-left: var(--espaciado-lg);
-  overflow-y: auto;
-  max-height: calc(100vh - 94px);
-}
-
-.catalogo-panel .panel-card {
-  width: 100%;
-  min-width: 0;
-  border-radius: var(--borde-radio-xl);
-  box-shadow: var(--sombra-md);
-}
-
-.catalogo-panel .panel-body {
-  padding: var(--espaciado-xl);
-  align-items: stretch;  /* FIX: stretch para inputs de ancho completo */
-}
-
-.catalogo-panel .panel-body form {
-  max-width: none !important;
-  width: 100%;
-}
-
-.catalogo-panel .input-grupo {
-  margin-bottom: var(--espaciado-md);
-}
-
-.catalogo-panel .input-grupo label {
-  font-size: var(--texto-xs);
-  font-weight: var(--peso-semibold);
-  color: var(--color-texto-claro);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-
-.catalogo-panel .input-wrapper {
-  border-radius: var(--borde-radio);
-  border: 1.5px solid var(--borde-color);
-}
-
-.catalogo-panel .input-wrapper input {
-  padding: 10px 14px;
-  font-size: var(--texto-sm);
-}
-
-.catalogo-panel .filtro-select-trigger {
-  padding: 10px 14px;
-  font-size: var(--texto-sm);
-  min-height: 40px;
-}
-
-.catalogo-panel .toggle-contenedor {
-  padding-top: var(--espaciado-sm);
-}
-
-.catalogo-panel .toggle-label {
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medium);
-}
-
-/* Mejorar footer del panel */
-.catalogo-panel .panel-footer-interior {
-  border-top: 1px solid var(--borde-color);
-  padding: var(--espaciado-md) var(--espaciado-xl);
-}
-
-.catalogo-panel .panel-footer-botones {
-  justify-content: flex-end;
-  gap: var(--espaciado-md);
-  padding-top: 0;
-}
-
-.catalogo-panel .panel-footer-botones .btn-filled-md {
-  margin-right: 0;
-}
-
-/* Responsive: panel ocupa todo el ancho en movil */
 @media (max-width: 768px) {
-  .catalogo-panel.abierto {
-    width: 100% !important;
-    min-width: 100% !important;
-    max-height: none !important;
-    padding-left: 0 !important;
-    padding-top: var(--espaciado-lg);
+  .inventario-tabs {
+    gap: 0;
+    padding: 4px;
+  }
+  .inventario-tab {
+    padding: var(--espaciado-xs) var(--espaciado-sm);
+    font-size: var(--texto-xs);
+    flex: 1;
+    justify-content: center;
+  }
+  .inventario-tab i {
+    font-size: var(--texto-base);
+  }
+  .resumen-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--espaciado-md);
+  }
+  .card-resumen {
+    padding: var(--espaciado-md);
+    gap: var(--espaciado-md);
+  }
+  .card-resumen-icono {
+    width: 40px;
+    height: 40px;
+  }
+  .card-resumen-icono i {
+    font-size: 20px;
+  }
+  .card-resumen-valor {
+    font-size: var(--texto-xl);
+  }
+  .cargo-form-campos {
+    grid-template-columns: 1fr;
+  }
+  .cargo-agregar-select {
+    min-width: 200px;
+  }
+  .kardex-filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .resumen-grid {
+    grid-template-columns: 1fr;
+  }
+  .card-resumen {
+    flex-direction: row;
   }
 }

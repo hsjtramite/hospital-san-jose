@@ -19,8 +19,6 @@
   <link rel="stylesheet" href="css/componentes/fecha.css" />
   <link rel="stylesheet" href="css/paginas/inventario.css" />
 <base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 <body data-pagina="INVENTARIO" data-ruta="Gestión de almacén" data-modulo-activo="inventario">
   <main class="contenido-principal">
@@ -107,79 +105,7 @@
 
       <!-- ─── PANEL CATÁLOGO ─── -->
       <div class="inventario-panel" id="panelCatalogo">
-        <div class="inventario-catalogo-layout">
-          <div class="catalogo-content" id="catalogoContent"></div>
-          <aside class="catalogo-panel" id="panelFormArticulo">
-            <div class="panel-card">
-              <div class="panel-body">
-                <form id="formArticulo" autocomplete="off" style="max-width:340px;">
-                  <div class="input-grupo">
-                    <label for="campoCodigo">Código</label>
-                    <div class="input-wrapper">
-                      <input type="text" id="campoCodigo" placeholder="Auto-generado si se deja vacío" />
-                    </div>
-                    <span class="input-error" id="errorCodigo"></span>
-                  </div>
-                  <div class="input-grupo">
-                    <label for="campoNombreArticulo">Nombre del artículo</label>
-                    <div class="input-wrapper">
-                      <input type="text" id="campoNombreArticulo" placeholder="Ingrese el nombre" required />
-                    </div>
-                    <span class="input-error" id="errorNombreArticulo"></span>
-                  </div>
-                  <div class="input-grupo">
-                    <label>Categoría</label>
-                    <div class="filtro-select-wrapper" id="wrapperCategoria">
-                      <button type="button" class="filtro-select-trigger" id="triggerCategoria">
-                        <span class="filtro-select-text">Seleccione una categoría</span>
-                        <i class="ph ph-caret-down filtro-select-arrow"></i>
-                      </button>
-                      <div class="filtro-dropdown" id="dropdownCategoria"></div>
-                    </div>
-                    <span class="input-error" id="errorCategoria"></span>
-                  </div>
-                  <div class="input-grupo">
-                    <label>Unidad de Medida</label>
-                    <div class="filtro-select-wrapper" id="wrapperUnidad">
-                      <button type="button" class="filtro-select-trigger" id="triggerUnidad">
-                        <span class="filtro-select-text">Seleccione una unidad</span>
-                        <i class="ph ph-caret-down filtro-select-arrow"></i>
-                      </button>
-                      <div class="filtro-dropdown" id="dropdownUnidad"></div>
-                    </div>
-                    <span class="input-error" id="errorUnidad"></span>
-                  </div>
-                  <div class="input-grupo">
-                    <label for="campoStockMinimo">Stock mínimo</label>
-                    <div class="input-wrapper">
-                      <input type="number" id="campoStockMinimo" placeholder="0" min="0" />
-                    </div>
-                  </div>
-                  <div class="input-grupo">
-                    <div class="toggle-contenedor">
-                      <label class="toggle-switch">
-                        <input type="checkbox" id="campoArticuloActivo" checked />
-                        <span class="toggle-slider"></span>
-                      </label>
-                      <span class="toggle-label">Artículo activo</span>
-                    </div>
-                  </div>
-                </form>
-                <div class="panel-footer">
-                  <div class="panel-footer-interior">
-                    <div class="panel-footer-botones">
-                      <button class="btn-text-md" id="btnCancelarArticulo">Cancelar</button>
-                      <button class="btn-filled-md" id="btnGuardarArticulo">
-                        <span id="textoGuardarArticulo">Guardar</span>
-                        <span class="spinner" id="spinnerArticulo"></span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
+        <div class="catalogo-content" id="catalogoContent"></div>
       </div>
 
       <!-- ─── PANEL INGRESAR ─── -->
@@ -208,7 +134,7 @@
         </div>
       </div>
 
-<!-- ─── PANEL KARDEX ─── -->
+      <!-- ─── PANEL KARDEX ─── -->
       <div class="inventario-panel" id="panelKardex">
         <div class="kardex-filtros">
           <div class="filtro-group">
@@ -245,6 +171,90 @@
         <div class="kardex-content" id="kardexContent"></div>
       </div>
 
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         MODAL ARTÍCULO (CREAR / EDITAR) — NUEVO
+         ════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalArticulo">
+      <div class="md-modal md-modal-articulo">
+        <div class="modal-header-md">
+          <div class="header-icon-md">
+            <i class="ph ph-boxes"></i>
+          </div>
+          <div class="header-text-md">
+            <h3 id="articuloModalTitulo">Nuevo Artículo</h3>
+            <p id="articuloModalSubtitulo"></p>
+          </div>
+          <button class="btn-icon-md modal-cerrar" id="btnCerrarModalArticulo">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="modal-body-md">
+          <form id="formArticuloModal" autocomplete="off">
+            <div class="articulo-form-campos-modal">
+              <div class="campo-grupo">
+                <label for="campoCodigoModal">Código</label>
+                <div class="input-wrapper">
+                  <input type="text" id="campoCodigoModal" placeholder="Auto-generado si se deja vacío" />
+                </div>
+                <span class="input-error" id="errorCodigoModal"></span>
+              </div>
+              <div class="campo-grupo">
+                <label for="campoNombreArticuloModal">Nombre del artículo</label>
+                <div class="input-wrapper">
+                  <input type="text" id="campoNombreArticuloModal" placeholder="Ingrese el nombre" required />
+                </div>
+                <span class="input-error" id="errorNombreArticuloModal"></span>
+              </div>
+              <div class="campo-grupo">
+                <label>Categoría</label>
+                <div class="filtro-select-wrapper" id="wrapperCategoriaModal">
+                  <button type="button" class="filtro-select-trigger" id="triggerCategoriaModal">
+                    <span class="filtro-select-text">Seleccione una categoría</span>
+                    <i class="ph ph-caret-down filtro-select-arrow"></i>
+                  </button>
+                  <div class="filtro-dropdown" id="dropdownCategoriaModal"></div>
+                </div>
+                <span class="input-error" id="errorCategoriaModal"></span>
+              </div>
+              <div class="campo-grupo">
+                <label>Unidad de Medida</label>
+                <div class="filtro-select-wrapper" id="wrapperUnidadModal">
+                  <button type="button" class="filtro-select-trigger" id="triggerUnidadModal">
+                    <span class="filtro-select-text">Seleccione una unidad</span>
+                    <i class="ph ph-caret-down filtro-select-arrow"></i>
+                  </button>
+                  <div class="filtro-dropdown" id="dropdownUnidadModal"></div>
+                </div>
+                <span class="input-error" id="errorUnidadModal"></span>
+              </div>
+              <div class="campo-grupo">
+                <label for="campoStockMinimoModal">Stock mínimo</label>
+                <div class="input-wrapper">
+                  <input type="number" id="campoStockMinimoModal" placeholder="0" min="0" />
+                </div>
+              </div>
+              <div class="campo-grupo">
+                <div class="toggle-contenedor">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="campoArticuloActivoModal" checked />
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span class="toggle-label">Artículo activo</span>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer-md">
+          <button class="btn-text-md" id="btnCancelarArticuloModal">Cancelar</button>
+          <button class="btn-filled-md" id="btnGuardarArticuloModal">
+            <span id="textoGuardarArticuloModal">Guardar</span>
+            <span class="spinner" id="spinnerArticuloModal"></span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- ─── MODAL ENTRADA (CREAR / EDITAR) ─── -->
