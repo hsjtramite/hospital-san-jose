@@ -2020,7 +2020,7 @@ async function generarPDFCargo(numeroCargo) {
   lines.forEach((line, i) => doc.text(line, margin, y + i * lineHeight))
   y += lines.length * lineHeight + 8
 
-  // Tabla de artículos con auto-paginación
+  // Tabla de artículos
   const items = movimientos.map((m, index) => {
     const art = m.inventario_articulos || {}
     return [
@@ -2031,12 +2031,23 @@ async function generarPDFCargo(numeroCargo) {
     ]
   })
 
+  // Calcular si todo cabe en una sola página
+  // Altura estimada: header ~12mm + filas ~8mm c/u + observación opcional + firmas ~45mm
+  const alturaFila = 9
+  const alturaHeader = 12
+  const alturaTabla = alturaHeader + (items.length * alturaFila)
+  const alturaObservacion = cargo.observacion ? 25 : 0
+  const alturaFirmas = 45
+  const alturaTotal = y + alturaTabla + alturaObservacion + alturaFirmas
+  const todoEnUnaPagina = alturaTotal <= (pageH - margin)
+
   doc.autoTable({
     startY: y,
-    margin: { left: margin, right: margin, bottom: 40 },
+    margin: { left: margin, right: margin },
     head: [['N°', 'ARTICULO', 'CANT.', 'UNIDAD']],
     body: items,
     theme: 'grid',
+    pageBreak: todoEnUnaPagina ? false : 'auto',
     headStyles: {
       fillColor: [30, 136, 229],
       textColor: 255,
@@ -2063,40 +2074,39 @@ async function generarPDFCargo(numeroCargo) {
       fillColor: [245, 250, 255]
     },
     didDrawPage: function(data) {
-      // Pie de página en cada página
       doc.setFontSize(8)
       doc.setTextColor(128, 128, 128)
       doc.text(`Cargo: ${numeroCargo} - Pagina ${data.pageNumber}`, pageW / 2, pageH - 10, { align: 'center' })
     }
   })
 
-  // Observación (después de la tabla)
-  let finalY = doc.lastAutoTable.finalY + 10
+  // Observación (después de la tabla, en la misma página si es posible)
+  let finalY = doc.lastAutoTable.finalY + 8
   if (cargo.observacion) {
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
     doc.text('Observacion:', margin, finalY)
-    finalY += 6
+    finalY += 5
     doc.setFont('helvetica', 'normal')
     const obsLines = doc.splitTextToSize(cargo.observacion, contentW)
     obsLines.forEach((line) => {
       doc.text(line, margin, finalY)
-      finalY += 5
+      finalY += 4.5
     })
-    finalY += 5
+    finalY += 4
   }
 
-  // Sección de firmas — justo después de la tabla, sin saltar página innecesariamente
-  const espacioFirmas = 45 // espacio necesario: "RECIBI CONFORME" + líneas + etiquetas
+  // Sección de firmas — justo después de la tabla
+  const espacioFirmas = 40 // "RECIBI CONFORME" + 25mm espacio + líneas + etiquetas
   if (finalY + espacioFirmas > pageH - margin) {
     doc.addPage()
-    finalY = margin + 10
+    finalY = margin + 5
   }
 
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   doc.text('RECIBI CONFORME:', margin, finalY)
-  finalY += 25
+  finalY += 22
 
   // Líneas de firma
   const firmaY = finalY
@@ -2108,7 +2118,7 @@ async function generarPDFCargo(numeroCargo) {
   doc.line(col2 - 25, firmaY, col2 + 25, firmaY)
   doc.line(col3 - 50, firmaY, col3, firmaY)
 
-  finalY += 6
+  finalY += 5
   doc.setFontSize(9)
   doc.text('ENTREGA', col1 + 25, finalY, { align: 'center' })
   doc.text('RECIBE', col2, finalY, { align: 'center' })
