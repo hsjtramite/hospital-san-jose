@@ -123,7 +123,7 @@
   color: var(--color-texto-secundario);
 }
 
-/* ─── CATÁLOGO LAYOUT ─── */
+/* ─── CATALOGO LAYOUT ─── */
 .inventario-catalogo-layout .tabla-encabezado {
   padding-left: var(--espaciado-md);
   padding-right: var(--espaciado-md);
@@ -184,7 +184,7 @@
   padding: var(--espaciado-xl);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;  /* FIX: cambiado de center a stretch */
 }
 
 .panel-footer {
@@ -400,7 +400,7 @@
   width: 90vw !important;
 }
 
-/* ─── BOTONES DE ACCIÓN EN TABLAS ─── */
+/* ─── BOTONES DE ACCION EN TABLAS ─── */
 .btn-accion-pdf {
   display: inline-flex;
   align-items: center;
@@ -647,7 +647,7 @@
 }
 
 /* ════════════════════════════════════════════
-   BOTONES DE ACCIÓN EN TABLAS
+   BOTONES DE ACCION EN TABLAS
    ════════════════════════════════════════════ */
 .acciones-tabla {
   display: flex;
@@ -789,14 +789,11 @@
 /* ════════════════════════════════════════════
    FIX: Dropdown de articulos en modal ENTRADA
    ════════════════════════════════════════════ */
-
-/* Agrandar el contenedor del select de articulos */
 #wrapperArticuloEntradaModal {
   min-width: 100%;
   position: relative;
 }
 
-/* El trigger del dropdown debe mostrar texto completo */
 #wrapperArticuloEntradaModal .filtro-select-trigger {
   white-space: normal;
   text-align: left;
@@ -808,7 +805,6 @@
   overflow: visible;
 }
 
-/* Las opciones del dropdown deben mostrar texto completo */
 #dropdownArticuloEntradaModal .filtro-option {
   white-space: normal;
   text-align: left;
@@ -818,7 +814,6 @@
   font-size: var(--texto-sm);
 }
 
-/* Agrandar el dropdown desplegado */
 #dropdownArticuloEntradaModal {
   max-height: 280px;
   overflow-y: auto;
@@ -828,7 +823,6 @@
   right: auto !important;
 }
 
-/* Ajustar el texto seleccionado para que no se corte */
 #wrapperArticuloEntradaModal .filtro-select-text {
   white-space: normal;
   overflow: visible;
@@ -837,7 +831,6 @@
   width: 100%;
 }
 
-/* Asegurar que el dropdown tenga suficiente ancho */
 #wrapperArticuloEntradaModal.abierto #dropdownArticuloEntradaModal {
   min-width: 320px;
   width: max-content;
@@ -938,14 +931,11 @@
 /* ════════════════════════════════════════════
    FIX: Dropdown de articulos en modal CARGO
    ════════════════════════════════════════════ */
-
-/* Agrandar el contenedor del select de articulos */
 #wrapperArticuloCargoModal {
   min-width: 100%;
   position: relative;
 }
 
-/* El trigger del dropdown debe mostrar texto completo */
 #wrapperArticuloCargoModal .filtro-select-trigger {
   white-space: normal;
   text-align: left;
@@ -957,7 +947,6 @@
   overflow: visible;
 }
 
-/* Las opciones del dropdown deben mostrar texto completo */
 #dropdownArticuloCargoModal .filtro-option {
   white-space: normal;
   text-align: left;
@@ -967,7 +956,6 @@
   font-size: var(--texto-sm);
 }
 
-/* Agrandar el dropdown desplegado */
 #dropdownArticuloCargoModal {
   max-height: 280px;
   overflow-y: auto;
@@ -977,7 +965,6 @@
   right: auto !important;
 }
 
-/* Ajustar el texto seleccionado para que no se corte */
 #wrapperArticuloCargoModal .filtro-select-text {
   white-space: normal;
   overflow: visible;
@@ -986,7 +973,6 @@
   width: 100%;
 }
 
-/* Asegurar que el dropdown tenga suficiente ancho */
 #wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal {
   min-width: 320px;
   width: max-content;
@@ -1024,5 +1010,99 @@
   #wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal {
     min-width: 100%;
     max-width: 95vw;
+  }
+}
+
+/* ════════════════════════════════════════════
+   FIX: Panel de formulario de articulos (Catalogo)
+   ════════════════════════════════════════════ */
+.catalogo-panel.abierto {
+  width: 380px;
+  min-width: 380px;
+  opacity: 1;
+  padding-left: var(--espaciado-lg);
+  overflow-y: auto;
+  max-height: calc(100vh - 94px);
+}
+
+.catalogo-panel .panel-card {
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--borde-radio-xl);
+  box-shadow: var(--sombra-md);
+}
+
+.catalogo-panel .panel-body {
+  padding: var(--espaciado-xl);
+  align-items: stretch;  /* FIX: stretch para inputs de ancho completo */
+}
+
+.catalogo-panel .panel-body form {
+  max-width: none !important;
+  width: 100%;
+}
+
+.catalogo-panel .input-grupo {
+  margin-bottom: var(--espaciado-md);
+}
+
+.catalogo-panel .input-grupo label {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto-claro);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.catalogo-panel .input-wrapper {
+  border-radius: var(--borde-radio);
+  border: 1.5px solid var(--borde-color);
+}
+
+.catalogo-panel .input-wrapper input {
+  padding: 10px 14px;
+  font-size: var(--texto-sm);
+}
+
+.catalogo-panel .filtro-select-trigger {
+  padding: 10px 14px;
+  font-size: var(--texto-sm);
+  min-height: 40px;
+}
+
+.catalogo-panel .toggle-contenedor {
+  padding-top: var(--espaciado-sm);
+}
+
+.catalogo-panel .toggle-label {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medium);
+}
+
+/* Mejorar footer del panel */
+.catalogo-panel .panel-footer-interior {
+  border-top: 1px solid var(--borde-color);
+  padding: var(--espaciado-md) var(--espaciado-xl);
+}
+
+.catalogo-panel .panel-footer-botones {
+  justify-content: flex-end;
+  gap: var(--espaciado-md);
+  padding-top: 0;
+}
+
+.catalogo-panel .panel-footer-botones .btn-filled-md {
+  margin-right: 0;
+}
+
+/* Responsive: panel ocupa todo el ancho en movil */
+@media (max-width: 768px) {
+  .catalogo-panel.abierto {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-height: none !important;
+    padding-left: 0 !important;
+    padding-top: var(--espaciado-lg);
   }
 }
