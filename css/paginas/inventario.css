@@ -124,26 +124,6 @@
 }
 
 /* ─── CATÁLOGO LAYOUT (SIN PANEL LATERAL) ─── */
-.inventario-catalogo-layout .tabla-encabezado {
-  padding-left: var(--espaciado-md);
-  padding-right: var(--espaciado-md);
-}
-.inventario-catalogo-layout .tabla-header-filtros .filtro-search {
-  max-width: 320px;
-}
-.inventario-catalogo-layout .tabla-header-filtros .filtro-input {
-  padding: 10px 14px 10px 40px;
-  font-size: var(--texto-sm);
-}
-.inventario-catalogo-layout .tabla-header-filtros .btn-filled-md {
-  padding: 10px 28px;
-  font-size: var(--texto-sm);
-}
-
-#btnImportarExcel {
-  background: var(--color-exito);
-}
-
 .catalogo-content {
   flex: 1;
   min-width: 0;
@@ -379,6 +359,39 @@
 
 .btn-accion-descargar:hover {
   background: rgba(0, 103, 79, 0.1);
+}
+
+/* ════════════════════════════════════════════
+   BADGES DE ESTADO DE STOCK EN CATÁLOGO
+   ════════════════════════════════════════════ */
+.tabla-badge.desabastecido {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.tabla-badge.desabastecido i {
+  color: #dc2626;
+}
+
+.tabla-badge.stock-bajo {
+  background: #ffedd5;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+}
+
+.tabla-badge.stock-bajo i {
+  color: #ea580c;
+}
+
+.tabla-badge.stock-ok {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.tabla-badge.stock-ok i {
+  color: #059669;
 }
 
 /* ════════════════════════════════════════════
@@ -659,14 +672,11 @@
 /* ════════════════════════════════════════════
    FIX: Dropdown de articulos en modal ENTRADA
    ════════════════════════════════════════════ */
-
-/* Agrandar el contenedor del select de articulos */
 #wrapperArticuloEntradaModal {
   min-width: 100%;
   position: relative;
 }
 
-/* El trigger del dropdown debe mostrar texto completo */
 #wrapperArticuloEntradaModal .filtro-select-trigger {
   white-space: normal;
   text-align: left;
@@ -678,7 +688,6 @@
   overflow: visible;
 }
 
-/* Las opciones del dropdown deben mostrar texto completo */
 #dropdownArticuloEntradaModal .filtro-option {
   white-space: normal;
   text-align: left;
@@ -688,7 +697,6 @@
   font-size: var(--texto-sm);
 }
 
-/* Agrandar el dropdown desplegado */
 #dropdownArticuloEntradaModal {
   max-height: 280px;
   overflow-y: auto;
@@ -698,7 +706,6 @@
   right: auto !important;
 }
 
-/* Ajustar el texto seleccionado para que no se corte */
 #wrapperArticuloEntradaModal .filtro-select-text {
   white-space: normal;
   overflow: visible;
@@ -707,7 +714,6 @@
   width: 100%;
 }
 
-/* Asegurar que el dropdown tenga suficiente ancho */
 #wrapperArticuloEntradaModal.abierto #dropdownArticuloEntradaModal {
   min-width: 320px;
   width: max-content;
@@ -808,14 +814,11 @@
 /* ════════════════════════════════════════════
    FIX: Dropdown de articulos en modal CARGO
    ════════════════════════════════════════════ */
-
-/* Agrandar el contenedor del select de articulos */
 #wrapperArticuloCargoModal {
   min-width: 100%;
   position: relative;
 }
 
-/* El trigger del dropdown debe mostrar texto completo */
 #wrapperArticuloCargoModal .filtro-select-trigger {
   white-space: normal;
   text-align: left;
@@ -827,7 +830,6 @@
   overflow: visible;
 }
 
-/* Las opciones del dropdown deben mostrar texto completo */
 #dropdownArticuloCargoModal .filtro-option {
   white-space: normal;
   text-align: left;
@@ -837,7 +839,6 @@
   font-size: var(--texto-sm);
 }
 
-/* Agrandar el dropdown desplegado */
 #dropdownArticuloCargoModal {
   max-height: 280px;
   overflow-y: auto;
@@ -847,7 +848,6 @@
   right: auto !important;
 }
 
-/* Ajustar el texto seleccionado para que no se corte */
 #wrapperArticuloCargoModal .filtro-select-text {
   white-space: normal;
   overflow: visible;
@@ -856,7 +856,6 @@
   width: 100%;
 }
 
-/* Asegurar que el dropdown tenga suficiente ancho */
 #wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal {
   min-width: 320px;
   width: max-content;
@@ -864,7 +863,7 @@
 }
 
 /* ════════════════════════════════════════════
-   MODAL ARTÍCULO (NUEVO — REEMPLAZA PANEL LATERAL)
+   MODAL ARTÍCULO
    ════════════════════════════════════════════ */
 .md-modal-articulo {
   max-width: 520px !important;
@@ -908,7 +907,6 @@
   padding: var(--espaciado-lg) var(--espaciado-xl);
 }
 
-/* Fix dropdowns en modal artículo */
 #wrapperCategoriaModal,
 #wrapperUnidadModal {
   min-width: 100%;
@@ -1060,4 +1058,36 @@
   .card-resumen {
     flex-direction: row;
   }
+}
+
+/* ════════════════════════════════════════════
+   TARJETAS CLICKEABLES EN RESUMEN
+   ════════════════════════════════════════════ */
+.card-resumen-clickeable {
+  cursor: pointer;
+  transition: transform var(--transicion-rapida), box-shadow var(--transicion-normal);
+}
+
+.card-resumen-clickeable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-md);
+}
+
+.card-resumen-clickeable:active {
+  transform: translateY(0);
+}
+
+/* Indicador visual de que es clickeable */
+.card-resumen-clickeable .card-resumen-info::after {
+  content: 'Ver →';
+  display: block;
+  font-size: var(--texto-xs);
+  color: var(--color-primario-inicio);
+  margin-top: 2px;
+  opacity: 0;
+  transition: opacity var(--transicion-rapida);
+}
+
+.card-resumen-clickeable:hover .card-resumen-info::after {
+  opacity: 1;
 }

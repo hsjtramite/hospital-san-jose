@@ -396,13 +396,23 @@
 
   function aplicarFiltrosCatalogo() {
     if (!tablaCatalogo) return
-    const texto = (document.getElementById('buscarArticulo')?.value || '').toLowerCase().trim()
-    const filtrados = articulos.filter(a => {
+    const input = document.getElementById('buscarArticulo')
+    const texto = (input?.value || '').toLowerCase().trim()
+    const filtroStock = input?.dataset?.filtroStock || ''
+
+    let filtrados = articulos.filter(a => {
       if (!texto) return true
       return (a.nombre || '').toLowerCase().includes(texto) ||
         (a.codigo || '').toLowerCase().includes(texto) ||
         (a.categoria || '').toLowerCase().includes(texto)
     })
+
+    if (filtroStock === 'desabastecido') {
+      filtrados = filtrados.filter(a => a.stock_actual === 0)
+    } else if (filtroStock === 'bajo') {
+      filtrados = filtrados.filter(a => a.stock_actual > 0 && a.stock_actual <= 10)
+    }
+
     tablaCatalogo.actualizar(filtrados)
   }
 
@@ -2398,5 +2408,53 @@ async function generarPDFCargo(numeroCargo) {
         }
       })
     }
+
+    /* ─── Click en tarjetas de Resumen para filtrar Catálogo ─── */
+    const cardDesabastecidos = document.getElementById('cardDesabastecidos')
+    const cardStockBajo = document.getElementById('cardStockBajo')
+
+    if (cardDesabastecidos) {
+      cardDesabastecidos.addEventListener('click', () => {
+        cambiarTab('catalogo')
+        setTimeout(() => {
+          const input = document.getElementById('buscarArticulo')
+          if (input) {
+            input.value = ''
+            input.dataset.filtroStock = 'desabastecido'
+          }
+          aplicarFiltrosCatalogo()
+        }, 300)
+      })
+    }
+
+    if (cardStockBajo) {
+      cardStockBajo.addEventListener('click', () => {
+        cambiarTab('catalogo')
+        setTimeout(() => {
+          const input = document.getElementById('buscarArticulo')
+          if (input) {
+            input.value = ''
+            input.dataset.filtroStock = 'bajo'
+          }
+          aplicarFiltrosCatalogo()
+        }, 300)
+      })
+    }
+  }
+
+  /* ════════════════════════════════════════════
+     FILTROS DE STOCK EN CATÁLOGO
+     ════════════════════════════════════════════ */
+  function filtrarPorStock(tipo) {
+    if (!tablaCatalogo || !articulos.length) return
+    let filtrados = []
+    if (tipo === 'desabastecido') {
+      filtrados = articulos.filter(a => a.stock_actual === 0)
+    } else if (tipo === 'bajo') {
+      filtrados = articulos.filter(a => a.stock_actual > 0 && a.stock_actual <= 10)
+    } else {
+      filtrados = articulos
+    }
+    tablaCatalogo.actualizar(filtrados)
   }
 })()
