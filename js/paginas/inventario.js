@@ -1978,6 +1978,7 @@ async function generarPDFCargo(numeroCargo) {
   const pageW = 210
   const margin = 15
   const contentW = pageW - margin * 2
+  const pageH = doc.internal.pageSize.height
 
   let y = 10
 
@@ -2032,7 +2033,7 @@ async function generarPDFCargo(numeroCargo) {
 
   doc.autoTable({
     startY: y,
-    margin: { left: margin, right: margin },
+    margin: { left: margin, right: margin, bottom: 40 },
     head: [['N°', 'ARTICULO', 'CANT.', 'UNIDAD']],
     body: items,
     theme: 'grid',
@@ -2065,7 +2066,7 @@ async function generarPDFCargo(numeroCargo) {
       // Pie de página en cada página
       doc.setFontSize(8)
       doc.setTextColor(128, 128, 128)
-      doc.text(`Cargo: ${numeroCargo} - Pagina ${data.pageNumber}`, pageW / 2, doc.internal.pageSize.height - 10, { align: 'center' })
+      doc.text(`Cargo: ${numeroCargo} - Pagina ${data.pageNumber}`, pageW / 2, pageH - 10, { align: 'center' })
     }
   })
 
@@ -2085,13 +2086,11 @@ async function generarPDFCargo(numeroCargo) {
     finalY += 5
   }
 
-  // Sección de firmas (siempre al final, en nueva página si es necesario)
-  finalY = Math.max(finalY, doc.internal.pageSize.height - 60)
-
-  // Verificar si hay espacio suficiente para firmas, si no, agregar nueva página
-  if (finalY > doc.internal.pageSize.height - 50) {
+  // Sección de firmas — justo después de la tabla, sin saltar página innecesariamente
+  const espacioFirmas = 45 // espacio necesario: "RECIBI CONFORME" + líneas + etiquetas
+  if (finalY + espacioFirmas > pageH - margin) {
     doc.addPage()
-    finalY = 40
+    finalY = margin + 10
   }
 
   doc.setFontSize(10)
