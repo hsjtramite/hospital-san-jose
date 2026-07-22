@@ -2018,26 +2018,33 @@ async function generarPDFCargo(numeroCargo) {
   const lines = doc.splitTextToSize(parrafo, contentW)
   const lineHeight = 5.5
   lines.forEach((line, i) => doc.text(line, margin, y + i * lineHeight))
-  y += lines.length * lineHeight + 8
+  y += lines.length * lineHeight + 6
 
-  // Tabla de artículos
-  const items = movimientos.map((m, index) => {
-    const art = m.inventario_articulos || {}
-    return [
+  // Tabla de artículos — ORDENADOS ALFABÉTICAMENTE
+  const items = movimientos
+    .map((m, index) => {
+      const art = m.inventario_articulos || {}
+      return {
+        nombre: art.nombre || '—',
+        cantidad: m.cantidad,
+        _originalIndex: index
+      }
+    })
+    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+    .map((item, index) => [
       index + 1,
-      art.nombre || '—',
-      m.cantidad,
+      item.nombre,
+      item.cantidad,
       'unidades'
-    ]
-  })
+    ])
 
   // Calcular si todo cabe en una sola página
-  // Altura estimada: header ~12mm + filas ~8mm c/u + observación opcional + firmas ~45mm
-  const alturaFila = 9
-  const alturaHeader = 12
+  // Tabla más compacta: filas ~7mm + header ~10mm
+  const alturaFila = 7
+  const alturaHeader = 10
   const alturaTabla = alturaHeader + (items.length * alturaFila)
-  const alturaObservacion = cargo.observacion ? 25 : 0
-  const alturaFirmas = 45
+  const alturaObservacion = cargo.observacion ? 22 : 0
+  const alturaFirmas = 38
   const alturaTotal = y + alturaTabla + alturaObservacion + alturaFirmas
   const todoEnUnaPagina = alturaTotal <= (pageH - margin)
 
@@ -2056,19 +2063,21 @@ async function generarPDFCargo(numeroCargo) {
       halign: 'center'
     },
     bodyStyles: {
-      fontSize: 9,
-      textColor: 0
+      fontSize: 8,
+      textColor: 0,
+      cellPadding: 2
     },
     columnStyles: {
       0: { cellWidth: 12, halign: 'center' },
       1: { cellWidth: 'auto', halign: 'left' },
-      2: { cellWidth: 20, halign: 'center' },
-      3: { cellWidth: 25, halign: 'center' }
+      2: { cellWidth: 18, halign: 'center' },
+      3: { cellWidth: 22, halign: 'center' }
     },
     styles: {
       lineColor: [0, 0, 0],
       lineWidth: 0.3,
-      cellPadding: 3
+      cellPadding: 2,
+      minCellHeight: 6
     },
     alternateRowStyles: {
       fillColor: [245, 250, 255]
@@ -2080,8 +2089,8 @@ async function generarPDFCargo(numeroCargo) {
     }
   })
 
-  // Observación (después de la tabla, en la misma página si es posible)
-  let finalY = doc.lastAutoTable.finalY + 8
+  // Observación (después de la tabla)
+  let finalY = doc.lastAutoTable.finalY + 6
   if (cargo.observacion) {
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
@@ -2093,11 +2102,11 @@ async function generarPDFCargo(numeroCargo) {
       doc.text(line, margin, finalY)
       finalY += 4.5
     })
-    finalY += 4
+    finalY += 3
   }
 
   // Sección de firmas — justo después de la tabla
-  const espacioFirmas = 40 // "RECIBI CONFORME" + 25mm espacio + líneas + etiquetas
+  const espacioFirmas = 35
   if (finalY + espacioFirmas > pageH - margin) {
     doc.addPage()
     finalY = margin + 5
@@ -2106,7 +2115,7 @@ async function generarPDFCargo(numeroCargo) {
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   doc.text('RECIBI CONFORME:', margin, finalY)
-  finalY += 22
+  finalY += 18
 
   // Líneas de firma
   const firmaY = finalY
