@@ -28,14 +28,15 @@
           <h1 class="dash-saludo" id="dashSaludo">Bienvenido</h1>
           <p class="dash-subtexto">Aquí tienes un resumen de lo más importante.</p>
         </div>
-        <div class="dash-hero-indicadores" id="heroIndicadores">
+             <div class="dash-hero-indicadores" id="heroIndicadores">
           <div class="dash-hero-indicador">
             <div class="dash-indicador-icono">
               <i class="ph ph-clock-counter-clockwise"></i>
             </div>
             <div class="dash-indicador-info">
               <span class="dash-indicador-numero" id="indicPendientes">0</span>
-              <span class="dash-indicador-label">Pendientes</span>
+              <span class="dash-indicador-label">Trámites pendientes</span>
+              <button type="button" class="dash-indicador-link" id="btnVerTramitesPendientes">Ver trámites <i class="ph ph-arrow-right"></i></button>
             </div>
           </div>
           <div class="dash-hero-indicador">
@@ -45,6 +46,7 @@
             <div class="dash-indicador-info">
               <span class="dash-indicador-numero" id="indicDerivadosHoy">0</span>
               <span class="dash-indicador-label">Derivados hoy</span>
+              <button type="button" class="dash-indicador-link" id="btnVerDerivadosHoy">Ver actividad <i class="ph ph-arrow-right"></i></button>
             </div>
           </div>
           <div class="dash-hero-indicador">
@@ -54,6 +56,7 @@
             <div class="dash-indicador-info">
               <span class="dash-indicador-numero" id="indicPrioridadAlta">0</span>
               <span class="dash-indicador-label">Prioridad alta</span>
+              <button type="button" class="dash-indicador-link" id="btnVerPrioridadAlta">Revisar <i class="ph ph-arrow-right"></i></button>
             </div>
           </div>
         </div>
@@ -93,6 +96,7 @@
       <!-- COL 2: PRÓXIMOS EVENTOS -->
       <section class="dash-card dash-card-proximos">
         <h2 class="dash-card-titulo">Próximas Reuniones</h2>
+        <div class="dash-en-curso-contenedor" id="dashEnCursoContenedor"></div>
         <div class="dash-proximos-lista" id="dashProximosLista">
           <div class="dash-empty">Cargando eventos…</div>
         </div>
@@ -101,65 +105,7 @@
         </button>
       </section>
 
-      <!-- COL 3: ACTIVIDAD RECIENTE -->
-      <section class="dash-card dash-card-actividad">
-        <h2 class="dash-card-titulo">Actividad Reciente</h2>
-        <div class="dash-card-body dash-actividad-lista" id="actividadLista">
-          <div class="dash-empty">Cargando actividad…</div>
         </div>
-        <button class="dash-ver-mas" id="btnVerMasActividad">
-          Ver más actividad <i class="ph ph-caret-right"></i>
-        </button>
-      </section>
-
-    </div>
-
-    <!-- ═══ SECCIÓN 3: ACCESOS RÁPIDOS ═══ -->
-    <section class="dash-seccion">
-      <h2 class="dash-seccion-titulo">Accesos Rápidos</h2>
-      <div class="dash-accesos-grid">
-        <article class="dash-acceso-card" data-ruta="registrar-tramite">
-          <div class="dash-acceso-icono" style="background:rgba(30,136,229,0.1);color:var(--color-primario-inicio)">
-            <i class="ph ph-file-plus"></i>
-          </div>
-          <div class="dash-acceso-body">
-            <h3 class="dash-acceso-titulo">Registrar trámite</h3>
-            <p class="dash-acceso-desc">Registrar un nuevo documento.</p>
-          </div>
-          <i class="ph ph-caret-right dash-acceso-flecha"></i>
-        </article>
-        <article class="dash-acceso-card" data-ruta="registrar-tramite" data-tab="derivar">
-          <div class="dash-acceso-icono" style="background:rgba(124,58,237,0.1);color:var(--color-purpura)">
-            <i class="ph ph-file-arrow-down"></i>
-          </div>
-          <div class="dash-acceso-body">
-            <h3 class="dash-acceso-titulo">Derivar documento</h3>
-            <p class="dash-acceso-desc">Enviar documento a otra área.</p>
-          </div>
-          <i class="ph ph-caret-right dash-acceso-flecha"></i>
-        </article>
-        <article class="dash-acceso-card" data-ruta="documentos">
-          <div class="dash-acceso-icono" style="background:rgba(245,158,11,0.1);color:var(--color-naranja)">
-            <i class="ph ph-file-search"></i>
-          </div>
-          <div class="dash-acceso-body">
-            <h3 class="dash-acceso-titulo">Consultar documentos</h3>
-            <p class="dash-acceso-desc">Buscar y visualizar documentos registrados.</p>
-          </div>
-          <i class="ph ph-caret-right dash-acceso-flecha"></i>
-        </article>
-        <article class="dash-acceso-card" data-ruta="reportes">
-          <div class="dash-acceso-icono" style="background:rgba(0,103,79,0.1);color:var(--color-exito)">
-            <i class="ph ph-chart-line"></i>
-          </div>
-          <div class="dash-acceso-body">
-            <h3 class="dash-acceso-titulo">Ver reportes</h3>
-            <p class="dash-acceso-desc">Analizar información institucional.</p>
-          </div>
-          <i class="ph ph-caret-right dash-acceso-flecha"></i>
-        </article>
-      </div>
-    </section>
 
   </main>
 

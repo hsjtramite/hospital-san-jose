@@ -6,36 +6,31 @@
   let tabla = null
   let datePickerDesde = null
   let datePickerHasta = null
-  let datePickerEditar = null
   let todosDocumentos = []
   let mapaPerfiles = {}
-  let listaPerfiles = []
   let sortCol = null
   let sortDir = 'asc'
   let docActual = null
-  let docEditando = null
-  let docEliminando = null
   let archivosDocumentoActual = []
-  let docsClasificados = {}
+   let docsClasificados = {}
+  let filtroRapidoActivo = null
   let perfilFirmanteActual = null
-  let wordBlobActual = null
-  let pdfBlobActual = null
-  let wordBlobUrl = null
-  let pdfBlobUrl = null
-  let vistaActual = 'documento'
+  let wordBlobActual = null       // Blob Word generado dinámicamente
+  let pdfBlobActual = null        // Blob PDF convertido desde la Edge Function
+  let wordBlobUrl = null          // Object URL para imprimir
+  let pdfBlobUrl = null           // Object URL del PDF
+  let vistaActual = 'documento'   // 'documento' | 'adjunto' — controla qué vista está activa
 
   const TIPOS_DOCUMENTO = [
-    { id: 'CARTA', nombre: 'CARTA N' },
-    { id: 'MEMORANDUM', nombre: 'MEMORANDUM N' },
-    { id: 'MEMORANDO_CIRCULAR', nombre: 'MEMORANDO CIRCULAR N' },
-    { id: 'OFICIO', nombre: 'OFICIO N' },
-    { id: 'SOLICITUD', nombre: 'SOLICITUD N' },
-    { id: 'INFORME', nombre: 'INFORME N' },
-    { id: 'NOTAS', nombre: 'NOTA N' },
-    { id: 'NOTA_CIRCULAR', nombre: 'NOTA CIRCULAR N' },
+    { id: 'CARTA', nombre: 'CARTA N°' },
+    { id: 'MEMORANDUM', nombre: 'MEMORÁNDUM N°' },
+    { id: 'MEMORANDO_CIRCULAR', nombre: 'MEMORANDO CIRCULAR N°' },
+    { id: 'OFICIO', nombre: 'OFICIO N°' },
+    { id: 'SOLICITUD', nombre: 'SOLICITUD N°' },
+    { id: 'INFORME', nombre: 'INFORME N°' },
+    { id: 'NOTAS', nombre: 'NOTA N°' },
+    { id: 'NOTA_CIRCULAR', nombre: 'NOTA CIRCULAR N°' },
   ]
-
-  const PRIORIDADES = ['Baja', 'Media', 'Alta', 'Urgente']
 
   document.addEventListener('lateral:listo', inicializar)
 
@@ -57,15 +52,14 @@
       cargarPerfiles(),
     ])
 
-    inicializarFiltros()
+     inicializarFiltros()
     inicializarTabla()
     inicializarModalEventos()
-    inicializarModalEditar()
-    inicializarModalEliminar()
+    inicializarFiltroRapido()
     aplicarFiltros()
   }
 
-  /* --- DATOS --- */
+  /* ─── DATOS ─── */
 
   async function cargarDocumentos() {
     const { data, error } = await supabase
@@ -92,16 +86,14 @@
       return
     }
 
-    listaPerfiles = data || []
     mapaPerfiles = {}
-    listaPerfiles.forEach((p) => {
-      mapaPerfiles[p.id] = (p.nombre_completo || '') + ' ' + (p.apellidos_completos || '')
-      mapaPerfiles[p.id] = mapaPerfiles[p.id].trim()
+    ;(data || []).forEach((p) => {
+      mapaPerfiles[p.id] = `${p.nombre_completo || ''} ${p.apellidos_completos || ''}`.trim()
     })
   }
 
   function obtenerRemitente(doc) {
-    return mapaPerfiles[doc.remitente_id] || '-'
+    return mapaPerfiles[doc.remitente_id] || '—'
   }
 
   function obtenerEstado(doc) {
@@ -113,7 +105,7 @@
       'ATENDIDO': 'Finalizado',
       'OBSERVADO': 'Observado',
     }
-    return mapa[doc.estado_actual] || '-'
+    return mapa[doc.estado_actual] || '—'
   }
 
   function claseEstado(estado) {
@@ -129,15 +121,17 @@
 
   function badgeEstado(estado) {
     const clase = claseEstado(estado)
-    return '<span class="estado-badge ' + clase + '">' + estado + '</span>'
+    return `<span class="estado-badge ${clase}">${estado}</span>`
   }
 
   function badgePrioridad(prioridad) {
     const clase = (prioridad || '').toLowerCase()
-    return '<span class="prioridad-badge ' + clase + '"><i class="ph ph-circle-fill"></i>' + (prioridad || '-') + '</span>'
+    return `<span class="prioridad-badge ${clase}"><i class="ph ph-circle-fill"></i>${prioridad || '—'}</span>`
   }
 
-  /* --- FILTROS --- */
+  /* ─── (Tarjetas resumen eliminadas — movidas al módulo Reportes)   */
+
+  /* ─── FILTROS ─── */
 
   function inicializarFiltros() {
     inicializarDesplegableTipoDoc()
@@ -265,8 +259,17 @@
       filtrados = filtrados.filter((d) => (d.fecha || '') >= fechaDesde)
     }
 
-    if (fechaHasta) {
+      if (fechaHasta) {
       filtrados = filtrados.filter((d) => (d.fecha || '') <= fechaHasta)
+    }
+
+    if (filtroRapidoActivo === 'pendientes') {
+      filtrados = filtrados.filter((d) => d.tipo === 'emitido' && !d.estado_actual)
+    } else if (filtroRapidoActivo === 'derivados-hoy') {
+      const hoy = new Date().toISOString().split('T')[0]
+      filtrados = filtrados.filter((d) => d.tipo === 'derivado' && d.created_at && d.created_at.startsWith(hoy))
+    } else if (filtroRapidoActivo === 'prioridad-alta') {
+      filtrados = filtrados.filter((d) => d.prioridad === 'Alta' || d.prioridad === 'Urgente')
     }
 
     if (sortCol === 'numero_documento') {
@@ -291,11 +294,41 @@
     if (filtrados.length === 0 && !tablaVacia) {
       const vacio = document.createElement('div')
       vacio.className = 'tabla-vacia'
-      vacio.innerHTML = '<div class="tabla-vacia-icono"><i class="ph ph-file-search"></i></div><h3>No hay documentos registrados</h3><p>Los tramites que se generen desde el modulo "Registrar tramite" apareceran automaticamente aqui para su consulta y seguimiento.</p>'
+      vacio.innerHTML = `
+        <div class="tabla-vacia-icono">
+          <i class="ph ph-file-search"></i>
+        </div>
+        <h3>No hay documentos registrados</h3>
+        <p>Los trámites que se generen desde el módulo "Registrar trámite" aparecerán automáticamente aquí para su consulta y seguimiento.</p>`
       tabla.obtenerElemento().querySelector('.tabla-wrapper').after(vacio)
     } else if (filtrados.length > 0 && tablaVacia) {
       tablaVacia.remove()
     }
+  }
+
+    function inicializarFiltroRapido() {
+    const params = new URLSearchParams(window.location.search)
+    const filtro = params.get('filtro')
+    const etiquetas = {
+      'pendientes': 'Trámites pendientes',
+      'derivados-hoy': 'Derivados hoy',
+      'prioridad-alta': 'Prioridad alta',
+    }
+
+    if (filtro && etiquetas[filtro]) {
+      filtroRapidoActivo = filtro
+      document.getElementById('chipFiltroRapidoTexto').textContent = `Filtro rápido: ${etiquetas[filtro]}`
+      document.getElementById('chipFiltroRapido').style.display = 'flex'
+    }
+
+    document.getElementById('btnQuitarFiltroRapido').addEventListener('click', () => {
+      filtroRapidoActivo = null
+      document.getElementById('chipFiltroRapido').style.display = 'none'
+      const url = new URL(window.location.href)
+      url.searchParams.delete('filtro')
+      window.history.replaceState({}, '', url)
+      aplicarFiltros()
+    })
   }
 
   function limpiarFiltros() {
@@ -324,7 +357,7 @@
     aplicarFiltros()
   }
 
-  /* --- TABLA --- */
+  /* ─── TABLA ─── */
 
   function inicializarTabla() {
     tabla = new Tabla({
@@ -333,28 +366,28 @@
       elementosPorPagina: CONFIGURACION.paginacion?.elementosPorPagina || 20,
       columnas: [
         {
-          titulo: 'N Documento',
+          titulo: 'N° Documento',
           clave: 'numero_documento',
-          render: (valor) => valor || '-',
+          render: (valor) => valor || '—',
         },
         {
           titulo: 'Tipo',
           clave: 'tipo_documento',
           render: (valor) => {
             const encontrado = TIPOS_DOCUMENTO.find((t) => t.id === valor)
-            return encontrado ? encontrado.nombre : (valor || '-')
+            return encontrado ? encontrado.nombre : (valor || '—')
           },
         },
         {
           titulo: 'Remitente',
           clave: 'remitente_id',
-          render: (valor) => mapaPerfiles[valor] || '-',
+          render: (valor) => mapaPerfiles[valor] || '—',
         },
-        { titulo: 'Destinatario', clave: 'destinatario', render: (v) => v || '-' },
+        { titulo: 'Destinatario', clave: 'destinatario', render: (v) => v || '—' },
         {
           titulo: 'Fecha',
           clave: 'fecha',
-          render: (v) => v || '-',
+          render: (v) => v || '—',
         },
         {
           titulo: 'Estado',
@@ -369,7 +402,12 @@
         {
           titulo: 'Acciones',
           clave: 'id',
-          render: (valor, fila) => '<div class="acciones-tabla"><button class="accion-ver" data-accion="ver-detalle" data-id="' + fila.id + '" title="Ver detalle"><i class="ph ph-eye"></i></button><button class="accion-editar" data-accion="editar" data-id="' + fila.id + '" title="Editar documento"><i class="ph ph-pencil-simple"></i></button><button class="accion-eliminar" data-accion="eliminar" data-id="' + fila.id + '" title="Eliminar documento"><i class="ph ph-trash"></i></button></div>',
+          render: (valor, fila) => `
+            <div class="acciones-tabla">
+              <button data-accion="ver-detalle" data-id="${fila.id}" title="Ver detalle">
+                <i class="ph ph-eye"></i>
+              </button>
+            </div>`,
         },
       ],
     })
@@ -381,12 +419,7 @@
     contenedor.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-accion]')
       if (!btn) return
-      const id = btn.dataset.id
-      const accion = btn.dataset.accion
-
-      if (accion === 'ver-detalle') abrirDetalle(id)
-      else if (accion === 'editar') abrirEditar(id)
-      else if (accion === 'eliminar') abrirEliminar(id)
+      if (btn.dataset.accion === 'ver-detalle') abrirDetalle(btn.dataset.id)
     })
 
     inicializarSort()
@@ -444,9 +477,9 @@
     })
   }
 
-  /* ============================================
-     MODAL - DETALLE DEL DOCUMENTO
-     ============================================ */
+  /* ════════════════════════════════════════════
+     MODAL — DETALLE DEL DOCUMENTO
+     ════════════════════════════════════════════ */
 
   function inicializarModalEventos() {
     document.getElementById('btnCerrarDetalle').addEventListener('click', cerrarDetalle)
@@ -474,14 +507,21 @@
     docActual = todosDocumentos.find((d) => d.id === id)
     if (!docActual) return
 
+    // Establecer vista activa antes de cualquier operación async
     vistaActual = 'documento'
 
+    // Mostrar loading en el visor mientras se genera el documento
     const visor = document.getElementById('visorDocumento')
-    visor.innerHTML = '<div class="visor-placeholder" id="visorPlaceholder"><i class="ph ph-spinner" style="font-size:2.5rem;display:block;margin-bottom:12px;animation:spin 1s linear infinite;"></i><p>Generando documento...</p></div>'
+    visor.innerHTML = `
+      <div class="visor-placeholder" id="visorPlaceholder">
+        <i class="ph ph-spinner" style="font-size:2.5rem;display:block;margin-bottom:12px;animation:spin 1s linear infinite;"></i>
+        <p>Generando documento&hellip;</p>
+      </div>`
 
     document.getElementById('modalDetalleDocumento').classList.add('activo')
     document.body.style.overflow = 'hidden'
 
+    // Cargar archivos adjuntos (para la sección de adjuntos)
     const { data: archivos, error } = await supabase
       .from('documentos_archivos')
       .select('*')
@@ -491,7 +531,11 @@
     docsClasificados = clasificarArchivos(archivosDocumentoActual)
 
     const idFirmante = docActual.firmante_id || docActual.remitente_id
+    console.log('[Detalle] firmante_id:', docActual.firmante_id)
+    console.log('[Detalle] remitente_id:', docActual.remitente_id)
+    console.log('[Detalle] idFirmante usado:', idFirmante)
 
+    // Recuperar firma_url del firmante desde perfiles
     let firmaUrl = null
     perfilFirmanteActual = null
     if (idFirmante) {
@@ -504,6 +548,11 @@
       firmaUrl = perfil?.firma_url || null
     }
 
+    console.log('[Detalle] firma_url:', firmaUrl)
+
+
+
+    // Generar el Word en memoria con los datos del documento
     const tipoObj = TIPOS_DOCUMENTO.find((t) => t.id === docActual.tipo_documento)
     try {
       wordBlobActual = await window.generarWordBlob({
@@ -521,13 +570,15 @@
       wordBlobActual = null
     }
 
+    // Llenar panel lateral e info
     llenarInfo(docActual)
     configurarBotones()
 
+    // Dibujar el PDF institucional con jsPDF
     if (wordBlobActual) {
       await generarPDFInstitucional(docActual, perfilFirmanteActual)
     } else {
-      mostrarPlaceholder('No se pudo generar el documento base. Verifique los datos del tramite.')
+      mostrarPlaceholder('No se pudo generar el documento base. Verifique los datos del trámite.')
     }
 
     activarBotonVisualizacion('documento')
@@ -537,17 +588,23 @@
     document.getElementById('modalDetalleDocumento').classList.remove('activo')
     document.body.style.overflow = ''
 
+    // Limpiar visor
     const visor = document.getElementById('visorDocumento')
     const iframe = visor.querySelector('iframe')
     if (iframe) {
       iframe.src = ''
     }
-    visor.innerHTML = '<div class="visor-placeholder" id="visorPlaceholder"><i class="ph ph-file-text" style="font-size:3rem;display:block;margin-bottom:12px;"></i><p>Cargando documento...</p></div>'
+    visor.innerHTML = `
+      <div class="visor-placeholder" id="visorPlaceholder">
+        <i class="ph ph-file-text" style="font-size:3rem;display:block;margin-bottom:12px;"></i>
+        <p>Cargando documento&hellip;</p>
+      </div>`
 
+    // Liberar recursos
     if (wordBlobUrl) { URL.revokeObjectURL(wordBlobUrl); wordBlobUrl = null }
     if (pdfBlobUrl) { URL.revokeObjectURL(pdfBlobUrl); pdfBlobUrl = null }
-
-    vistaActual = 'documento'
+    
+    vistaActual = 'documento'   // reset para la próxima apertura
     perfilFirmanteActual = null
     wordBlobActual = null
     pdfBlobActual = null
@@ -574,32 +631,37 @@
   }
 
   function llenarInfo(doc) {
-    document.getElementById('infoNumDoc').textContent = doc.numero_documento || '-'
-    document.getElementById('infoAsunto').textContent = doc.asunto || '-'
+    document.getElementById('infoNumDoc').textContent = doc.numero_documento || '—'
+    document.getElementById('infoAsunto').textContent = doc.asunto || '—'
     document.getElementById('infoEstado').innerHTML = badgeEstado(obtenerEstado(doc))
     document.getElementById('infoPrioridad').innerHTML = badgePrioridad(doc.prioridad)
-    document.getElementById('infoFecha').textContent = doc.fecha || '-'
+    document.getElementById('infoFecha').textContent = doc.fecha || '—'
     document.getElementById('infoRemitente').textContent = obtenerRemitente(doc)
     const idFirmante = doc.firmante_id || doc.remitente_id
-    document.getElementById('infoFirmante').textContent = mapaPerfiles[idFirmante] || '-'
-    document.getElementById('infoDestinatario').textContent = doc.destinatario || '-'
+    document.getElementById('infoFirmante').textContent = mapaPerfiles[idFirmante] || '—'
+    document.getElementById('infoDestinatario').textContent = doc.destinatario || '—'
   }
 
   function configurarBotones() {
     const c = docsClasificados
 
+    // "Ver documento" — siempre disponible (se genera dinámicamente)
     const btnVerPDF = document.getElementById('btnVerPDF')
     btnVerPDF.disabled = false
     btnVerPDF.title = 'Ver documento generado'
 
+    // "Descargar PDF" — siempre disponible
     const btnDescargarPDF = document.getElementById('btnDescargarPDF')
     btnDescargarPDF.disabled = false
     btnDescargarPDF.title = 'Descargar documento final en PDF'
 
+    // "Descargar Word" — disponible cuando el blob esté generado
     const btnDescargarWord = document.getElementById('btnDescargarWord')
     btnDescargarWord.disabled = false
     btnDescargarWord.title = 'Descargar documento Word'
 
+    // Adjunto — incluye c.pdf porque los adjuntos del usuario se suben como PDF
+    // (el Word se genera dinámicamente; los PDF en documentos_archivos son adjuntos reales)
     const tieneAdjunto = !!(c.pdf || c.imagen || c.otro)
     const btnVerAdjunto = document.getElementById('btnVerAdjunto')
     btnVerAdjunto.disabled = !tieneAdjunto
@@ -612,12 +674,13 @@
 
   function activarBotonVisualizacion(vista) {
     document.querySelectorAll('.btn-visualizacion').forEach((b) => b.classList.remove('activo'))
-    const btn = document.querySelector('.btn-visualizacion[data-vista="' + vista + '"]')
+    const btn = document.querySelector(`.btn-visualizacion[data-vista="${vista}"]`)
     if (btn) btn.classList.add('activo')
   }
 
-  /* --- CONVERSION Y RENDERIZADO PDF --- */
+  /* ─── CONVERSIÓN Y RENDERIZADO PDF ─── */
 
+  // Función auxiliar para formatear la fecha a texto largo
   function formatearFechaLarga(f) {
     if (!f) return ''
     const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
@@ -631,14 +694,19 @@
 
     if (vistaActual !== 'documento') return
 
-    visor.innerHTML = '<div class="visor-placeholder" id="visorPlaceholder"><i class="ph ph-spinner" style="font-size:2.5rem;display:block;margin-bottom:12px;animation:spin 1s linear infinite;"></i><p>Generando PDF Institucional...</p></div>'
+    visor.innerHTML = `
+      <div class="visor-placeholder" id="visorPlaceholder">
+        <i class="ph ph-spinner" style="font-size:2.5rem;display:block;margin-bottom:12px;animation:spin 1s linear infinite;"></i>
+        <p>Generando PDF Institucional&hellip;</p>
+      </div>`
 
     try {
-      if (!window.jspdf) throw new Error('jsPDF no esta cargado')
+      if (!window.jspdf) throw new Error('jsPDF no está cargado')
       const { jsPDF } = window.jspdf
       const pdf = new jsPDF('p', 'mm', 'a4')
       const mIzq = 27, mDer = 27, anchoUtil = 210 - mIzq - mDer
 
+      // 1. Cargar Logo
       try {
         const resp = await fetch('assets/imagenes/Logo.jpg')
         if (resp.ok) {
@@ -654,57 +722,67 @@
         console.warn('No se pudo cargar el logo para PDF:', e)
       }
 
+      // 2. Membrete
       pdf.setFont('helvetica', 'italic')
       pdf.setFontSize(9)
       pdf.setTextColor(80)
-      pdf.text('"Ano de la recuperacion y consolidacion de la economia peruana"', 105, 18, { align: 'center' })
+      pdf.text('“Año de la recuperación y consolidación de la economía peruana”', 105, 18, { align: 'center' })
 
+      // 3. Fecha
       pdf.setFont('helvetica', 'normal')
       pdf.setFontSize(11)
       pdf.setTextColor(0)
       pdf.text('Chincha, ' + formatearFechaLarga(doc.fecha), 210 - mDer, 48, { align: 'right' })
 
+      // 4. Tipo y Número
       pdf.setFont('helvetica', 'bold')
       pdf.setFontSize(13)
       const tipoObj = TIPOS_DOCUMENTO.find((t) => t.id === doc.tipo_documento)
       const nombreTipo = tipoObj ? tipoObj.nombre : (doc.tipo_documento || '')
-      const tit = nombreTipo + ' ' + doc.numero_documento
+      const tit = `${nombreTipo} ${doc.numero_documento}`
       pdf.text(tit, mIzq, 62)
       pdf.setLineWidth(0.5)
       pdf.line(mIzq, 63.5, mIzq + pdf.getTextWidth(tit), 63.5)
 
+      // 5. Destinatario
+      const colVal = 58
       let y = 75
       pdf.setFont('helvetica', 'normal')
       pdf.setFontSize(11)
-      pdf.text('Senor', mIzq, y)
+      pdf.text('Señor', mIzq, y)
       pdf.text(':', 50, y)
-      pdf.text((doc.destinatario || '').toUpperCase(), 58, y)
+      pdf.text((doc.destinatario || '').toUpperCase(), colVal, y)
 
+      // 6. Cargo
       if (doc.cargo_destinatario) {
         y += 6
         pdf.setFont('helvetica', 'bold')
-        pdf.text((doc.cargo_destinatario || '').toUpperCase(), 58, y)
+        pdf.text((doc.cargo_destinatario || '').toUpperCase(), colVal, y)
       }
 
+      // 7. Asunto
       y += 14
       pdf.setFont('helvetica', 'normal')
       pdf.text('Asunto', mIzq, y)
       pdf.text(':', 50, y)
-      const asuntoLines = pdf.splitTextToSize((doc.asunto || '').toUpperCase(), anchoUtil - 31)
-      pdf.text(asuntoLines, 58, y)
+      const asuntoLines = pdf.splitTextToSize((doc.asunto || '').toUpperCase(), anchoUtil - (colVal - mIzq))
+      pdf.text(asuntoLines, colVal, y)
       y += asuntoLines.length * 6
 
+      // Separador
       y += 8
       pdf.setDrawColor(180)
       pdf.setLineWidth(0.3)
       pdf.line(mIzq, y, 210 - mDer, y)
       y += 12
 
+      // 8. Cuerpo
       pdf.setFont('helvetica', 'normal')
       const bodyLines = pdf.splitTextToSize((doc.cuerpo_documento || ''), anchoUtil)
       pdf.text(bodyLines, mIzq, y, { align: 'justify', maxWidth: anchoUtil })
       y += bodyLines.length * 6
 
+      // 9. Atentamente
       const descLower = (doc.cuerpo_documento || '').toLowerCase()
       if (!descLower.includes('atentamente')) {
         y += 18
@@ -712,6 +790,7 @@
       }
       y += 12
 
+      // 10. Firma
       if (perfil && perfil.firma_url) {
         try {
           const firmaImg = new Image()
@@ -720,16 +799,22 @@
           }
           firmaImg.src = perfil.firma_url
           await new Promise((r, j) => { firmaImg.onload = r; firmaImg.onerror = j })
-          if (y + 30 > 280) { pdf.addPage(); y = 20 }
+          
+          // Averiguar si nos pasamos de la página
+          if (y + 30 > 280) {
+            pdf.addPage()
+            y = 20
+          }
           pdf.addImage(firmaImg, 'PNG', mIzq, y, 40, 20)
           y += 22
         } catch (fe) {
           console.warn('No se pudo cargar firma en PDF:', fe)
         }
       } else {
-        y += 22
+        y += 22 // espacio para firma en blanco
       }
 
+      // 11. Firmante Info
       if (perfil) {
         const nombreFinal = perfil.nombre_completo || perfil.apellidos_completos || ''
         if (nombreFinal) {
@@ -743,9 +828,11 @@
         }
       }
 
+      // Asignar el Blob y mostrar
       pdfBlobActual = pdf.output('blob')
       mostrarPdfEnVisor(pdfBlobActual)
 
+      // Activar el botón de descargar PDF
       const btnDescargarPDF = document.getElementById('btnDescargarPDF')
       btnDescargarPDF.disabled = false
       btnDescargarPDF.title = 'Descargar documento final en PDF'
@@ -753,9 +840,13 @@
     } catch (err) {
       console.error('[documentos] Error al generar PDF con jsPDF:', err)
       if (vistaActual !== 'documento') return
-
-      visor.innerHTML = '<div class="visor-placeholder"><i class="ph ph-warning" style="font-size:3rem;display:block;margin-bottom:12px;color:var(--color-error)"></i><p>No se pudo generar el PDF final.</p></div>'
-
+      
+      visor.innerHTML = `
+        <div class="visor-placeholder">
+          <i class="ph ph-warning" style="font-size:3rem;display:block;margin-bottom:12px;color:var(--color-error)"></i>
+          <p>No se pudo generar el PDF final.</p>
+        </div>`
+      
       const btnDescargarPDF = document.getElementById('btnDescargarPDF')
       btnDescargarPDF.disabled = true
       btnDescargarPDF.title = 'PDF no disponible'
@@ -769,7 +860,8 @@
     if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl)
     pdfBlobUrl = URL.createObjectURL(blobPdf)
 
-    visor.innerHTML = '<iframe src="' + pdfBlobUrl + '#view=FitH" type="application/pdf" style="width:100%; height:100%; border:none; border-radius:8px;"></iframe>'
+    // Mostrar el iframe del visor PDF del navegador usando toda el área disponible
+    visor.innerHTML = `<iframe src="${pdfBlobUrl}#view=FitH" type="application/pdf" style="width:100%; height:100%; border:none; border-radius:8px;"></iframe>`
   }
 
   async function mostrarEnVisor(ruta, tipo) {
@@ -777,30 +869,38 @@
 
     if (tipo === 'imagen') {
       const { data: { publicUrl } } = supabase.storage.from('documentos').getPublicUrl(ruta)
+      // Guard: solo escribir si el usuario sigue en 'adjunto'
       if (vistaActual !== 'adjunto') return
-      visor.innerHTML = '<img src="' + publicUrl + '" alt="Vista previa del adjunto" />'
+      visor.innerHTML = `<img src="${publicUrl}" alt="Vista previa del adjunto" />`
       return
     }
 
     try {
       const { data } = await supabase.storage.from('documentos').download(ruta)
       if (!data) throw new Error('Sin datos')
+      // Guard tras el await de descarga
       if (vistaActual !== 'adjunto') return
       const blobUrl = URL.createObjectURL(data)
-      visor.innerHTML = '<iframe src="' + blobUrl + '" type="application/pdf"></iframe>'
+      visor.innerHTML = `<iframe src="${blobUrl}" type="application/pdf"></iframe>`
     } catch {
       const { data: { publicUrl } } = supabase.storage.from('documentos').getPublicUrl(ruta)
       if (vistaActual !== 'adjunto') return
-      visor.innerHTML = '<iframe src="' + publicUrl + '" type="application/pdf"></iframe>'
+      visor.innerHTML = `<iframe src="${publicUrl}" type="application/pdf"></iframe>`
     }
   }
 
   function mostrarPlaceholder(mensaje) {
     const visor = document.getElementById('visorDocumento')
-    visor.innerHTML = '<div class="visor-placeholder"><i class="ph ph-file-x" style="font-size:3rem;display:block;margin-bottom:12px;"></i><p>' + escaparHtml(mensaje) + '</p></div>'
+    visor.innerHTML = `
+      <div class="visor-placeholder">
+        <i class="ph ph-file-x" style="font-size:3rem;display:block;margin-bottom:12px;"></i>
+        <p>${escaparHtml(mensaje)}</p>
+      </div>`
   }
 
   async function cambiarVista(vista) {
+    // Establecer la vista ANTES de cualquier operación async
+    // Esto cancela efectivamente cualquier render pendiente de la vista anterior
     vistaActual = vista
     activarBotonVisualizacion(vista)
 
@@ -808,6 +908,8 @@
       if (pdfBlobActual) {
         mostrarPdfEnVisor(pdfBlobActual)
       } else if (wordBlobActual) {
+        // Si por alguna razón tenemos Word pero el PDF aún no cargó
+        // (ya no depende de Word, se genera paralelo, pero como resguardo)
         await generarPDFInstitucional(docActual, perfilFirmanteActual)
       } else {
         if (vistaActual !== 'documento') return
@@ -819,17 +921,27 @@
       const adjunto = c.imagen || c.pdf || c.otro
       if (!adjunto) return
 
+      // Mostrar spinner inmediatamente para evitar parpadeo
       const visor = document.getElementById('visorDocumento')
-      visor.innerHTML = '<div class="visor-placeholder"><i class="ph ph-spinner" style="font-size:2rem;display:block;margin-bottom:12px;animation:spin 1s linear infinite;"></i><p>Cargando adjunto...</p></div>'
+      visor.innerHTML = `
+        <div class="visor-placeholder">
+          <i class="ph ph-spinner" style="font-size:2rem;display:block;margin-bottom:12px;animation:spin 1s linear infinite;"></i>
+          <p>Cargando adjunto…</p>
+        </div>`
 
       if (adjunto.tipo_archivo && adjunto.tipo_archivo.startsWith('image/')) {
         await mostrarEnVisor(adjunto.ruta_archivo, 'imagen')
       } else if (adjunto.tipo_archivo === 'application/pdf') {
         await mostrarEnVisor(adjunto.ruta_archivo, 'pdf')
       } else {
+        // Archivo no previsualizable (no mezclar con errores del documento)
         if (vistaActual !== 'adjunto') return
         const visorEl = document.getElementById('visorDocumento')
-        visorEl.innerHTML = '<div class="visor-placeholder"><i class="ph ph-file" style="font-size:3rem;display:block;margin-bottom:12px;"></i><p>Este archivo no puede visualizarse. Use "Descargar adjunto".</p></div>'
+        visorEl.innerHTML = `
+          <div class="visor-placeholder">
+            <i class="ph ph-file" style="font-size:3rem;display:block;margin-bottom:12px;"></i>
+            <p>Este archivo no puede visualizarse. Use “Descargar adjunto”.</p>
+          </div>`
       }
     }
   }
@@ -857,13 +969,13 @@
 
   async function descargarPDF() {
     if (!pdfBlobActual) {
-      alert('El archivo PDF no esta disponible. Verifique si se genero correctamente en la vista previa.')
+      alert('El archivo PDF no está disponible. Verifique si se generó correctamente en la vista previa.')
       return
     }
 
     const numDoc = docActual?.numero_documento || 'documento'
     const tipoId = docActual?.tipo_documento || 'DOC'
-    const nombreArchivo = tipoId + '_' + numDoc + '.pdf'
+    const nombreArchivo = `${tipoId}_${numDoc}.pdf`
 
     const url = URL.createObjectURL(pdfBlobActual)
     const a = document.createElement('a')
@@ -879,7 +991,7 @@
     if (!wordBlobActual) return
     const numDoc = docActual?.numero_documento || 'documento'
     const tipoId = docActual?.tipo_documento || 'DOC'
-    const nombreArchivo = tipoId + '_' + numDoc + '.docx'
+    const nombreArchivo = `${tipoId}_${numDoc}.docx`
     const url = URL.createObjectURL(wordBlobActual)
     const a = document.createElement('a')
     a.href = url
@@ -891,419 +1003,8 @@
   }
 
   function descargarAdjunto() {
+    // PDF subido por el usuario, imagen, u otro archivo adjunto
     const adjunto = docsClasificados.imagen || docsClasificados.pdf || docsClasificados.otro
     descargarArchivo(adjunto)
-  }
-
-  /* ============================================
-     MODAL - EDITAR DOCUMENTO
-     ============================================ */
-
-  function inicializarModalEditar() {
-    document.getElementById('btnCerrarEditar').addEventListener('click', cerrarEditar)
-    document.getElementById('btnCancelarEditar').addEventListener('click', cerrarEditar)
-
-    document.getElementById('modalEditarDocumento').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) cerrarEditar()
-    })
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && document.getElementById('modalEditarDocumento').classList.contains('activo')) {
-        cerrarEditar()
-      }
-    })
-
-    document.getElementById('btnGuardarEditar').addEventListener('click', guardarEdicion)
-
-    inicializarDropdownEditarTipoDoc()
-    inicializarDropdownEditarPrioridad()
-    inicializarDropdownEditarFirmante()
-
-    datePickerEditar = new DatePicker('editarFecha', {
-      placeholder: 'dd/mm/aaaa',
-      timezone: CONFIGURACION.formato.zonaHoraria,
-    })
-  }
-
-  function inicializarDropdownEditarTipoDoc() {
-    const dropdown = document.getElementById('dropdownEditarTipoDoc')
-    dropdown.innerHTML = ''
-
-    const placeholder = document.createElement('div')
-    placeholder.className = 'filtro-option seleccionada'
-    placeholder.dataset.value = ''
-    placeholder.textContent = 'Seleccione un tipo'
-    dropdown.appendChild(placeholder)
-
-    TIPOS_DOCUMENTO.forEach((td) => {
-      const opt = document.createElement('div')
-      opt.className = 'filtro-option'
-      opt.dataset.value = td.id
-      opt.textContent = td.nombre
-      dropdown.appendChild(opt)
-    })
-
-    const trigger = document.getElementById('triggerEditarTipoDoc')
-    const text = trigger.querySelector('.filtro-select-text')
-    const wrapper = document.getElementById('wrapperEditarTipoDoc')
-
-    dropdown.addEventListener('click', (e) => {
-      const opt = e.target.closest('.filtro-option')
-      if (!opt) return
-      dropdown.querySelectorAll('.filtro-option').forEach((o) => o.classList.remove('seleccionada'))
-      opt.classList.add('seleccionada')
-      text.textContent = opt.textContent
-      trigger.dataset.value = opt.dataset.value
-      wrapper.classList.remove('abierto')
-    })
-
-    trigger.addEventListener('click', () => wrapper.classList.toggle('abierto'))
-    document.addEventListener('click', (e) => {
-      if (!wrapper.contains(e.target)) wrapper.classList.remove('abierto')
-    })
-  }
-
-  function inicializarDropdownEditarPrioridad() {
-    const dropdown = document.getElementById('dropdownEditarPrioridad')
-    const trigger = document.getElementById('triggerEditarPrioridad')
-    const text = trigger.querySelector('.filtro-select-text')
-    const wrapper = document.getElementById('wrapperEditarPrioridad')
-
-    dropdown.addEventListener('click', (e) => {
-      const opt = e.target.closest('.filtro-option')
-      if (!opt) return
-      dropdown.querySelectorAll('.filtro-option').forEach((o) => o.classList.remove('seleccionada'))
-      opt.classList.add('seleccionada')
-      text.textContent = opt.textContent
-      trigger.dataset.value = opt.dataset.value
-      wrapper.classList.remove('abierto')
-    })
-
-    trigger.addEventListener('click', () => wrapper.classList.toggle('abierto'))
-    document.addEventListener('click', (e) => {
-      if (!wrapper.contains(e.target)) wrapper.classList.remove('abierto')
-    })
-  }
-
-  function inicializarDropdownEditarFirmante() {
-    const dropdown = document.getElementById('dropdownEditarFirmante')
-    dropdown.innerHTML = ''
-
-    const placeholder = document.createElement('div')
-    placeholder.className = 'filtro-option seleccionada'
-    placeholder.dataset.value = ''
-    placeholder.textContent = 'Seleccione un firmante'
-    dropdown.appendChild(placeholder)
-
-    listaPerfiles.forEach((p) => {
-      const opt = document.createElement('div')
-      opt.className = 'filtro-option'
-      opt.dataset.value = p.id
-      opt.textContent = mapaPerfiles[p.id]
-      dropdown.appendChild(opt)
-    })
-
-    const trigger = document.getElementById('triggerEditarFirmante')
-    const text = trigger.querySelector('.filtro-select-text')
-    const wrapper = document.getElementById('wrapperEditarFirmante')
-
-    dropdown.addEventListener('click', (e) => {
-      const opt = e.target.closest('.filtro-option')
-      if (!opt) return
-      dropdown.querySelectorAll('.filtro-option').forEach((o) => o.classList.remove('seleccionada'))
-      opt.classList.add('seleccionada')
-      text.textContent = opt.textContent
-      trigger.dataset.value = opt.dataset.value
-      wrapper.classList.remove('abierto')
-    })
-
-    trigger.addEventListener('click', () => wrapper.classList.toggle('abierto'))
-    document.addEventListener('click', (e) => {
-      if (!wrapper.contains(e.target)) wrapper.classList.remove('abierto')
-    })
-  }
-
-  function abrirEditar(id) {
-    docEditando = todosDocumentos.find((d) => d.id === id)
-    if (!docEditando) return
-
-    if (docEditando.tipo !== 'emitido') {
-      mostrarToast('Solo se pueden editar documentos emitidos', 'warning')
-      return
-    }
-
-    document.getElementById('editarId').value = docEditando.id
-    document.getElementById('editarNumero').value = docEditando.numero_documento || ''
-    document.getElementById('editarDestinatario').value = docEditando.destinatario || ''
-    document.getElementById('editarCargo').value = docEditando.cargo_destinatario || ''
-    document.getElementById('editarAsunto').value = docEditando.asunto || ''
-    document.getElementById('editarCuerpo').value = docEditando.cuerpo_documento || ''
-
-    document.getElementById('editarSubtitulo').textContent = 'Editando: ' + (docEditando.numero_documento || 'Documento')
-
-    if (datePickerEditar) {
-      datePickerEditar.establecerValor(docEditando.fecha || '')
-    }
-
-    const triggerTipo = document.getElementById('triggerEditarTipoDoc')
-    const tipoEncontrado = TIPOS_DOCUMENTO.find((t) => t.id === docEditando.tipo_documento)
-    if (tipoEncontrado) {
-      triggerTipo.querySelector('.filtro-select-text').textContent = tipoEncontrado.nombre
-      triggerTipo.dataset.value = tipoEncontrado.id
-      document.getElementById('dropdownEditarTipoDoc').querySelectorAll('.filtro-option').forEach((o) => {
-        o.classList.toggle('seleccionada', o.dataset.value === tipoEncontrado.id)
-      })
-    }
-
-    const triggerPrioridad = document.getElementById('triggerEditarPrioridad')
-    const prioridad = docEditando.prioridad || 'Media'
-    triggerPrioridad.querySelector('.filtro-select-text').textContent = prioridad
-    triggerPrioridad.dataset.value = prioridad
-    document.getElementById('dropdownEditarPrioridad').querySelectorAll('.filtro-option').forEach((o) => {
-      o.classList.toggle('seleccionada', o.dataset.value === prioridad)
-    })
-
-    const triggerFirmante = document.getElementById('triggerEditarFirmante')
-    const firmanteId = docEditando.firmante_id || docEditando.remitente_id || ''
-    if (firmanteId && mapaPerfiles[firmanteId]) {
-      triggerFirmante.querySelector('.filtro-select-text').textContent = mapaPerfiles[firmanteId]
-      triggerFirmante.dataset.value = firmanteId
-      document.getElementById('dropdownEditarFirmante').querySelectorAll('.filtro-option').forEach((o) => {
-        o.classList.toggle('seleccionada', o.dataset.value === firmanteId)
-      })
-    }
-
-    limpiarErroresEditar()
-
-    document.getElementById('modalEditarDocumento').classList.add('activo')
-    document.body.style.overflow = 'hidden'
-  }
-
-  function cerrarEditar() {
-    document.getElementById('modalEditarDocumento').classList.remove('activo')
-    document.body.style.overflow = ''
-    docEditando = null
-    limpiarErroresEditar()
-  }
-
-  function limpiarErroresEditar() {
-    document.getElementById('errorEditarAsunto').textContent = ''
-    document.getElementById('errorEditarCuerpo').textContent = ''
-    document.getElementById('errorEditarAsunto').style.display = 'none'
-    document.getElementById('errorEditarCuerpo').style.display = 'none'
-  }
-
-  function validarEdicion() {
-    let valido = true
-    limpiarErroresEditar()
-
-    const asunto = document.getElementById('editarAsunto').value.trim()
-    const cuerpo = document.getElementById('editarCuerpo').value.trim()
-
-    if (!asunto) {
-      document.getElementById('errorEditarAsunto').textContent = 'El asunto es obligatorio'
-      document.getElementById('errorEditarAsunto').style.display = 'block'
-      valido = false
-    }
-
-    if (!cuerpo) {
-      document.getElementById('errorEditarCuerpo').textContent = 'El cuerpo del documento es obligatorio'
-      document.getElementById('errorEditarCuerpo').style.display = 'block'
-      valido = false
-    }
-
-    return valido
-  }
-
-  async function guardarEdicion() {
-    if (!docEditando) return
-    if (!validarEdicion()) return
-
-    const btnGuardar = document.getElementById('btnGuardarEditar')
-    const spinner = document.getElementById('spinnerEditar')
-    const texto = document.getElementById('textoGuardarEditar')
-
-    btnGuardar.disabled = true
-    spinner.style.display = 'inline-block'
-    texto.textContent = 'Guardando...'
-
-    try {
-      const datosActualizar = {
-        tipo_documento: document.getElementById('triggerEditarTipoDoc').dataset.value || docEditando.tipo_documento,
-        numero_documento: document.getElementById('editarNumero').value.trim(),
-        fecha: datePickerEditar ? datePickerEditar.obtenerValor() : docEditando.fecha,
-        prioridad: document.getElementById('triggerEditarPrioridad').dataset.value || docEditando.prioridad,
-        firmante_id: document.getElementById('triggerEditarFirmante').dataset.value || docEditando.firmante_id,
-        destinatario: document.getElementById('editarDestinatario').value.trim(),
-        cargo_destinatario: document.getElementById('editarCargo').value.trim(),
-        asunto: document.getElementById('editarAsunto').value.trim(),
-        cuerpo_documento: document.getElementById('editarCuerpo').value.trim(),
-        updated_at: new Date().toISOString(),
-      }
-
-      const { error } = await supabase
-        .from('documentos')
-        .update(datosActualizar)
-        .eq('id', docEditando.id)
-
-      if (error) {
-        console.error('[documentos] Error al actualizar:', error)
-        mostrarToast('Error al guardar los cambios: ' + error.message, 'error')
-        return
-      }
-
-      Object.assign(docEditando, datosActualizar)
-
-      const idx = todosDocumentos.findIndex((d) => d.id === docEditando.id)
-      if (idx !== -1) {
-        todosDocumentos[idx] = { ...todosDocumentos[idx], ...datosActualizar }
-      }
-
-      _ejecutarFiltros()
-      cerrarEditar()
-      mostrarToast('Documento actualizado correctamente', 'success')
-
-    } catch (err) {
-      console.error('[documentos] Error inesperado al editar:', err)
-      mostrarToast('Error inesperado al guardar', 'error')
-    } finally {
-      btnGuardar.disabled = false
-      spinner.style.display = 'none'
-      texto.textContent = 'Guardar Cambios'
-    }
-  }
-
-  /* ============================================
-     MODAL - ELIMINAR DOCUMENTO
-     ============================================ */
-
-  function inicializarModalEliminar() {
-    document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarEliminar)
-
-    document.getElementById('modalEliminarDocumento').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) cerrarEliminar()
-    })
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && document.getElementById('modalEliminarDocumento').classList.contains('activo')) {
-        cerrarEliminar()
-      }
-    })
-
-    document.getElementById('btnConfirmarEliminar').addEventListener('click', confirmarEliminar)
-
-    document.getElementById('eliminarConfirmarInput').addEventListener('input', (e) => {
-      const btn = document.getElementById('btnConfirmarEliminar')
-      btn.disabled = e.target.value.trim() !== 'ELIMINAR'
-    })
-  }
-
-  function abrirEliminar(id) {
-    docEliminando = todosDocumentos.find((d) => d.id === id)
-    if (!docEliminando) return
-
-    document.getElementById('eliminarMensaje').textContent = 'Se eliminara permanentemente el documento ' + (docEliminando.numero_documento || '') + '. Esta accion no se puede deshacer.'
-    document.getElementById('eliminarConfirmarInput').value = ''
-    document.getElementById('errorEliminarConfirmar').textContent = ''
-    document.getElementById('btnConfirmarEliminar').disabled = true
-
-    document.getElementById('modalEliminarDocumento').classList.add('activo')
-    document.body.style.overflow = 'hidden'
-    document.getElementById('eliminarConfirmarInput').focus()
-  }
-
-  function cerrarEliminar() {
-    document.getElementById('modalEliminarDocumento').classList.remove('activo')
-    document.body.style.overflow = ''
-    docEliminando = null
-  }
-
-  async function confirmarEliminar() {
-    if (!docEliminando) return
-
-    const confirmacion = document.getElementById('eliminarConfirmarInput').value.trim()
-    if (confirmacion !== 'ELIMINAR') {
-      document.getElementById('errorEliminarConfirmar').textContent = 'Debe escribir ELIMINAR para confirmar'
-      return
-    }
-
-    const btnConfirmar = document.getElementById('btnConfirmarEliminar')
-    const spinner = document.getElementById('spinnerEliminar')
-    const texto = document.getElementById('textoConfirmarEliminar')
-
-    btnConfirmar.disabled = true
-    spinner.style.display = 'inline-block'
-    texto.textContent = 'Eliminando...'
-
-    try {
-      const { error: errorArchivos } = await supabase
-        .from('documentos_archivos')
-        .delete()
-        .eq('documento_id', docEliminando.id)
-
-      if (errorArchivos) {
-        console.warn('[documentos] Error al eliminar archivos adjuntos:', errorArchivos)
-      }
-
-      const { error } = await supabase
-        .from('documentos')
-        .delete()
-        .eq('id', docEliminando.id)
-
-      if (error) {
-        console.error('[documentos] Error al eliminar:', error)
-        mostrarToast('Error al eliminar el documento: ' + error.message, 'error')
-        return
-      }
-
-      todosDocumentos = todosDocumentos.filter((d) => d.id !== docEliminando.id)
-      _ejecutarFiltros()
-      cerrarEliminar()
-      mostrarToast('Documento eliminado correctamente', 'success')
-
-    } catch (err) {
-      console.error('[documentos] Error inesperado al eliminar:', err)
-      mostrarToast('Error inesperado al eliminar', 'error')
-    } finally {
-      btnConfirmar.disabled = false
-      spinner.style.display = 'none'
-      texto.textContent = 'Eliminar Documento'
-    }
-  }
-
-  /* ============================================
-     TOAST NOTIFICACIONES
-     ============================================ */
-
-  function mostrarToast(mensaje, tipo) {
-    const contenedor = document.getElementById('toastContenedor')
-    const toast = document.createElement('div')
-    toast.className = 'toast toast-' + tipo
-
-    const iconos = {
-      success: 'ph-check-circle',
-      error: 'ph-x-circle',
-      warning: 'ph-warning-circle',
-      info: 'ph-info',
-    }
-
-    toast.innerHTML = '<i class="ph ' + (iconos[tipo] || 'ph-info') + '"></i><span>' + escaparHtml(mensaje) + '</span>'
-
-    contenedor.appendChild(toast)
-
-    requestAnimationFrame(() => {
-      toast.classList.add('toast-visible')
-    })
-
-    setTimeout(() => {
-      toast.classList.remove('toast-visible')
-      setTimeout(() => toast.remove(), 300)
-    }, 4000)
-  }
-
-  function escaparHtml(texto) {
-    const div = document.createElement('div')
-    div.textContent = texto
-    return div.innerHTML
   }
 })()

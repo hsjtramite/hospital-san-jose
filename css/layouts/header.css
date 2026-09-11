@@ -81,7 +81,7 @@ body {
   color: var(--color-texto-secundario);
 }
 
-/* DERECHA — USUARIO + AVATAR + CERRAR SESIÓN */
+/* DERECHA — USUARIO + AVATAR + NOTIFICACIONES */
 .encabezado-derecha {
   display: flex;
   align-items: center;
@@ -91,6 +91,32 @@ body {
   max-width: 100%;
   min-width: 0;
   overflow: visible;
+}
+
+.encabezado-reloj {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--texto-sm);
+  color: var(--color-texto-secundario);
+  font-weight: var(--peso-semibold);
+  padding: 6px 10px;
+  background: var(--color-fondo-modulos);
+  border-radius: var(--borde-radio);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.encabezado-reloj i {
+  font-size: 1rem;
+  color: var(--color-primario-inicio);
+}
+
+.encabezado-fecha {
+  font-size: var(--texto-sm);
+  color: var(--color-texto-secundario);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .encabezado-usuario {
@@ -155,26 +181,6 @@ body {
   line-height: 1.3;
   border: 2px solid var(--color-fondo);
   pointer-events: none;
-}
-
-.btn-cerrar-sesion {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  border-radius: var(--borde-radio);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-error);
-  font-size: 1.25rem;
-  transition: background var(--transicion-rapida);
-  flex-shrink: 0;
-}
-
-.btn-cerrar-sesion:hover {
-  background: rgba(214, 40, 40, 0.1);
 }
 
 /* ==========================================
@@ -331,7 +337,6 @@ body {
   text-decoration: underline;
 }
 
-/* Abrir/cerrar animación */
 .notif-dropdown {
   animation: notifFadeIn 0.15s ease-out;
 }
@@ -345,6 +350,327 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ==========================================
+   MENÚ DE PERFIL
+   ========================================== */
+.perfil-wrapper {
+  position: relative;
+}
+
+.perfil-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--borde-radio);
+  transition: background var(--transicion-rapida);
+}
+
+.perfil-trigger:hover {
+  background: var(--color-fondo-modulos);
+}
+
+.perfil-caret {
+  font-size: 0.75rem;
+  color: var(--color-texto-secundario);
+}
+
+.perfil-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: var(--color-fondo);
+  border: 1px solid var(--borde-color);
+  border-radius: var(--borde-radio);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  flex-direction: column;
+  z-index: 200;
+  animation: notifFadeIn 0.15s ease-out;
+}
+
+.perfil-dropdown-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--borde-color);
+}
+
+.perfil-dropdown-nombre {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+}
+
+.perfil-dropdown-lista {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+}
+
+.perfil-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 9px 10px;
+  border-radius: var(--borde-radio);
+  font-size: var(--texto-sm);
+  color: var(--color-texto);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transicion-rapida);
+}
+
+.perfil-dropdown-item i {
+  font-size: 1.1rem;
+  color: var(--color-texto-secundario);
+}
+
+.perfil-dropdown-item:hover {
+  background: var(--color-fondo-modulos);
+}
+
+.perfil-dropdown-item-peligro {
+  color: var(--color-error);
+}
+
+.perfil-dropdown-item-peligro i {
+  color: var(--color-error);
+}
+
+.perfil-dropdown-divisor {
+  height: 1px;
+  background: var(--borde-color);
+  margin: 6px 4px;
+}
+
+/* ==========================================
+   MODALES DE PERFIL (contraseña, mi perfil, config)
+   ========================================== */
+.perfil-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.perfil-modal-overlay.activo {
+  display: flex;
+}
+
+.perfil-modal {
+  width: 380px;
+  max-width: 92vw;
+  background: var(--color-fondo);
+  border-radius: var(--borde-radio);
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.perfil-modal-ancho {
+  width: 460px;
+}
+
+.perfil-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--borde-color);
+}
+
+.perfil-modal-header h3 {
+  font-size: var(--texto-lg);
+  color: var(--color-texto);
+}
+
+.perfil-modal-cerrar {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-texto-secundario);
+  font-size: 1.1rem;
+}
+
+.perfil-modal-body {
+  padding: 20px;
+}
+
+.perfil-modal-campo {
+  margin-bottom: 14px;
+}
+
+.perfil-modal-label {
+  display: block;
+  font-size: var(--texto-xs);
+  color: var(--color-texto-secundario);
+  margin-bottom: 4px;
+}
+
+.perfil-modal-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--borde-color);
+  border-radius: var(--borde-radio);
+  font-size: var(--texto-sm);
+  color: var(--color-texto);
+}
+
+.perfil-modal-input:focus {
+  outline: none;
+  border-color: var(--color-primario-inicio);
+}
+
+.perfil-modal-input:disabled {
+  background: var(--color-fondo-modulos);
+  color: var(--color-texto-secundario);
+  cursor: not-allowed;
+}
+
+.perfil-modal-error {
+  font-size: var(--texto-xs);
+  color: var(--color-error);
+  margin-top: 6px;
+}
+
+.perfil-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--borde-color);
+}
+
+.perfil-modal-btn-cancelar {
+  border: none;
+  background: transparent;
+  color: var(--color-texto-secundario);
+  padding: 8px 14px;
+  border-radius: var(--borde-radio);
+  cursor: pointer;
+  font-size: var(--texto-sm);
+}
+
+.perfil-modal-btn-guardar {
+  border: none;
+  background: var(--color-primario-inicio);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: var(--borde-radio);
+  cursor: pointer;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+}
+
+.perfil-modal-btn-guardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   CONFIGURACIÓN — SECCIONES INTERNAS
+   ========================================== */
+.config-seccion {
+  margin-bottom: 20px;
+}
+
+.config-seccion:last-child {
+  margin-bottom: 0;
+}
+
+.config-seccion-titulo {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--borde-color);
+}
+
+.config-radio-grupo {
+  display: flex;
+  gap: 16px;
+}
+
+.config-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--texto-sm);
+  color: var(--color-texto);
+  cursor: pointer;
+}
+
+.config-toggle-fila,
+.config-select-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  font-size: var(--texto-sm);
+  color: var(--color-texto);
+}
+
+.config-select-fila small {
+  color: var(--color-texto-claro);
+  font-size: 0.6875rem;
+}
+
+.config-select {
+  width: auto;
+  padding: 6px 10px;
+}
+
+.config-toggle {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.config-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.config-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--borde-color);
+  border-radius: 22px;
+  transition: var(--transicion-rapida);
+}
+
+.config-toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: var(--transicion-rapida);
+}
+
+.config-toggle input:checked + .config-toggle-slider {
+  background: var(--color-primario-inicio);
+}
+
+.config-toggle input:checked + .config-toggle-slider::before {
+  transform: translateX(16px);
 }
 
 /* ==========================================
@@ -385,6 +711,12 @@ body {
 
   .encabezado {
     padding: 0 var(--espaciado-md);
+  }
+}
+
+@media (max-width: 900px) {
+  .encabezado-reloj {
+    display: none;
   }
 }
 

@@ -1,3 +1,77 @@
+const CONFIG_DEFAULT = {
+  tema: 'claro', mostrarReloj: true, mostrarFecha: true, formatoHora: '24', idioma: 'es',
+};
+
+function cargarConfiguracion() {
+  try {
+    const guardada = JSON.parse(localStorage.getItem('configuracionSistema'));
+    return { ...CONFIG_DEFAULT, ...(guardada || {}) };
+  } catch {
+    return { ...CONFIG_DEFAULT };
+  }
+}
+
+function aplicarConfiguracionGlobal(config) {
+  document.documentElement.setAttribute('data-tema', config.tema);
+}
+
+function aplicarConfiguracionHeader(config) {
+  const reloj = document.getElementById('encabezadoReloj');
+  if (reloj) reloj.style.display = config.mostrarReloj ? 'flex' : 'none';
+  const fecha = document.getElementById('encabezadoFecha');
+  if (fecha) fecha.style.display = config.mostrarFecha ? 'block' : 'none';
+}
+
+const TRADUCCIONES = {
+  es: {
+    subtitulo: 'Trámite Documentario',
+    notif_titulo: 'Notificaciones',
+    notif_marcar_leidas: 'Marcar todo leído',
+    notif_ver_todas: 'Ver todas en Agenda →',
+    perfil_mi_perfil: 'Mi perfil',
+    perfil_configuracion: 'Configuración',
+    perfil_cambiar_password: 'Cambiar contraseña',
+    perfil_cerrar_sesion: 'Cerrar sesión',
+    menu_dashboard: 'Dashboard',
+    menu_usuarios: 'Usuarios',
+    menu_registrar_tramite: 'Registrar Trámite',
+    menu_documentos: 'Documentos',
+    menu_areas: 'Áreas',
+    menu_reportes: 'Reportes',
+    menu_inventario: 'Inventario',
+  },
+  en: {
+    subtitulo: 'Document Management',
+    notif_titulo: 'Notifications',
+    notif_marcar_leidas: 'Mark all read',
+    notif_ver_todas: 'View all in Schedule →',
+    perfil_mi_perfil: 'My profile',
+    perfil_configuracion: 'Settings',
+    perfil_cambiar_password: 'Change password',
+    perfil_cerrar_sesion: 'Sign out',
+    menu_dashboard: 'Dashboard',
+    menu_usuarios: 'Users',
+    menu_registrar_tramite: 'Register Document',
+    menu_documentos: 'Documents',
+    menu_areas: 'Departments',
+    menu_reportes: 'Reports',
+    menu_inventario: 'Inventory',
+  },
+};
+
+function aplicarIdioma(idioma) {
+  const dict = TRADUCCIONES[idioma] || TRADUCCIONES.es;
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const clave = el.dataset.i18n;
+    if (dict[clave]) el.textContent = dict[clave];
+  });
+}
+
+let configuracionActual = cargarConfiguracion();
+aplicarConfiguracionGlobal(configuracionActual);
+
+document.addEventListener('lateral:listo', () => aplicarIdioma(configuracionActual.idioma));
+
 document.addEventListener('DOMContentLoaded', async () => {
 
   let userId, userEmail
@@ -11,10 +85,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     const html = await htmlPromise;
     document.body.insertAdjacentHTML('afterbegin', html);
 
+    aplicarConfiguracionHeader(configuracionActual);
+    aplicarIdioma(configuracionActual.idioma);
+
     const pagina = document.body.dataset.pagina;
     const ruta = document.body.dataset.ruta;
     if (pagina) document.getElementById('encabezadoPagina').textContent = pagina;
     if (ruta) document.getElementById('encabezadoRuta').textContent = ruta;
+
+    // ─── RELOJ EN TIEMPO REAL ───
+    function actualizarRelojHeader() {
+      const el = document.getElementById('encabezadoHora');
+      if (el) {
+        const ahora = new Date();
+        let horas = ahora.getHours();
+        const minutos = String(ahora.getMinutes()).padStart(2, '0');
+        const segundos = String(ahora.getSeconds()).padStart(2, '0');
+        if (configuracionActual.formatoHora === '12') {
+          const sufijo = horas >= 12 ? 'PM' : 'AM';
+          horas = horas % 12 || 12;
+          el.textContent = `${String(horas).padStart(2, '0')}:${minutos}:${segundos} ${sufijo}`;
+        } else {
+          el.textContent = `${String(horas).padStart(2, '0')}:${minutos}:${segundos}`;
+        }
+      }
+      const elFecha = document.getElementById('encabezadoFecha');
+      if (elFecha) {
+        elFecha.textContent = new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+    }
+    actualizarRelojHeader();
+    setInterval(actualizarRelojHeader, 1000);
 
     const estadoSesion = await estadoSesionPromise;
     const session = estadoSesion?.session || null;
@@ -40,6 +141,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const primerApellido = perfil.apellidos_completos.split(' ')[0];
       document.getElementById('txtNombreUsuario').textContent =
         `${perfil.nombre_completo} ${primerApellido}`;
+      document.getElementById('perfilDropdownNombre').textContent =
+        `${perfil.nombre_completo} ${primerApellido}`;
       document.getElementById('avatarIniciales').textContent =
         (perfil.nombre_completo.charAt(0) + primerApellido.charAt(0)).toUpperCase();
     } else {
@@ -52,6 +155,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (perfilFallback) {
         const primerApellido = perfilFallback.apellidos_completos.split(' ')[0];
         document.getElementById('txtNombreUsuario').textContent =
+          `${perfilFallback.nombre_completo} ${primerApellido}`;
+        document.getElementById('perfilDropdownNombre').textContent =
           `${perfilFallback.nombre_completo} ${primerApellido}`;
         document.getElementById('avatarIniciales').textContent =
           (perfilFallback.nombre_completo.charAt(0) + primerApellido.charAt(0)).toUpperCase();
@@ -194,6 +299,53 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error revisando eventos próximos:', error)
             return
           }
+                async function revisarEventosIniciados() {
+        try {
+          const hoy = new Date().toISOString().slice(0, 10)
+          const ahoraStr = new Date().toTimeString().slice(0, 5)
+          const hace2min = new Date(Date.now() - 2 * 60000).toTimeString().slice(0, 5)
+
+          const { data: eventos, error } = await supabase
+            .from('agenda_eventos')
+            .select('id, titulo, fecha_evento, hora_evento')
+            .eq('usuario_asignado', userId)
+            .eq('fecha_evento', hoy)
+            .eq('completado', false)
+
+          if (error || !eventos || eventos.length === 0) return
+
+          const eventosIniciando = eventos.filter(e => {
+            if (!e.hora_evento) return false
+            const h = e.hora_evento.slice(0, 5)
+            return h >= hace2min && h <= ahoraStr
+          })
+
+          if (eventosIniciando.length === 0) return
+
+          const ids = eventosIniciando.map(e => e.id)
+          const { data: existentes } = await supabase
+            .from('agenda_notificaciones')
+            .select('evento_id')
+            .in('evento_id', ids)
+            .eq('usuario_id', userId)
+            .eq('titulo', 'La reunión ha comenzado')
+
+          const idsYaNotificados = new Set((existentes || []).map(n => n.evento_id))
+
+          for (const evento of eventosIniciando) {
+            if (idsYaNotificados.has(evento.id)) continue
+            const { error: errInsert } = await supabase.from('agenda_notificaciones').insert({
+              usuario_id: userId,
+              evento_id: evento.id,
+              titulo: 'La reunión ha comenzado',
+              mensaje: `${evento.titulo} está en curso`,
+            })
+            if (errInsert) console.error('Error insertando notificación de inicio:', errInsert)
+          }
+        } catch (err) {
+          console.error('Error en revisarEventosIniciados:', err)
+        }
+      }
           if (!eventos || eventos.length === 0) return
 
           const eventosProximos = eventos.filter(e => {
@@ -232,7 +384,53 @@ document.addEventListener('DOMContentLoaded', async () => {
           console.error('Error en revisarEventosProximos:', err)
         }
       }
+      async function revisarEventosIniciados() {
+        try {
+          const hoy = new Date().toISOString().slice(0, 10)
+          const ahoraStr = new Date().toTimeString().slice(0, 5)
+          const hace2min = new Date(Date.now() - 2 * 60000).toTimeString().slice(0, 5)
 
+          const { data: eventos, error } = await supabase
+            .from('agenda_eventos')
+            .select('id, titulo, fecha_evento, hora_evento')
+            .eq('usuario_asignado', userId)
+            .eq('fecha_evento', hoy)
+            .eq('completado', false)
+
+          if (error || !eventos || eventos.length === 0) return
+
+          const eventosIniciando = eventos.filter(e => {
+            if (!e.hora_evento) return false
+            const h = e.hora_evento.slice(0, 5)
+            return h >= hace2min && h <= ahoraStr
+          })
+
+          if (eventosIniciando.length === 0) return
+
+          const ids = eventosIniciando.map(e => e.id)
+          const { data: existentes } = await supabase
+            .from('agenda_notificaciones')
+            .select('evento_id')
+            .in('evento_id', ids)
+            .eq('usuario_id', userId)
+            .eq('titulo', 'La reunión ha comenzado')
+
+          const idsYaNotificados = new Set((existentes || []).map(n => n.evento_id))
+
+          for (const evento of eventosIniciando) {
+            if (idsYaNotificados.has(evento.id)) continue
+            const { error: errInsert } = await supabase.from('agenda_notificaciones').insert({
+              usuario_id: userId,
+              evento_id: evento.id,
+              titulo: 'La reunión ha comenzado',
+              mensaje: `${evento.titulo} está en curso`,
+            })
+            if (errInsert) console.error('Error insertando notificación de inicio:', errInsert)
+          }
+        } catch (err) {
+          console.error('Error en revisarEventosIniciados:', err)
+        }
+      }
       let audioCtx = null
 
       function desbloquearAudio() {
@@ -281,9 +479,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         return `${parseInt(d)} de ${MESES[parseInt(m) - 1]} del ${a}`
       }
 
-      revisarEventosProximos()
+           revisarEventosProximos()
       setTimeout(revisarEventosProximos, 5000)
       const intervalEventos = setInterval(revisarEventosProximos, 60000)
+
+      revisarEventosIniciados()
+      setTimeout(revisarEventosIniciados, 5000)
+      const intervalEventosIniciados = setInterval(revisarEventosIniciados, 60000)
 
       const canalNotif = supabase
         .channel('notificaciones-header')
@@ -347,15 +549,242 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'dashboard.html';
       });
 
+      // ─── MENÚ DE PERFIL ───
+      const perfilWrapper = document.getElementById('perfilWrapper');
+      const perfilTrigger = document.getElementById('perfilTrigger');
+      const perfilDropdown = document.getElementById('perfilDropdown');
+      let perfilAbierto = false;
+
+      perfilTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        perfilAbierto = !perfilAbierto;
+        perfilDropdown.style.display = perfilAbierto ? 'flex' : 'none';
+        if (dropdownAbierto) {
+          dropdownAbierto = false;
+          dropdown.style.display = 'none';
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (perfilAbierto && !perfilWrapper.contains(e.target)) {
+          perfilAbierto = false;
+          perfilDropdown.style.display = 'none';
+        }
+      });
+
+      // ─── MI PERFIL ───
+      const MAPA_ROLES = { 1: 'Desarrollador', 2: 'Administrador', 3: 'Operador' };
+
+      document.getElementById('btnMiPerfil').addEventListener('click', async () => {
+        perfilAbierto = false;
+        perfilDropdown.style.display = 'none';
+        document.getElementById('errorMiPerfil').style.display = 'none';
+
+        const { data: datosPerfil, error: errorPerfil } = await supabase
+          .from('perfiles')
+          .select('nombre_completo, apellidos_completos, nombre_usuario, gmail, rol')
+          .eq('id', userId)
+          .single();
+
+        if (errorPerfil || !datosPerfil) {
+          alert('No se pudo cargar tu perfil. Intenta de nuevo.');
+          return;
+        }
+
+        document.getElementById('campoPerfilNombre').value = datosPerfil.nombre_completo || '';
+        document.getElementById('campoPerfilApellidos').value = datosPerfil.apellidos_completos || '';
+        document.getElementById('campoPerfilUsuario').value = datosPerfil.nombre_usuario || '';
+        document.getElementById('campoPerfilCorreo').value = datosPerfil.gmail || '';
+        document.getElementById('campoPerfilRol').value = MAPA_ROLES[datosPerfil.rol] || '—';
+
+        document.getElementById('modalMiPerfil').classList.add('activo');
+      });
+
+      function cerrarModalMiPerfil() {
+        document.getElementById('modalMiPerfil').classList.remove('activo');
+      }
+
+      document.getElementById('btnCerrarMiPerfil').addEventListener('click', cerrarModalMiPerfil);
+      document.getElementById('btnCancelarMiPerfil').addEventListener('click', cerrarModalMiPerfil);
+      document.getElementById('modalMiPerfil').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('modalMiPerfil')) cerrarModalMiPerfil();
+      });
+
+      document.getElementById('btnGuardarMiPerfil').addEventListener('click', async () => {
+        const nombre = document.getElementById('campoPerfilNombre').value.trim();
+        const apellidos = document.getElementById('campoPerfilApellidos').value.trim();
+        const errorEl = document.getElementById('errorMiPerfil');
+        const btn = document.getElementById('btnGuardarMiPerfil');
+
+        errorEl.style.display = 'none';
+
+        if (!nombre || !apellidos) {
+          errorEl.textContent = 'Nombre y apellidos son obligatorios.';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        btn.disabled = true;
+        document.getElementById('textoGuardarMiPerfil').textContent = 'Guardando...';
+
+        const { error: errorUpdate } = await supabase
+          .from('perfiles')
+          .update({
+            nombre_completo: nombre,
+            apellidos_completos: apellidos,
+            actualizado_en: new Date().toISOString(),
+          })
+          .eq('id', userId);
+
+        btn.disabled = false;
+        document.getElementById('textoGuardarMiPerfil').textContent = 'Guardar';
+
+        if (errorUpdate) {
+          errorEl.textContent = 'No se pudo guardar. Intenta de nuevo.';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        const primerApellido = apellidos.split(' ')[0];
+        document.getElementById('txtNombreUsuario').textContent = `${nombre} ${primerApellido}`;
+        document.getElementById('perfilDropdownNombre').textContent = `${nombre} ${primerApellido}`;
+        document.getElementById('avatarIniciales').textContent =
+          (nombre.charAt(0) + primerApellido.charAt(0)).toUpperCase();
+
+        cerrarModalMiPerfil();
+        alert('Perfil actualizado correctamente.');
+      });
+
+      // ─── CONFIGURACIÓN ───
+      document.getElementById('btnConfiguracion').addEventListener('click', () => {
+        perfilAbierto = false;
+        perfilDropdown.style.display = 'none';
+        const c = configuracionActual;
+        document.getElementById(c.tema === 'oscuro' ? 'radioTemaOscuro' : 'radioTemaClaro').checked = true;
+        document.getElementById('chkMostrarReloj').checked = c.mostrarReloj;
+        document.getElementById('chkMostrarFecha').checked = c.mostrarFecha;
+        document.getElementById('selectFormatoHora').value = c.formatoHora;
+        document.getElementById('selectIdioma').value = c.idioma;
+        document.getElementById('modalConfiguracion').classList.add('activo');
+      });
+
+      function cerrarModalConfiguracion() {
+        document.getElementById('modalConfiguracion').classList.remove('activo');
+      }
+      document.getElementById('btnCerrarConfiguracion').addEventListener('click', cerrarModalConfiguracion);
+      document.getElementById('modalConfiguracion').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('modalConfiguracion')) cerrarModalConfiguracion();
+      });
+
+      document.getElementById('btnRestablecerConfiguracion').addEventListener('click', () => {
+        document.getElementById('radioTemaClaro').checked = true;
+        document.getElementById('chkMostrarReloj').checked = true;
+        document.getElementById('chkMostrarFecha').checked = true;
+        document.getElementById('selectFormatoHora').value = '24';
+        document.getElementById('selectIdioma').value = 'es';
+      });
+
+      document.getElementById('btnGuardarConfiguracion').addEventListener('click', () => {
+        const nuevaConfig = {
+          tema: document.getElementById('radioTemaOscuro').checked ? 'oscuro' : 'claro',
+          mostrarReloj: document.getElementById('chkMostrarReloj').checked,
+          mostrarFecha: document.getElementById('chkMostrarFecha').checked,
+          formatoHora: document.getElementById('selectFormatoHora').value,
+          idioma: document.getElementById('selectIdioma').value,
+        };
+        configuracionActual = nuevaConfig;
+        localStorage.setItem('configuracionSistema', JSON.stringify(nuevaConfig));
+        aplicarConfiguracionGlobal(nuevaConfig);
+        aplicarConfiguracionHeader(nuevaConfig);
+        aplicarIdioma(nuevaConfig.idioma);
+        actualizarRelojHeader();
+        cerrarModalConfiguracion();
+        alert('Configuración guardada correctamente.');
+      });
+
+      // ─── CAMBIAR CONTRASEÑA ───
+      document.getElementById('btnCambiarPassword').addEventListener('click', () => {
+        perfilAbierto = false;
+        perfilDropdown.style.display = 'none';
+        document.getElementById('formCambiarPassword').reset();
+        document.getElementById('errorCambiarPassword').style.display = 'none';
+        document.getElementById('modalCambiarPassword').classList.add('activo');
+      });
+
+      function cerrarModalPassword() {
+        document.getElementById('modalCambiarPassword').classList.remove('activo');
+      }
+
+      document.getElementById('btnCerrarCambiarPassword').addEventListener('click', cerrarModalPassword);
+      document.getElementById('btnCancelarCambiarPassword').addEventListener('click', cerrarModalPassword);
+      document.getElementById('modalCambiarPassword').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('modalCambiarPassword')) cerrarModalPassword();
+      });
+
+      document.getElementById('btnGuardarPassword').addEventListener('click', async () => {
+        const actual = document.getElementById('campoPasswordActual').value;
+        const nueva = document.getElementById('campoPasswordNueva').value;
+        const confirmar = document.getElementById('campoPasswordConfirmar').value;
+        const errorEl = document.getElementById('errorCambiarPassword');
+        const btn = document.getElementById('btnGuardarPassword');
+
+        errorEl.style.display = 'none';
+
+        if (nueva.length < 6) {
+          errorEl.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        if (nueva !== confirmar) {
+          errorEl.textContent = 'La nueva contraseña y la confirmación no coinciden.';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        btn.disabled = true;
+        document.getElementById('textoGuardarPassword').textContent = 'Guardando...';
+
+        const { error: errorLogin } = await supabase.auth.signInWithPassword({
+          email: userEmail,
+          password: actual,
+        });
+
+        if (errorLogin) {
+          errorEl.textContent = 'La contraseña actual es incorrecta.';
+          errorEl.style.display = 'block';
+          btn.disabled = false;
+          document.getElementById('textoGuardarPassword').textContent = 'Guardar';
+          return;
+        }
+
+        const { error: errorUpdate } = await supabase.auth.updateUser({ password: nueva });
+
+        btn.disabled = false;
+        document.getElementById('textoGuardarPassword').textContent = 'Guardar';
+
+        if (errorUpdate) {
+          errorEl.textContent = 'No se pudo actualizar la contraseña. Intenta de nuevo.';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        cerrarModalPassword();
+        alert('Contraseña actualizada correctamente.');
+      });
+
       // ─── CERRAR SESIÓN ───
       document.getElementById('btnCerrarSesion').addEventListener('click', () => {
+        perfilAbierto = false;
+        perfilDropdown.style.display = 'none';
         clearInterval(intervalEventos);
+                clearInterval(intervalEventosIniciados);
         canalNotif.unsubscribe();
         document.getElementById('modalCerrarSesion').classList.add('activo');
       });
 
       document.getElementById('btnConfirmarCerrarSesion').addEventListener('click', async () => {
         clearInterval(intervalEventos);
+                clearInterval(intervalEventosIniciados);
         canalNotif.unsubscribe();
         await supabase.auth.signOut();
         window.location.href = 'index.html';
@@ -363,6 +792,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       function cerrarModalSesion() {
         clearInterval(intervalEventos);
+                clearInterval(intervalEventosIniciados);
         canalNotif.unsubscribe();
         document.getElementById('modalCerrarSesion').classList.remove('activo');
       }
