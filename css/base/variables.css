@@ -75,6 +75,16 @@
    --blur-overlay: blur(6px);
 }
 
+[data-tema="oscuro"] {
+  --color-fondo: #0f172a;
+  --color-fondo-modulos: #1e293b;
+  --color-texto: #f1f5f9;
+  --color-texto-secundario: #94a3b8;
+  --color-texto-claro: #64748b;
+  --borde-color: #334155;
+  --color-overlay: rgba(0, 0, 0, 0.6);
+}
+
 @font-face {
    font-family: 'PlusJakartaSans';
    src: url('../../assets/fuentes/PlusJakartaSans-ExtraBold.ttf') format('truetype');

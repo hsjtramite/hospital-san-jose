@@ -6,7 +6,7 @@
     <img src="assets/imagenes/Logo.jpg" alt="Logo" class="encabezado-logo" />
     <div class="encabezado-titulos">
       <span class="encabezado-siglas">SISTEMA SIS</span>
-      <span class="encabezado-subtitulo">Trámite Documentario</span>
+      <span class="encabezado-subtitulo" data-i18n="subtitulo">Trámite Documentario</span>
     </div>
   </div>
 
@@ -17,8 +17,40 @@
   </div>
 
   <div class="encabezado-derecha">
-    <span class="encabezado-usuario" id="txtNombreUsuario"></span>
-    <div class="encabezado-avatar" id="avatarIniciales"></div>
+    <div class="encabezado-reloj" id="encabezadoReloj">
+      <i class="ph ph-clock"></i>
+      <span id="encabezadoHora">--:--:--</span>
+    </div>
+    <div class="encabezado-fecha" id="encabezadoFecha"></div>
+
+    <div class="perfil-wrapper" id="perfilWrapper">
+      <button class="perfil-trigger" id="perfilTrigger">
+        <span class="encabezado-usuario" id="txtNombreUsuario"></span>
+        <div class="encabezado-avatar" id="avatarIniciales"></div>
+        <i class="ph ph-caret-down perfil-caret"></i>
+      </button>
+      <div class="perfil-dropdown" id="perfilDropdown" style="display:none;">
+        <div class="perfil-dropdown-header">
+          <span class="perfil-dropdown-nombre" id="perfilDropdownNombre"></span>
+        </div>
+        <div class="perfil-dropdown-lista">
+          <button class="perfil-dropdown-item" id="btnMiPerfil">
+            <i class="ph ph-user"></i> <span data-i18n="perfil_mi_perfil">Mi perfil</span>
+          </button>
+          <button class="perfil-dropdown-item" id="btnConfiguracion">
+            <i class="ph ph-gear"></i> <span data-i18n="perfil_configuracion">Configuración</span>
+          </button>
+          <button class="perfil-dropdown-item" id="btnCambiarPassword">
+            <i class="ph ph-lock-key"></i> <span data-i18n="perfil_cambiar_password">Cambiar contraseña</span>
+          </button>
+          <div class="perfil-dropdown-divisor"></div>
+          <button class="perfil-dropdown-item perfil-dropdown-item-peligro" id="btnCerrarSesion">
+            <i class="ph ph-sign-out"></i> <span data-i18n="perfil_cerrar_sesion">Cerrar sesión</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="notif-wrapper" id="notifWrapper">
       <button class="btn-notificaciones" id="btnNotificaciones" title="Notificaciones">
         <i class="ph ph-bell"></i>
@@ -26,19 +58,151 @@
       </button>
       <div class="notif-dropdown" id="notifDropdown" style="display:none;">
         <div class="notif-dropdown-header">
-          <span class="notif-dropdown-titulo">Notificaciones</span>
-          <button class="notif-dropdown-marcar" id="btnMarcarLeidasHeader" style="display:none;">Marcar todo leído</button>
+          <span class="notif-dropdown-titulo" data-i18n="notif_titulo">Notificaciones</span>
+          <button class="notif-dropdown-marcar" id="btnMarcarLeidasHeader" style="display:none;" data-i18n="notif_marcar_leidas">Marcar todo leído</button>
         </div>
         <div class="notif-dropdown-lista" id="notifDropdownLista">
           <div class="notif-dropdown-vacio">No hay notificaciones</div>
         </div>
         <div class="notif-dropdown-footer">
-          <button class="notif-dropdown-ver-todas" id="btnVerTodasNotif">Ver todas en Agenda →</button>
+          <button class="notif-dropdown-ver-todas" id="btnVerTodasNotif" data-i18n="notif_ver_todas">Ver todas en Agenda →</button>
         </div>
       </div>
     </div>
-    <button class="btn-cerrar-sesion" id="btnCerrarSesion" title="Cerrar sesión">
-      <i class="ph ph-sign-out"></i>
-    </button>
   </div>
 </header>
+
+<!-- MODAL CAMBIAR CONTRASEÑA -->
+<div class="perfil-modal-overlay" id="modalCambiarPassword">
+  <div class="perfil-modal">
+    <div class="perfil-modal-header">
+      <h3>Cambiar contraseña</h3>
+      <button class="perfil-modal-cerrar" id="btnCerrarCambiarPassword"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="perfil-modal-body">
+      <form id="formCambiarPassword" autocomplete="off">
+        <div class="perfil-modal-campo">
+          <label class="perfil-modal-label">Contraseña actual</label>
+          <input type="password" id="campoPasswordActual" class="perfil-modal-input" required />
+        </div>
+        <div class="perfil-modal-campo">
+          <label class="perfil-modal-label">Nueva contraseña</label>
+          <input type="password" id="campoPasswordNueva" class="perfil-modal-input" required minlength="6" />
+        </div>
+        <div class="perfil-modal-campo">
+          <label class="perfil-modal-label">Confirmar nueva contraseña</label>
+          <input type="password" id="campoPasswordConfirmar" class="perfil-modal-input" required minlength="6" />
+        </div>
+        <div class="perfil-modal-error" id="errorCambiarPassword" style="display:none;"></div>
+      </form>
+    </div>
+    <div class="perfil-modal-footer">
+      <button type="button" class="perfil-modal-btn-cancelar" id="btnCancelarCambiarPassword">Cancelar</button>
+      <button type="button" class="perfil-modal-btn-guardar" id="btnGuardarPassword">
+        <span id="textoGuardarPassword">Guardar</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MI PERFIL -->
+<div class="perfil-modal-overlay" id="modalMiPerfil">
+  <div class="perfil-modal">
+    <div class="perfil-modal-header">
+      <h3>Mi perfil</h3>
+      <button class="perfil-modal-cerrar" id="btnCerrarMiPerfil"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="perfil-modal-body">
+      <form id="formMiPerfil" autocomplete="off">
+        <div class="perfil-modal-campo">
+          <label class="perfil-modal-label">Nombre</label>
+          <input type="text" id="campoPerfilNombre" class="perfil-modal-input" required />
+        </div>
+        <div class="perfil-modal-campo">
+          <label class="perfil-modal-label">Apellidos</label>
+          <input type="text" id="campoPerfilApellidos" class="perfil-modal-input" required />
+        </div>
+        <div class="perfil-modal-campo">
+          <label class="perfil-modal-label">Usuario</label>
+          <input type="text" id="campoPerfilUsuario" class="perfil-modal-input" disabled />
+        </div>
+        <div class="perfil-modal-campo">
+          <label class="perfil-modal-label">Correo</label>
+          <input type="text" id="campoPerfilCorreo" class="perfil-modal-input" disabled />
+        </div>
+        <div class="perfil-modal-campo">
+          <label class="perfil-modal-label">Rol</label>
+          <input type="text" id="campoPerfilRol" class="perfil-modal-input" disabled />
+        </div>
+        <div class="perfil-modal-error" id="errorMiPerfil" style="display:none;"></div>
+      </form>
+    </div>
+    <div class="perfil-modal-footer">
+      <button type="button" class="perfil-modal-btn-cancelar" id="btnCancelarMiPerfil">Cancelar</button>
+      <button type="button" class="perfil-modal-btn-guardar" id="btnGuardarMiPerfil">
+        <span id="textoGuardarMiPerfil">Guardar</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIGURACIÓN -->
+<div class="perfil-modal-overlay" id="modalConfiguracion">
+  <div class="perfil-modal perfil-modal-ancho">
+    <div class="perfil-modal-header">
+      <h3>⚙️ Configuración del sistema</h3>
+      <button class="perfil-modal-cerrar" id="btnCerrarConfiguracion"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="perfil-modal-body">
+
+      <div class="config-seccion">
+        <h4 class="config-seccion-titulo">Apariencia</h4>
+        <div class="config-radio-grupo">
+          <label class="config-radio">
+            <input type="radio" name="configTema" id="radioTemaClaro" value="claro" />
+            <span>Tema claro</span>
+          </label>
+          <label class="config-radio">
+            <input type="radio" name="configTema" id="radioTemaOscuro" value="oscuro" />
+            <span>Tema oscuro</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="config-seccion">
+        <h4 class="config-seccion-titulo">Interfaz</h4>
+        <div class="config-toggle-fila">
+          <span>Mostrar reloj</span>
+          <label class="config-toggle"><input type="checkbox" id="chkMostrarReloj" /><span class="config-toggle-slider"></span></label>
+        </div>
+        <div class="config-toggle-fila">
+          <span>Mostrar fecha</span>
+          <label class="config-toggle"><input type="checkbox" id="chkMostrarFecha" /><span class="config-toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <div class="config-seccion">
+        <h4 class="config-seccion-titulo">Preferencias</h4>
+        <div class="config-select-fila">
+          <span>Idioma</span>
+          <select id="selectIdioma" class="perfil-modal-input config-select">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div class="config-select-fila">
+          <span>Formato de hora</span>
+          <select id="selectFormatoHora" class="perfil-modal-input config-select">
+            <option value="24">24 horas</option>
+            <option value="12">12 horas (AM/PM)</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+    <div class="perfil-modal-footer">
+      <button type="button" class="perfil-modal-btn-cancelar" id="btnRestablecerConfiguracion">Restablecer</button>
+      <button type="button" class="perfil-modal-btn-guardar" id="btnGuardarConfiguracion">Guardar cambios</button>
+    </div>
+  </div>
+</div>

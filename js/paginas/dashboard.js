@@ -79,16 +79,17 @@
 
     inicializarCalendario()
 
-    await Promise.all([
+     await Promise.all([
       cargarEventosDelMes(),
       cargarDocumentos(),
-      renderizarActividadReciente(),
     ])
 
     renderCalendario()
     renderHeaderCalendario()
     renderizarProximosEventos()
     renderizarIndicadores()
+    renderizarEnCurso()
+    setInterval(renderizarEnCurso, 30000)
 
     const hoyStr = formatearFechaISO(new Date())
     seleccionarDia(hoyStr)
@@ -147,101 +148,6 @@
     })
   }
 
-  /* ════════════════════════════════════════════
-     SECCIÓN 3: ACTIVIDAD RECIENTE
-     ════════════════════════════════════════════ */
-
-  async function renderizarActividadReciente() {
-    const { data, error } = await supabase
-      .from('documentos')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(8)
-
-    const lista = document.getElementById('actividadLista')
-
-    if (error || !data || data.length === 0) {
-      lista.innerHTML = '<div class="dash-actividad-placeholder">No hay actividad reciente.</div>'
-      return
-    }
-
-    lista.innerHTML = ''
-    data.forEach(doc => {
-      const item = document.createElement('div')
-      item.className = 'dash-actividad-item'
-
-      const hora = formatearHora(doc.created_at)
-      const accion = obtenerAccion(doc)
-      const icono = accion.icono
-      const color = accion.color
-      const desc = accion.texto
-      const usuario = mapaPerfiles[doc.remitente_id] || mapaPerfiles[doc.creado_por] || '—'
-
-      item.innerHTML = `
-        <span class="dash-actividad-hora">${hora}</span>
-        <div class="dash-actividad-icono" style="background:${color.bg};color:${color.fg}">
-          <i class="${icono}"></i>
-        </div>
-        <div class="dash-actividad-body">
-          <p class="dash-actividad-desc">${escaparHtml(desc)}</p>
-          <p class="dash-actividad-usuario">${escaparHtml(usuario)}</p>
-        </div>
-      `
-      lista.appendChild(item)
-    })
-
-    document.getElementById('btnVerMasActividad').addEventListener('click', () => {
-      window.location.href = 'documentos.html'
-    })
-  }
-
-  function formatearHora(iso) {
-    if (!iso) return '—'
-    const d = new Date(iso)
-    const h = String(d.getHours()).padStart(2, '0')
-    const m = String(d.getMinutes()).padStart(2, '0')
-    return `${h}:${m}`
-  }
-
-  function obtenerAccion(doc) {
-    const tipo = TIPOS[doc.tipo_documento] || doc.tipo_documento
-    const num = doc.numero_documento || ''
-
-    if (doc.tipo === 'emitido' && !doc.estado_actual) {
-      return {
-        icono: 'ph ph-file-arrow-up',
-        color: { bg: 'rgba(30,136,229,0.1)', fg: 'var(--color-primario-inicio)' },
-        texto: `${tipo} N° ${num} fue registrado`,
-      }
-    }
-    if (doc.tipo === 'emitido' && doc.estado_actual === 'ATENDIDO') {
-      return {
-        icono: 'ph ph-check-circle',
-        color: { bg: 'rgba(0,103,79,0.1)', fg: 'var(--color-exito)' },
-        texto: `${tipo} N° ${num} fue finalizado`,
-      }
-    }
-    if (doc.tipo === 'emitido') {
-      const est = doc.estado_actual === 'OBSERVADO' ? 'observado' : 'actualizado'
-      return {
-        icono: 'ph ph-clock-counter-clockwise',
-        color: { bg: 'rgba(245,158,11,0.1)', fg: 'var(--color-naranja)' },
-        texto: `${tipo} N° ${num} fue ${est}`,
-      }
-    }
-    if (doc.tipo === 'derivado') {
-      return {
-        icono: 'ph ph-file-arrow-down',
-        color: { bg: 'rgba(124,58,237,0.1)', fg: 'var(--color-purpura)' },
-        texto: `${tipo} N° ${num} fue derivado`,
-      }
-    }
-    return {
-      icono: 'ph ph-file-text',
-      color: { bg: 'rgba(148,163,184,0.1)', fg: 'var(--color-texto-claro)' },
-      texto: `${tipo} N° ${num}`,
-    }
-  }
 
   /* ════════════════════════════════════════════
      CALENDARIO — INICIALIZACIÓN
@@ -514,6 +420,17 @@
   /* ─── BIND EVENTOS CALENDARIO ─── */
 
   function bindEventosCalendario() {
+        document.getElementById('dashEnCursoContenedor').addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-accion="completar"]')
+      if (!btn) return
+      btn.disabled = true
+      await supabase.from('agenda_eventos').update({ completado: true }).eq('id', btn.dataset.eventoId)
+      await cargarEventosDelMes()
+      renderCalendario()
+      await renderizarProximosEventos()
+      await renderizarEnCurso()
+      if (fechaSeleccionada) renderizarEventosDelDia(fechaSeleccionada)
+    })
     document.getElementById('btnCalMesAnt').addEventListener('click', () => navegarMes(-1))
     document.getElementById('btnCalMesSig').addEventListener('click', () => navegarMes(1))
     document.getElementById('btnCalHoy').addEventListener('click', irAHoy)
@@ -917,6 +834,38 @@
   function cerrarModalEventosDia() {
     document.getElementById('modalEventosDia').classList.remove('activo')
   }
+    async function renderizarEnCurso() {
+    const hoy = new Date().toISOString().split('T')[0]
+    const ahoraStr = new Date().toTimeString().slice(0, 5)
+
+    const { data } = await supabase
+      .from('agenda_eventos')
+      .select('id, titulo, hora_evento')
+      .eq('usuario_asignado', perfilActual.id)
+      .eq('fecha_evento', hoy)
+      .eq('completado', false)
+      .order('hora_evento', { ascending: true })
+
+    const contenedor = document.getElementById('dashEnCursoContenedor')
+    if (!contenedor) return
+
+    const enCurso = (data || []).filter(ev => ev.hora_evento && ev.hora_evento.slice(0, 5) <= ahoraStr)
+
+    if (enCurso.length === 0) {
+      contenedor.innerHTML = ''
+      return
+    }
+
+    contenedor.innerHTML = enCurso.map(ev => `
+      <div class="dash-en-curso-item">
+        <span class="dash-en-curso-punto"></span>
+        <div class="dash-en-curso-info"><strong>En curso:</strong> ${escaparHtml(ev.titulo)}</div>
+        <button type="button" class="dash-en-curso-btn" data-accion="completar" data-evento-id="${ev.id}">
+          Marcar completada
+        </button>
+      </div>
+    `).join('')
+  }
 
   function renderizarIndicadores() {
     const hoy = new Date().toISOString().split('T')[0]
@@ -933,6 +882,16 @@
     document.getElementById('indicPendientes').textContent = pendientes
     document.getElementById('indicDerivadosHoy').textContent = derivadosHoy
     document.getElementById('indicPrioridadAlta').textContent = alta
+
+    document.getElementById('btnVerTramitesPendientes').addEventListener('click', () => {
+      window.location.href = 'documentos.html?filtro=pendientes'
+    })
+    document.getElementById('btnVerDerivadosHoy').addEventListener('click', () => {
+      window.location.href = 'documentos.html?filtro=derivados-hoy'
+    })
+    document.getElementById('btnVerPrioridadAlta').addEventListener('click', () => {
+      window.location.href = 'documentos.html?filtro=prioridad-alta'
+    })
   }
 
   function escaparHtml(texto) {

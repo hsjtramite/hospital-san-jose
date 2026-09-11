@@ -12,7 +12,8 @@
   let sortDir = 'asc'
   let docActual = null
   let archivosDocumentoActual = []
-  let docsClasificados = {}
+   let docsClasificados = {}
+  let filtroRapidoActivo = null
   let perfilFirmanteActual = null
   let wordBlobActual = null       // Blob Word generado dinámicamente
   let pdfBlobActual = null        // Blob PDF convertido desde la Edge Function
@@ -51,9 +52,10 @@
       cargarPerfiles(),
     ])
 
-    inicializarFiltros()
+     inicializarFiltros()
     inicializarTabla()
     inicializarModalEventos()
+    inicializarFiltroRapido()
     aplicarFiltros()
   }
 
@@ -257,8 +259,17 @@
       filtrados = filtrados.filter((d) => (d.fecha || '') >= fechaDesde)
     }
 
-    if (fechaHasta) {
+      if (fechaHasta) {
       filtrados = filtrados.filter((d) => (d.fecha || '') <= fechaHasta)
+    }
+
+    if (filtroRapidoActivo === 'pendientes') {
+      filtrados = filtrados.filter((d) => d.tipo === 'emitido' && !d.estado_actual)
+    } else if (filtroRapidoActivo === 'derivados-hoy') {
+      const hoy = new Date().toISOString().split('T')[0]
+      filtrados = filtrados.filter((d) => d.tipo === 'derivado' && d.created_at && d.created_at.startsWith(hoy))
+    } else if (filtroRapidoActivo === 'prioridad-alta') {
+      filtrados = filtrados.filter((d) => d.prioridad === 'Alta' || d.prioridad === 'Urgente')
     }
 
     if (sortCol === 'numero_documento') {
@@ -293,6 +304,31 @@
     } else if (filtrados.length > 0 && tablaVacia) {
       tablaVacia.remove()
     }
+  }
+
+    function inicializarFiltroRapido() {
+    const params = new URLSearchParams(window.location.search)
+    const filtro = params.get('filtro')
+    const etiquetas = {
+      'pendientes': 'Trámites pendientes',
+      'derivados-hoy': 'Derivados hoy',
+      'prioridad-alta': 'Prioridad alta',
+    }
+
+    if (filtro && etiquetas[filtro]) {
+      filtroRapidoActivo = filtro
+      document.getElementById('chipFiltroRapidoTexto').textContent = `Filtro rápido: ${etiquetas[filtro]}`
+      document.getElementById('chipFiltroRapido').style.display = 'flex'
+    }
+
+    document.getElementById('btnQuitarFiltroRapido').addEventListener('click', () => {
+      filtroRapidoActivo = null
+      document.getElementById('chipFiltroRapido').style.display = 'none'
+      const url = new URL(window.location.href)
+      url.searchParams.delete('filtro')
+      window.history.replaceState({}, '', url)
+      aplicarFiltros()
+    })
   }
 
   function limpiarFiltros() {

@@ -284,7 +284,7 @@ body.visible {
   border-radius: var(--borde-radio-lg);
   box-shadow: var(--sombra-sm);
   min-width: 0;
-  max-width: 210px;
+  max-width: 240px;
 }
 
 /* Acento superior tipo Reportes */
@@ -746,7 +746,7 @@ body.visible {
 
 .dash-grid-3col {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--espaciado-xl);
   margin-bottom: var(--espaciado-xl);
 }
@@ -1922,4 +1922,97 @@ body.visible {
   .dash-cal-header {
     grid-template-columns: 28px 1fr 28px auto;
   }
+}
+
+.dash-indicador-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-top: 2px;
+  font-size: 0.6875rem;
+  font-weight: var(--peso-semibold);
+  color: var(--color-primario-inicio);
+  cursor: pointer;
+  font-family: var(--fuente-principal);
+}
+
+.dash-indicador-link:hover {
+  text-decoration: underline;
+}
+
+.dash-hero-indicador:nth-child(2) .dash-indicador-link {
+  color: var(--color-purpura);
+}
+
+.dash-hero-indicador:nth-child(3) .dash-indicador-link {
+  color: var(--color-error);
+}
+
+.dash-indicador-link i {
+  font-size: 0.625rem;
+}
+
+/* ─── REUNIÓN EN CURSO ─── */
+.dash-en-curso-contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 var(--espaciado-xl);
+}
+
+.dash-en-curso-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(214, 40, 40, 0.06);
+  border: 1px solid rgba(214, 40, 40, 0.25);
+  border-radius: var(--borde-radio);
+}
+
+.dash-en-curso-punto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-error);
+  flex-shrink: 0;
+  animation: dashEnCursoPulso 1.4s ease-in-out infinite;
+}
+
+@keyframes dashEnCursoPulso {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.dash-en-curso-info {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--texto-sm);
+  color: var(--color-texto);
+}
+
+.dash-en-curso-info strong {
+  color: var(--color-error);
+  font-weight: var(--peso-semibold);
+}
+
+.dash-en-curso-btn {
+  border: 1px solid var(--color-error);
+  background: var(--color-fondo);
+  color: var(--color-error);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+  padding: 5px 10px;
+  border-radius: var(--borde-radio);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--fuente-principal);
+  flex-shrink: 0;
+}
+
+.dash-en-curso-btn:hover {
+  background: rgba(214, 40, 40, 0.08);
 }
