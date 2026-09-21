@@ -79,7 +79,7 @@
 
     inicializarCalendario()
 
-     await Promise.all([
+    await Promise.all([
       cargarEventosDelMes(),
       cargarDocumentos(),
     ])
@@ -91,7 +91,7 @@
     renderizarEnCurso()
     setInterval(renderizarEnCurso, 30000)
 
-    const hoyStr = formatearFechaISO(new Date())
+    const hoyStr = formatearFechaISO(window.obtenerAhora())
     seleccionarDia(hoyStr)
     bindEventosCalendario()
   }
@@ -122,7 +122,7 @@
      ════════════════════════════════════════════ */
 
   function renderizarBienvenida() {
-    const hora = new Date().getHours()
+    const hora = window.obtenerAhora().getHours()
     let saludo = ''
     if (hora < 12) saludo = 'Buenos días'
     else if (hora < 18) saludo = 'Buenas tardes'
@@ -148,13 +148,12 @@
     })
   }
 
-
   /* ════════════════════════════════════════════
      CALENDARIO — INICIALIZACIÓN
      ════════════════════════════════════════════ */
 
   function inicializarCalendario() {
-    const hoy = new Date()
+    const hoy = window.obtenerAhora()
     mesActual = hoy.getMonth()
     anoActual = hoy.getFullYear()
   }
@@ -190,7 +189,7 @@
     const primerDia = new Date(anoActual, mesActual, 1).getDay()
     const diasEnMes = new Date(anoActual, mesActual + 1, 0).getDate()
     const diasEnMesAnterior = new Date(anoActual, mesActual, 0).getDate()
-    const hoy = new Date()
+    const hoy = window.obtenerAhora()
     const hoyStr = formatearFechaISO(hoy)
 
     grid.innerHTML = ''
@@ -273,7 +272,7 @@
   }
 
   async function irAHoy() {
-    const hoy = new Date()
+    const hoy = window.obtenerAhora()
     mesActual = hoy.getMonth()
     anoActual = hoy.getFullYear()
     renderHeaderCalendario()
@@ -348,11 +347,11 @@
   }
 
   /* ════════════════════════════════════════════
-     SECCIÓN 4: PRÓXIMOS EVENTOS
+     SECCIÓN: PRÓXIMOS EVENTOS
      ════════════════════════════════════════════ */
 
   async function renderizarProximosEventos() {
-    const hoy = new Date()
+    const hoy = window.obtenerAhora()
     const hoyStr = formatearFechaISO(hoy)
     const ahoraTimeStr = hoy.toTimeString().slice(0, 5)
 
@@ -372,7 +371,6 @@
       return
     }
 
-    // Filtrar eventos futuros (hoy con hora futura o fecha futura)
     const futuros = data.filter(ev =>
       ev.fecha_evento > hoyStr || (ev.hora_evento && ev.hora_evento > ahoraTimeStr)
     )
@@ -417,10 +415,46 @@
     return `${h12}:${String(m).padStart(2, '0')} ${periodo}`
   }
 
+  /* ─── REUNIÓN EN CURSO ─── */
+
+  async function renderizarEnCurso() {
+    const ahoraObj = window.obtenerAhora()
+    const hoy = ahoraObj.toISOString().split('T')[0]
+    const ahoraStr = ahoraObj.toTimeString().slice(0, 5)
+
+    const { data } = await supabase
+      .from('agenda_eventos')
+      .select('id, titulo, hora_evento')
+      .eq('usuario_asignado', perfilActual.id)
+      .eq('fecha_evento', hoy)
+      .eq('completado', false)
+      .order('hora_evento', { ascending: true })
+
+    const contenedor = document.getElementById('dashEnCursoContenedor')
+    if (!contenedor) return
+
+    const enCurso = (data || []).filter(ev => ev.hora_evento && ev.hora_evento.slice(0, 5) <= ahoraStr)
+
+    if (enCurso.length === 0) {
+      contenedor.innerHTML = ''
+      return
+    }
+
+    contenedor.innerHTML = enCurso.map(ev => `
+      <div class="dash-en-curso-item">
+        <span class="dash-en-curso-punto"></span>
+        <div class="dash-en-curso-info"><strong>En curso:</strong> ${escaparHtml(ev.titulo)}</div>
+        <button type="button" class="dash-en-curso-btn" data-accion="completar" data-evento-id="${ev.id}">
+          Marcar completada
+        </button>
+      </div>
+    `).join('')
+  }
+
   /* ─── BIND EVENTOS CALENDARIO ─── */
 
   function bindEventosCalendario() {
-        document.getElementById('dashEnCursoContenedor').addEventListener('click', async (e) => {
+    document.getElementById('dashEnCursoContenedor').addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-accion="completar"]')
       if (!btn) return
       btn.disabled = true
@@ -431,6 +465,7 @@
       await renderizarEnCurso()
       if (fechaSeleccionada) renderizarEventosDelDia(fechaSeleccionada)
     })
+
     document.getElementById('btnCalMesAnt').addEventListener('click', () => navegarMes(-1))
     document.getElementById('btnCalMesSig').addEventListener('click', () => navegarMes(1))
     document.getElementById('btnCalHoy').addEventListener('click', irAHoy)
@@ -591,7 +626,7 @@
       document.getElementById('campoNuevoAmPm').value = 'AM'
       document.getElementById('campoNuevoCompletado').checked = false
 
-      const fecha = fechaSeleccionada || formatearFechaISO(new Date())
+      const fecha = fechaSeleccionada || formatearFechaISO(window.obtenerAhora())
       document.getElementById('campoNuevoFecha').value = fecha
     }
 
@@ -672,6 +707,7 @@
     renderCalendario()
     renderHeaderCalendario()
     await renderizarProximosEventos()
+    await renderizarEnCurso()
     if (fechaSeleccionada) renderizarEventosDelDia(fechaSeleccionada)
   }
 
@@ -695,6 +731,7 @@
     renderCalendario()
     renderHeaderCalendario()
     await renderizarProximosEventos()
+    await renderizarEnCurso()
     if (fechaSeleccionada) renderizarEventosDelDia(fechaSeleccionada)
   }
 
@@ -713,7 +750,7 @@
     contenedor.innerHTML = '<div class="dash-empty">Cargando eventos…</div>'
     document.getElementById('modalTodosEventos').classList.add('activo')
 
-    const hoy = new Date()
+    const hoy = window.obtenerAhora()
     const hoyStr = formatearFechaISO(hoy)
     const ahoraTimeStr = hoy.toTimeString().slice(0, 5)
 
@@ -833,38 +870,6 @@
 
   function cerrarModalEventosDia() {
     document.getElementById('modalEventosDia').classList.remove('activo')
-  }
-    async function renderizarEnCurso() {
-    const hoy = new Date().toISOString().split('T')[0]
-    const ahoraStr = new Date().toTimeString().slice(0, 5)
-
-    const { data } = await supabase
-      .from('agenda_eventos')
-      .select('id, titulo, hora_evento')
-      .eq('usuario_asignado', perfilActual.id)
-      .eq('fecha_evento', hoy)
-      .eq('completado', false)
-      .order('hora_evento', { ascending: true })
-
-    const contenedor = document.getElementById('dashEnCursoContenedor')
-    if (!contenedor) return
-
-    const enCurso = (data || []).filter(ev => ev.hora_evento && ev.hora_evento.slice(0, 5) <= ahoraStr)
-
-    if (enCurso.length === 0) {
-      contenedor.innerHTML = ''
-      return
-    }
-
-    contenedor.innerHTML = enCurso.map(ev => `
-      <div class="dash-en-curso-item">
-        <span class="dash-en-curso-punto"></span>
-        <div class="dash-en-curso-info"><strong>En curso:</strong> ${escaparHtml(ev.titulo)}</div>
-        <button type="button" class="dash-en-curso-btn" data-accion="completar" data-evento-id="${ev.id}">
-          Marcar completada
-        </button>
-      </div>
-    `).join('')
   }
 
   function renderizarIndicadores() {

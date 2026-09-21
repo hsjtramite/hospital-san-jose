@@ -123,14 +123,154 @@
   color: var(--color-texto-secundario);
 }
 
-/* ─── CATÁLOGO LAYOUT (SIN PANEL LATERAL) ─── */
+/* ─── CATÁLOGO LAYOUT ─── */
+.inventario-catalogo-layout .tabla-encabezado {
+  padding-left: var(--espaciado-md);
+  padding-right: var(--espaciado-md);
+}
+.inventario-catalogo-layout .tabla-header-filtros .filtro-search {
+  max-width: 320px;
+}
+.inventario-catalogo-layout .tabla-header-filtros .filtro-input {
+  padding: 10px 14px 10px 40px;
+  font-size: var(--texto-sm);
+}
+.inventario-catalogo-layout .tabla-header-filtros .btn-filled-md {
+  padding: 10px 28px;
+  font-size: var(--texto-sm);
+}
+
+#btnImportarExcel {
+  background: var(--color-exito);
+}
+.inventario-catalogo-layout {
+  display: flex;
+  gap: var(--espaciado-lg);
+  flex: 1;
+  min-height: 0;
+}
+
 .catalogo-content {
   flex: 1;
   min-width: 0;
 }
 
-/* ─── ENTRADA HISTORIAL ─── */
-.entrada-historial {
+.catalogo-panel {
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--transicion-normal), padding-left var(--transicion-normal);
+  flex-shrink: 0;
+}
+
+.catalogo-panel.abierto {
+  width: fit-content;
+  opacity: 1;
+  padding-left: var(--espaciado-lg);
+  overflow-y: auto;
+  max-height: calc(100vh - 94px);
+}
+
+.catalogo-panel .panel-card {
+  background: var(--color-fondo);
+  border: 1px solid var(--borde-color);
+  border-radius: var(--borde-radio-xl);
+  box-shadow: var(--sombra-sm);
+  width: fit-content;
+  min-width: 0;
+}
+
+.panel-body {
+  padding: var(--espaciado-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.panel-footer {
+  width: 100%;
+  padding: 0;
+}
+
+.panel-footer-interior {
+  border-top: 1px solid var(--borde-color);
+}
+
+.panel-footer-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaciado-md);
+  padding-top: var(--espaciado-sm);
+}
+
+.panel-footer-botones .btn-filled-md {
+  margin-right: var(--espaciado-xl);
+}
+
+/* ─── INGRESAR FORMULARIO ─── */
+.ingresar-form {
+  background: var(--color-fondo);
+  border: 1px solid var(--borde-color);
+  border-radius: var(--borde-radio-xl);
+  padding: 32px;
+  box-shadow: var(--sombra);
+}
+
+.ingresar-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: var(--espaciado-sm);
+}
+
+.ingresar-form-header h3 {
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+  color: var(--color-texto);
+  margin: 0;
+}
+
+.ingresar-form-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.ingresar-form-campos .campo-grupo .filtro-select-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ingresar-form-campos .campo-grupo .input-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.ingresar-form-campos .campo-grupo .filtro-select-trigger {
+  flex: 1;
+}
+
+.ingresar-form-campos .campo-grupo .input-wrapper input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: var(--texto-sm);
+  width: auto;
+}
+
+.ingresar-form-campos .campo-grupo:last-child {
+  grid-column: 1 / -1;
+}
+
+.ingresar-form-footer {
+  margin-top: var(--espaciado-lg);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ingresar-tabla {
   background: var(--color-fondo);
   border: 1px solid var(--borde-color);
   border-radius: var(--borde-radio-lg);
@@ -138,20 +278,11 @@
   box-shadow: var(--sombra-sm);
 }
 
-.entrada-historial-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--espaciado-md);
-  flex-wrap: wrap;
-  gap: var(--espaciado-sm);
-}
-
-.entrada-historial-header h3 {
+.ingresar-tabla h3 {
   font-size: var(--texto-lg);
   font-weight: var(--peso-semibold);
   color: var(--color-texto);
-  margin: 0;
+  margin: 0 0 var(--espaciado-md) 0;
 }
 
 /* ─── CARGO DE ENTREGA ─── */
@@ -260,20 +391,11 @@
   box-shadow: var(--sombra-sm);
 }
 
-.cargo-historial-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--espaciado-md);
-  flex-wrap: wrap;
-  gap: var(--espaciado-sm);
-}
-
-.cargo-historial-header h3 {
+.cargo-historial h3 {
   font-size: var(--texto-lg);
   font-weight: var(--peso-semibold);
   color: var(--color-texto);
-  margin: 0;
+  margin: 0 0 var(--espaciado-md) 0;
 }
 
 /* ─── KARDEX ─── */
@@ -361,41 +483,83 @@
   background: rgba(0, 103, 79, 0.1);
 }
 
+/* ─── ADAPTACIONES RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .inventario-tabs {
+    gap: 0;
+    padding: 4px;
+  }
+  .inventario-tab {
+    padding: var(--espaciado-xs) var(--espaciado-sm);
+    font-size: var(--texto-xs);
+    flex: 1;
+    justify-content: center;
+  }
+  .inventario-tab i {
+    font-size: var(--texto-base);
+  }
+  .resumen-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--espaciado-md);
+  }
+  .card-resumen {
+    padding: var(--espaciado-md);
+    gap: var(--espaciado-md);
+  }
+  .card-resumen-icono {
+    width: 40px;
+    height: 40px;
+  }
+  .card-resumen-icono i {
+    font-size: 20px;
+  }
+  .card-resumen-valor {
+    font-size: var(--texto-xl);
+  }
+  .inventario-catalogo-layout {
+    flex-direction: column;
+  }
+  .catalogo-panel {
+    width: 100% !important;
+    max-height: none !important;
+    padding-left: 0 !important;
+    display: none;
+    opacity: 1;
+    overflow: visible;
+  }
+  .catalogo-panel.abierto {
+    display: block;
+    padding-top: var(--espaciado-lg);
+  }
+  .catalogo-panel .panel-card {
+    width: 100%;
+  }
+  .ingresar-form-campos {
+    grid-template-columns: 1fr;
+  }
+  .cargo-form-campos {
+    grid-template-columns: 1fr;
+  }
+  .cargo-agregar-select {
+    min-width: 200px;
+  }
+  .kardex-filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .resumen-grid {
+    grid-template-columns: 1fr;
+  }
+  .card-resumen {
+    flex-direction: row;
+  }
+}
+
 /* ════════════════════════════════════════════
-   BADGES DE ESTADO DE STOCK EN CATÁLOGO
-   ════════════════════════════════════════════ */
-.tabla-badge.desabastecido {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.tabla-badge.desabastecido i {
-  color: #dc2626;
-}
-
-.tabla-badge.stock-bajo {
-  background: #ffedd5;
-  color: #9a3412;
-  border: 1px solid #fed7aa;
-}
-
-.tabla-badge.stock-bajo i {
-  color: #ea580c;
-}
-
-.tabla-badge.stock-ok {
-  background: #d1fae5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
-}
-
-.tabla-badge.stock-ok i {
-  color: #059669;
-}
-
-/* ════════════════════════════════════════════
-   INPUTS
+   INPUTS — (copiado de areas.css)
    ════════════════════════════════════════════ */
 .input-grupo {
   margin-bottom: var(--espaciado-lg);
@@ -449,7 +613,7 @@
   padding-left: 4px;
 }
 
-/* ─── CAMPO GRUPO ─── */
+/* ─── CAMPO GRUPO (ingresar / descontar) ─── */
 .campo-grupo {
   display: flex;
   flex-direction: column;
@@ -602,492 +766,4 @@
   text-align: center;
   margin-top: var(--espaciado-md);
   min-height: 1.2em;
-}
-
-/* ─── ACCIONES EN TABLA DE ENTRADAS ─── */
-#tablaUltimasEntradas th:last-child,
-#tablaUltimasEntradas td:last-child {
-  width: 90px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-#tablaUltimasEntradas .acciones-tabla {
-  justify-content: center;
-}
-
-/* ─── ACCIONES EN TABLA DE CARGOS ─── */
-.tabla .acciones-tabla {
-  gap: 2px;
-}
-
-.tabla th:last-child,
-.tabla td:last-child {
-  width: auto;
-  min-width: 140px;
-  text-align: center;
-}
-
-/* ════════════════════════════════════════════
-   MODAL ENTRADA
-   ════════════════════════════════════════════ */
-.md-modal-entrada {
-  max-width: 620px !important;
-  width: 90vw !important;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.entrada-form-campos-modal {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 20px;
-}
-
-.entrada-form-campos-modal .campo-grupo {
-  min-width: 0;
-  margin: 0;
-}
-
-.entrada-form-campos-modal .filtro-select-wrapper,
-.entrada-form-campos-modal .input-wrapper {
-  width: 100%;
-  min-width: 0;
-}
-
-.entrada-form-campos-modal .filtro-select-trigger,
-.entrada-form-campos-modal .input-wrapper input {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.entrada-form-campos-modal .campo-grupo:last-child {
-  grid-column: 1 / -1;
-}
-
-#modalEntrada .modal-body-md {
-  padding: var(--espaciado-lg) var(--espaciado-xl);
-}
-
-/* ════════════════════════════════════════════
-   FIX: Dropdown de articulos en modal ENTRADA
-   ════════════════════════════════════════════ */
-#wrapperArticuloEntradaModal {
-  min-width: 100%;
-  position: relative;
-}
-
-#wrapperArticuloEntradaModal .filtro-select-trigger {
-  white-space: normal;
-  text-align: left;
-  height: auto;
-  min-height: 40px;
-  padding: 8px 36px 8px 14px;
-  line-height: 1.4;
-  word-break: break-word;
-  overflow: visible;
-}
-
-#dropdownArticuloEntradaModal .filtro-option {
-  white-space: normal;
-  text-align: left;
-  padding: 10px 14px;
-  line-height: 1.4;
-  word-break: break-word;
-  font-size: var(--texto-sm);
-}
-
-#dropdownArticuloEntradaModal {
-  max-height: 280px;
-  overflow-y: auto;
-  width: 100% !important;
-  min-width: 100% !important;
-  left: 0 !important;
-  right: auto !important;
-}
-
-#wrapperArticuloEntradaModal .filtro-select-text {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  display: block;
-  width: 100%;
-}
-
-#wrapperArticuloEntradaModal.abierto #dropdownArticuloEntradaModal {
-  min-width: 320px;
-  width: max-content;
-  max-width: 90vw;
-}
-
-/* ════════════════════════════════════════════
-   MODAL CARGO
-   ════════════════════════════════════════════ */
-.md-modal-cargo {
-  max-width: 720px !important;
-  width: 90vw !important;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.cargo-form-campos-modal {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 20px;
-}
-
-.cargo-form-campos-modal .campo-grupo {
-  min-width: 0;
-  margin: 0;
-}
-
-.cargo-form-campos-modal .filtro-select-wrapper,
-.cargo-form-campos-modal .input-wrapper {
-  width: 100%;
-  min-width: 0;
-}
-
-.cargo-form-campos-modal .filtro-select-trigger,
-.cargo-form-campos-modal .input-wrapper input {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-#modalCargo .modal-body-md {
-  padding: var(--espaciado-lg) var(--espaciado-xl);
-}
-
-.cargo-detalle-modal {
-  margin-top: var(--espaciado-lg);
-  border-top: 1px solid var(--borde-color);
-  padding-top: var(--espaciado-lg);
-}
-
-.cargo-detalle-modal h4 {
-  font-size: var(--texto-base);
-  font-weight: var(--peso-semibold);
-  color: var(--color-texto);
-  margin: 0 0 var(--espaciado-md) 0;
-}
-
-.cargo-agregar-articulo-modal {
-  display: flex;
-  gap: var(--espaciado-sm);
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-.cargo-agregar-articulo-modal .cargo-agregar-select {
-  flex: 1;
-  min-width: 320px;
-  max-width: 100%;
-}
-
-.cargo-agregar-articulo-modal .cargo-agregar-cantidad {
-  width: 110px;
-}
-
-.cargo-agregar-articulo-modal .cargo-agregar-cantidad .input-wrapper input {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.cargo-detalle-vacio {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--espaciado-2xl);
-  color: var(--color-texto-claro);
-  gap: var(--espaciado-sm);
-}
-
-.cargo-detalle-vacio i {
-  font-size: 48px;
-}
-
-.cargo-detalle-vacio p {
-  margin: 0;
-  font-size: var(--texto-sm);
-}
-
-/* ════════════════════════════════════════════
-   FIX: Dropdown de articulos en modal CARGO
-   ════════════════════════════════════════════ */
-#wrapperArticuloCargoModal {
-  min-width: 100%;
-  position: relative;
-}
-
-#wrapperArticuloCargoModal .filtro-select-trigger {
-  white-space: normal;
-  text-align: left;
-  height: auto;
-  min-height: 40px;
-  padding: 8px 36px 8px 14px;
-  line-height: 1.4;
-  word-break: break-word;
-  overflow: visible;
-}
-
-#dropdownArticuloCargoModal .filtro-option {
-  white-space: normal;
-  text-align: left;
-  padding: 10px 14px;
-  line-height: 1.4;
-  word-break: break-word;
-  font-size: var(--texto-sm);
-}
-
-#dropdownArticuloCargoModal {
-  max-height: 280px;
-  overflow-y: auto;
-  width: 100% !important;
-  min-width: 100% !important;
-  left: 0 !important;
-  right: auto !important;
-}
-
-#wrapperArticuloCargoModal .filtro-select-text {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  display: block;
-  width: 100%;
-}
-
-#wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal {
-  min-width: 320px;
-  width: max-content;
-  max-width: 90vw;
-}
-
-/* ════════════════════════════════════════════
-   MODAL ARTÍCULO
-   ════════════════════════════════════════════ */
-.md-modal-articulo {
-  max-width: 520px !important;
-  width: 90vw !important;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.articulo-form-campos-modal {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 20px;
-}
-
-.articulo-form-campos-modal .campo-grupo {
-  min-width: 0;
-  margin: 0;
-}
-
-.articulo-form-campos-modal .campo-grupo:nth-child(2) {
-  grid-column: 1 / -1;
-}
-
-.articulo-form-campos-modal .filtro-select-wrapper,
-.articulo-form-campos-modal .input-wrapper {
-  width: 100%;
-  min-width: 0;
-}
-
-.articulo-form-campos-modal .filtro-select-trigger,
-.articulo-form-campos-modal .input-wrapper input {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.articulo-form-campos-modal .campo-grupo:last-child {
-  grid-column: 1 / -1;
-}
-
-#modalArticulo .modal-body-md {
-  padding: var(--espaciado-lg) var(--espaciado-xl);
-}
-
-#wrapperCategoriaModal,
-#wrapperUnidadModal {
-  min-width: 100%;
-  position: relative;
-}
-
-#wrapperCategoriaModal .filtro-select-trigger,
-#wrapperUnidadModal .filtro-select-trigger {
-  white-space: normal;
-  text-align: left;
-  height: auto;
-  min-height: 40px;
-  padding: 8px 36px 8px 14px;
-  line-height: 1.4;
-  word-break: break-word;
-  overflow: visible;
-}
-
-#dropdownCategoriaModal .filtro-option,
-#dropdownUnidadModal .filtro-option {
-  white-space: normal;
-  text-align: left;
-  padding: 10px 14px;
-  line-height: 1.4;
-  word-break: break-word;
-  font-size: var(--texto-sm);
-}
-
-#dropdownCategoriaModal,
-#dropdownUnidadModal {
-  max-height: 280px;
-  overflow-y: auto;
-  width: 100% !important;
-  min-width: 100% !important;
-  left: 0 !important;
-  right: auto !important;
-}
-
-#wrapperCategoriaModal .filtro-select-text,
-#wrapperUnidadModal .filtro-select-text {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  display: block;
-  width: 100%;
-}
-
-#wrapperCategoriaModal.abierto #dropdownCategoriaModal,
-#wrapperUnidadModal.abierto #dropdownUnidadModal {
-  min-width: 100%;
-  width: max-content;
-  max-width: 90vw;
-}
-
-/* ════════════════════════════════════════════
-   RESPONSIVE MODALES
-   ════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  .entrada-form-campos-modal {
-    grid-template-columns: 1fr;
-  }
-  .cargo-form-campos-modal {
-    grid-template-columns: 1fr;
-  }
-  .articulo-form-campos-modal {
-    grid-template-columns: 1fr;
-  }
-  .articulo-form-campos-modal .campo-grupo:nth-child(2) {
-    grid-column: 1 / -1;
-  }
-  .md-modal-entrada,
-  .md-modal-cargo,
-  .md-modal-articulo {
-    width: 95vw !important;
-    max-height: 90vh;
-  }
-  .cargo-agregar-articulo-modal {
-    flex-direction: column;
-  }
-  .cargo-agregar-articulo-modal .cargo-agregar-select,
-  .cargo-agregar-articulo-modal .cargo-agregar-cantidad {
-    width: 100%;
-  }
-  .entrada-historial-header,
-  .cargo-historial-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  #wrapperArticuloEntradaModal.abierto #dropdownArticuloEntradaModal,
-  #wrapperArticuloCargoModal.abierto #dropdownArticuloCargoModal,
-  #wrapperCategoriaModal.abierto #dropdownCategoriaModal,
-  #wrapperUnidadModal.abierto #dropdownUnidadModal {
-    min-width: 100%;
-    max-width: 95vw;
-  }
-}
-
-/* ════════════════════════════════════════════
-   ADAPTACIONES RESPONSIVE GENERALES
-   ════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  .inventario-tabs {
-    gap: 0;
-    padding: 4px;
-  }
-  .inventario-tab {
-    padding: var(--espaciado-xs) var(--espaciado-sm);
-    font-size: var(--texto-xs);
-    flex: 1;
-    justify-content: center;
-  }
-  .inventario-tab i {
-    font-size: var(--texto-base);
-  }
-  .resumen-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: var(--espaciado-md);
-  }
-  .card-resumen {
-    padding: var(--espaciado-md);
-    gap: var(--espaciado-md);
-  }
-  .card-resumen-icono {
-    width: 40px;
-    height: 40px;
-  }
-  .card-resumen-icono i {
-    font-size: 20px;
-  }
-  .card-resumen-valor {
-    font-size: var(--texto-xl);
-  }
-  .cargo-form-campos {
-    grid-template-columns: 1fr;
-  }
-  .cargo-agregar-select {
-    min-width: 200px;
-  }
-  .kardex-filtros {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-@media (max-width: 480px) {
-  .resumen-grid {
-    grid-template-columns: 1fr;
-  }
-  .card-resumen {
-    flex-direction: row;
-  }
-}
-
-/* ════════════════════════════════════════════
-   TARJETAS CLICKEABLES EN RESUMEN
-   ════════════════════════════════════════════ */
-.card-resumen-clickeable {
-  cursor: pointer;
-  transition: transform var(--transicion-rapida), box-shadow var(--transicion-normal);
-}
-
-.card-resumen-clickeable:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--sombra-md);
-}
-
-.card-resumen-clickeable:active {
-  transform: translateY(0);
-}
-
-/* Indicador visual de que es clickeable */
-.card-resumen-clickeable .card-resumen-info::after {
-  content: 'Ver →';
-  display: block;
-  font-size: var(--texto-xs);
-  color: var(--color-primario-inicio);
-  margin-top: 2px;
-  opacity: 0;
-  transition: opacity var(--transicion-rapida);
-}
-
-.card-resumen-clickeable:hover .card-resumen-info::after {
-  opacity: 1;
 }

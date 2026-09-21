@@ -192,8 +192,9 @@
   white-space: nowrap;
 }
 
-.firmante-estado.con-firma {
-  color: var(--color-exito);
+.firmante-estado.sin-firma {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--color-texto-claro);
 }
 
 .firmante-estado.sin-firma {

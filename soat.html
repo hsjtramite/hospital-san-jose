@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario — SOAT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/layouts/header.css" />
+  <link rel="stylesheet" href="css/layouts/lateral.css" />
+  <link rel="stylesheet" href="css/paginas/dashboard.css" />
+  <link rel="stylesheet" href="css/componentes/tabla.css" />
+  <link rel="stylesheet" href="css/paginas/documentos.css" />
+  <link rel="stylesheet" href="css/paginas/soat.css" />
+</head>
+<body data-pagina="SOAT" data-ruta="Entrega de documentos a SOAT" data-modulo-activo="soat">
+  <main class="contenido-principal">
+
+    <!-- ═══ CARGANDO ═══ -->
+    <div class="soat-aviso" id="soatCargando">
+      <i class="ph ph-spinner"></i>
+      <p>Cargando módulo SOAT…</p>
+    </div>
+
+    <!-- ═══ VISTA SECRETARIA ═══ -->
+    <section id="vistaSecretaria" hidden>
+      <section class="filtros-panel">
+        <div class="soat-form">
+          <div class="filtro-grupo">
+            <label class="filtro-label" for="soatFecha">Fecha de recepción</label>
+            <input type="date" class="soat-input" id="soatFecha" />
+          </div>
+          <div class="filtro-grupo">
+            <label class="filtro-label" for="soatExpediente">N° de expediente</label>
+            <input type="text" class="soat-input" id="soatExpediente" placeholder="Ej. 5492" />
+          </div>
+          <div class="filtro-grupo">
+            <label class="filtro-label" for="soatRemite">Remite</label>
+            <input type="text" class="soat-input" id="soatRemite" placeholder="Ej. SALUDPOL" />
+          </div>
+          <div class="filtro-grupo">
+            <label class="filtro-label" for="soatFolios">Folios</label>
+            <input type="number" class="soat-input" id="soatFolios" min="1" placeholder="Ej. 16" />
+          </div>
+          <div class="filtro-grupo soat-ancho">
+            <label class="filtro-label" for="soatAsunto">Asunto</label>
+            <input type="text" class="soat-input" id="soatAsunto" placeholder="Ej. H.T. 20260091632" />
+          </div>
+          <div class="filtro-grupo">
+            <label class="filtro-label" for="soatEntregadoA">Entregado a</label>
+            <select class="soat-input" id="soatEntregadoA"></select>
+          </div>
+        </div>
+        <p class="soat-error" id="soatErrorForm" hidden></p>
+        <div class="filtros-panel-acciones">
+          <button type="button" class="btn-text-md" id="btnLimpiarSoat">Limpiar</button>
+          <button type="button" class="btn-filled-md" id="btnEnviarSoat">
+            <i class="ph ph-paper-plane-tilt"></i>
+            Enviar a SOAT
+          </button>
+        </div>
+      </section>
+
+      <h3 class="soat-titulo">Documentos enviados</h3>
+      <section class="documentos-tabla-contenedor" id="tablaEnviados"></section>
+    </section>
+
+    <!-- ═══ VISTA ENCARGADA SOAT ═══ -->
+    <section id="vistaEncargado" hidden>
+      <div class="soat-resumen" id="soatResumen"></div>
+      <section class="documentos-tabla-contenedor" id="tablaBandeja"></section>
+    </section>
+
+    <!-- ═══ SIN ACCESO ═══ -->
+    <div class="soat-aviso" id="vistaSinAcceso" hidden>
+      <i class="ph ph-lock-simple"></i>
+      <h3>No tienes acceso al módulo SOAT</h3>
+      <p>Si necesitas usarlo, pide al administrador que te asigne el acceso.</p>
+    </div>
+
+  </main>
+
+  <!-- MODAL VISTO BUENO -->
+  <div class="soat-modal-fondo" id="modalVistoBueno">
+    <div class="soat-modal" role="dialog" aria-modal="true" aria-labelledby="tituloVistoBueno">
+      <div class="soat-modal-cabecera">
+        <h3 id="tituloVistoBueno">Dar visto bueno</h3>
+        <button type="button" class="btn-icon-md" id="btnCerrarVisto" title="Cerrar">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="soat-modal-cuerpo">
+        <dl class="soat-detalle" id="detalleVisto"></dl>
+        <label class="filtro-label" for="obsVisto">Observación (opcional)</label>
+        <textarea class="soat-input" id="obsVisto" rows="3" placeholder="Ej. Recibido conforme"></textarea>
+        <p class="soat-error" id="soatErrorVisto" hidden></p>
+      </div>
+      <div class="soat-modal-pie">
+        <button type="button" class="btn-text-md" id="btnCancelarVisto">Cancelar</button>
+        <button type="button" class="btn-filled-md" id="btnConfirmarVisto">
+          <i class="ph ph-check-circle"></i>
+          Confirmar recepción
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVISO FLOTANTE -->
+  <div class="soat-toast" id="soatToast" role="status"></div>
+
+  <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN (lo usa header.js) -->
+  <div class="modal-overlay" id="modalCerrarSesion">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Estás a punto de cerrar sesión</h3>
+          <p>¿Está seguro de que desea salir del sistema?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/componentes/header.js"></script>
+  <script src="js/componentes/lateral.js"></script>
+  <script src="js/paginas/soat.js"></script>
+</body>
+</html>

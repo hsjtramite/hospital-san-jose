@@ -72,6 +72,31 @@ aplicarConfiguracionGlobal(configuracionActual);
 
 document.addEventListener('lateral:listo', () => aplicarIdioma(configuracionActual.idioma));
 
+// ─── SINCRONIZACIÓN DE HORA REAL (PERÚ) ───
+window.desfaseHorario = 0;
+
+async function sincronizarHoraServidor() {
+  try {
+    const antes = Date.now();
+    const resp = await fetch('https://worldtimeapi.org/api/timezone/America/Lima');
+    const despues = Date.now();
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const horaServidorMs = data.unixtime * 1000;
+    const latencia = (despues - antes) / 2;
+    window.desfaseHorario = (horaServidorMs + latencia) - despues;
+  } catch (err) {
+    console.warn('[Hora] No se pudo sincronizar con la hora real, usando la hora de la PC:', err);
+  }
+}
+
+window.obtenerAhora = function () {
+  return new Date(Date.now() + window.desfaseHorario);
+};
+
+sincronizarHoraServidor();
+setInterval(sincronizarHoraServidor, 10 * 60000);
+
 document.addEventListener('DOMContentLoaded', async () => {
 
   let userId, userEmail
@@ -97,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function actualizarRelojHeader() {
       const el = document.getElementById('encabezadoHora');
       if (el) {
-        const ahora = new Date();
+        const ahora = window.obtenerAhora();
         let horas = ahora.getHours();
         const minutos = String(ahora.getMinutes()).padStart(2, '0');
         const segundos = String(ahora.getSeconds()).padStart(2, '0');
@@ -111,7 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       const elFecha = document.getElementById('encabezadoFecha');
       if (elFecha) {
-        elFecha.textContent = new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' });
+        elFecha.textContent = window.obtenerAhora().toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' });
       }
     }
     actualizarRelojHeader();
@@ -284,9 +309,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       // ─── CHECKER CADA 60s — NOTIFICAR 5 MIN ANTES ───
       async function revisarEventosProximos() {
         try {
-          const hoy = new Date().toISOString().slice(0, 10)
-          const dentroDe = new Date(Date.now() + 6 * 60000).toTimeString().slice(0, 5)
-          const hace1min = new Date(Date.now() - 60000).toTimeString().slice(0, 5)
+          const ahora = window.obtenerAhora()
+          const hoy = ahora.toISOString().slice(0, 10)
+          const dentroDe = new Date(ahora.getTime() + 6 * 60000).toTimeString().slice(0, 5)
+          const hace1min = new Date(ahora.getTime() - 60000).toTimeString().slice(0, 5)
 
           const { data: eventos, error } = await supabase
             .from('agenda_eventos')
@@ -299,53 +325,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error revisando eventos próximos:', error)
             return
           }
-                async function revisarEventosIniciados() {
-        try {
-          const hoy = new Date().toISOString().slice(0, 10)
-          const ahoraStr = new Date().toTimeString().slice(0, 5)
-          const hace2min = new Date(Date.now() - 2 * 60000).toTimeString().slice(0, 5)
-
-          const { data: eventos, error } = await supabase
-            .from('agenda_eventos')
-            .select('id, titulo, fecha_evento, hora_evento')
-            .eq('usuario_asignado', userId)
-            .eq('fecha_evento', hoy)
-            .eq('completado', false)
-
-          if (error || !eventos || eventos.length === 0) return
-
-          const eventosIniciando = eventos.filter(e => {
-            if (!e.hora_evento) return false
-            const h = e.hora_evento.slice(0, 5)
-            return h >= hace2min && h <= ahoraStr
-          })
-
-          if (eventosIniciando.length === 0) return
-
-          const ids = eventosIniciando.map(e => e.id)
-          const { data: existentes } = await supabase
-            .from('agenda_notificaciones')
-            .select('evento_id')
-            .in('evento_id', ids)
-            .eq('usuario_id', userId)
-            .eq('titulo', 'La reunión ha comenzado')
-
-          const idsYaNotificados = new Set((existentes || []).map(n => n.evento_id))
-
-          for (const evento of eventosIniciando) {
-            if (idsYaNotificados.has(evento.id)) continue
-            const { error: errInsert } = await supabase.from('agenda_notificaciones').insert({
-              usuario_id: userId,
-              evento_id: evento.id,
-              titulo: 'La reunión ha comenzado',
-              mensaje: `${evento.titulo} está en curso`,
-            })
-            if (errInsert) console.error('Error insertando notificación de inicio:', errInsert)
-          }
-        } catch (err) {
-          console.error('Error en revisarEventosIniciados:', err)
-        }
-      }
           if (!eventos || eventos.length === 0) return
 
           const eventosProximos = eventos.filter(e => {
@@ -384,11 +363,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           console.error('Error en revisarEventosProximos:', err)
         }
       }
+
       async function revisarEventosIniciados() {
         try {
-          const hoy = new Date().toISOString().slice(0, 10)
-          const ahoraStr = new Date().toTimeString().slice(0, 5)
-          const hace2min = new Date(Date.now() - 2 * 60000).toTimeString().slice(0, 5)
+          const ahora = window.obtenerAhora()
+          const hoy = ahora.toISOString().slice(0, 10)
+          const ahoraStr = ahora.toTimeString().slice(0, 5)
+          const hace2min = new Date(ahora.getTime() - 2 * 60000).toTimeString().slice(0, 5)
 
           const { data: eventos, error } = await supabase
             .from('agenda_eventos')
@@ -431,6 +412,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           console.error('Error en revisarEventosIniciados:', err)
         }
       }
+
       let audioCtx = null
 
       function desbloquearAudio() {
@@ -479,7 +461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return `${parseInt(d)} de ${MESES[parseInt(m) - 1]} del ${a}`
       }
 
-           revisarEventosProximos()
+      revisarEventosProximos()
       setTimeout(revisarEventosProximos, 5000)
       const intervalEventos = setInterval(revisarEventosProximos, 60000)
 
@@ -777,14 +759,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         perfilAbierto = false;
         perfilDropdown.style.display = 'none';
         clearInterval(intervalEventos);
-                clearInterval(intervalEventosIniciados);
+        clearInterval(intervalEventosIniciados);
         canalNotif.unsubscribe();
         document.getElementById('modalCerrarSesion').classList.add('activo');
       });
 
       document.getElementById('btnConfirmarCerrarSesion').addEventListener('click', async () => {
         clearInterval(intervalEventos);
-                clearInterval(intervalEventosIniciados);
+        clearInterval(intervalEventosIniciados);
         canalNotif.unsubscribe();
         await supabase.auth.signOut();
         window.location.href = 'index.html';
@@ -792,7 +774,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       function cerrarModalSesion() {
         clearInterval(intervalEventos);
-                clearInterval(intervalEventosIniciados);
+        clearInterval(intervalEventosIniciados);
         canalNotif.unsubscribe();
         document.getElementById('modalCerrarSesion').classList.remove('activo');
       }

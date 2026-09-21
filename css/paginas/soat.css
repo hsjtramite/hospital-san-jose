@@ -1,0 +1,165 @@
+/* ═══ MÓDULO SOAT ═══ */
+
+.soat-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+  padding: 20px 20px 0;
+}
+.soat-ancho { grid-column: span 2; }
+@media (max-width: 640px) { .soat-ancho { grid-column: auto; } }
+
+.soat-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: var(--borde-radio, 8px);
+  font: inherit;
+  font-size: var(--texto-sm, 14px);
+  background: #fff;
+  color: inherit;
+}
+.soat-input:focus {
+  outline: 2px solid var(--color-primario-inicio, #1e88e5);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+textarea.soat-input { resize: vertical; }
+
+.soat-error {
+  margin: 12px 20px 0;
+  color: #c62828;
+  font-size: var(--texto-sm, 14px);
+}
+
+.soat-titulo {
+  margin: 28px 0 12px;
+  font-size: 1.05rem;
+  font-weight: var(--peso-semibold, 600);
+}
+
+/* Tabla (mismas columnas que el cuaderno) */
+.soat-tabla-scroll { overflow-x: auto; }
+.soat-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-sm, 14px);
+}
+.soat-tabla th,
+.soat-tabla td {
+  padding: 11px 14px;
+  text-align: left;
+  border-bottom: 1px solid #eaecf0;
+  vertical-align: middle;
+}
+.soat-tabla th {
+  background: #f8f9fb;
+  font-weight: var(--peso-semibold, 600);
+  white-space: nowrap;
+}
+.soat-tabla td.soat-num {
+  font-weight: var(--peso-semibold, 600);
+  font-variant-numeric: tabular-nums;
+}
+.soat-tabla tr.soat-pendiente td { background: rgba(30, 136, 229, 0.05); }
+
+/* Estado */
+.soat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: var(--peso-semibold, 600);
+  white-space: nowrap;
+}
+.soat-chip.pendiente { background: #fff4e5; color: #b26a00; }
+.soat-chip.visto     { background: #e7f6ec; color: #1b7a3d; }
+.soat-sub { display: block; margin-top: 4px; font-size: 12px; color: #667085; }
+
+.soat-btn-visto { white-space: nowrap; }
+
+/* Resumen de la bandeja */
+.soat-resumen {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: var(--texto-sm, 14px);
+  color: #475467;
+}
+.soat-resumen strong {
+  font-size: 1.6rem;
+  color: var(--color-primario-inicio, #1e88e5);
+}
+
+/* Avisos (cargando / sin acceso / vacío) */
+.soat-aviso {
+  text-align: center;
+  padding: 56px 20px;
+  color: #667085;
+}
+.soat-aviso i { font-size: 2.6rem; display: block; margin-bottom: 10px; }
+.soat-aviso h3 { color: #344054; margin: 0 0 6px; }
+
+/* Modal visto bueno */
+.soat-modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 2000;
+}
+.soat-modal-fondo.abierto { display: flex; }
+.soat-modal {
+  background: #fff;
+  width: 100%;
+  max-width: 480px;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(16, 24, 40, 0.2);
+}
+.soat-modal-cabecera,
+.soat-modal-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+}
+.soat-modal-cabecera h3 { margin: 0; font-size: 1.05rem; }
+.soat-modal-pie { justify-content: flex-end; gap: 8px; border-top: 1px solid #eaecf0; }
+.soat-modal-cuerpo { padding: 0 20px 16px; }
+.soat-modal-cuerpo .soat-error { margin: 10px 0 0; }
+
+.soat-detalle {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 8px 12px;
+  margin: 0 0 16px;
+  font-size: var(--texto-sm, 14px);
+}
+.soat-detalle dt { color: #667085; }
+.soat-detalle dd { margin: 0; font-weight: 500; }
+
+/* Aviso flotante */
+.soat-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  background: #1d2939;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: var(--texto-sm, 14px);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .2s, transform .2s;
+  pointer-events: none;
+  z-index: 2100;
+}
+.soat-toast.visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .soat-toast { transition: none; } }

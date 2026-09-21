@@ -81,7 +81,7 @@
     if (data) areas = data
   }
 
-  async function cargarFirmantes() {
+   async function cargarFirmantes() {
     const { data, error } = await supabase
       .from('perfiles')
       .select('id, nombre_completo, apellidos_completos, firma_url, rol, activo')
@@ -95,7 +95,7 @@
       return
     }
 
-    firmantesDisponibles = (data || []).filter((p) => !!p.firma_url)
+    firmantesDisponibles = data || []
   }
 
   function formatearNombreCompleto(persona) {
@@ -347,9 +347,9 @@
     firmanteSeleccionado = firmante
 
     const nombreCompleto = formatearNombreCompleto(firmante) || 'Sin nombre'
-    text.innerHTML = `
+       text.innerHTML = `
       ${escaparHtml(nombreCompleto)}
-      <span class="firmante-estado con-firma">Con firma</span>
+      ${firmante.firma_url ? '<span class="firmante-estado con-firma">Con firma</span>' : '<span class="firmante-estado sin-firma">Sin firma</span>'}
     `
   }
 
@@ -383,21 +383,14 @@
       if (firmanteSeleccionado && firmanteSeleccionado.id === firmante.id) {
         opt.classList.add('seleccionada')
       }
-      opt.innerHTML = `
+            opt.innerHTML = `
         <span>${escaparHtml(formatearNombreCompleto(firmante) || 'Sin nombre')}</span>
-        <span class="firmante-estado con-firma">Con firma</span>
+        ${firmante.firma_url ? '<span class="firmante-estado con-firma">Con firma</span>' : '<span class="firmante-estado sin-firma">Sin firma</span>'}
       `
       dropdown.appendChild(opt)
     })
 
-    if (firmantesDisponibles.length === 1) {
-      seleccionarFirmanteUI(firmantesDisponibles[0])
-      trigger.disabled = true
-      wrapper.classList.remove('abierto')
-      return
-    }
-
-    trigger.disabled = false
+       trigger.disabled = false
     firmanteSeleccionado = null
     text.textContent = 'Seleccione un firmante'
   }
@@ -513,7 +506,7 @@
     const asunto = document.getElementById('campoAsunto').value.trim()
     const cuerpo = document.getElementById('campoCuerpo').value.trim()
     const prioridad = document.getElementById('triggerPrioridad').dataset.value
-    const fecha = datePicker ? datePicker.obtenerValor() : new Date().toISOString().split('T')[0]
+        const fecha = datePicker ? datePicker.obtenerValor() : window.obtenerAhora().toISOString().split('T')[0]
     const destinatario = document.getElementById('campoDestinatario').value.trim()
     const cargo = document.getElementById('campoCargo').value.trim()
     const areaId = document.getElementById('triggerArea').dataset.value || null
@@ -1047,7 +1040,7 @@
     const tipoDocumento = document.getElementById('triggerTipoDocDeriv').dataset.value
     const numeroDocumento = document.getElementById('campoNumeroDerivar').value.trim()
     const prioridad = document.getElementById('triggerPrioridadDeriv').dataset.value
-    const fecha = datePickerDerivar ? datePickerDerivar.obtenerValor() : new Date().toISOString().split('T')[0]
+        const fecha = datePickerDerivar ? datePickerDerivar.obtenerValor() : window.obtenerAhora().toISOString().split('T')[0]
     const remitente = document.getElementById('campoRemitenteDerivar').value.trim()
     const asunto = document.getElementById('campoAsuntoDerivar').value.trim()
     const areaDestinoId = document.getElementById('triggerAreaDestino').dataset.value

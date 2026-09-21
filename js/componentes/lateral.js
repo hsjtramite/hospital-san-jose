@@ -36,6 +36,17 @@ document.addEventListener('header:listo', async () => {
     });
   }
 
+  // ─── MÓDULO SOAT: solo aparece para la secretaria y la encargada ───
+  try {
+    const menuSoat = document.getElementById('menuSoat');
+    if (menuSoat) {
+      const { data: rolSoat } = await supabase.rpc('soat_mi_rol');
+      if (rolSoat) menuSoat.style.display = '';
+    }
+  } catch (e) {
+    console.warn('Menú SOAT:', e);
+  }
+
   document.querySelectorAll('.sidebar-item.activo').forEach(item => {
     item.classList.remove('activo');
   });
