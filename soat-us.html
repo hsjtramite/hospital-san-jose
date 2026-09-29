@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Trámite Documentario — U.S - SOAT</title>
+  <title>Sistema de Trámite Documentario — SOAT - U.S.</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,21 +18,20 @@
   <link rel="stylesheet" href="css/paginas/documentos.css" />
   <link rel="stylesheet" href="css/paginas/soat.css" />
 </head>
-<body data-pagina="U.S - SOAT" data-ruta="Sustento de entrega de documentos a seguros privados" data-modulo-activo="soat">
+<body data-pagina="SOAT - U.S." data-ruta="Sustento de presentación de documentos a la Unidad de Seguros" data-modulo-activo="soat-us">
   <main class="contenido-principal">
 
-    <!-- ═══ CARGANDO ═══ -->
     <div class="soat-aviso" id="soatCargando">
       <i class="ph ph-spinner"></i>
-      <p>Cargando módulo SOAT…</p>
+      <p>Cargando módulo…</p>
     </div>
 
-    <!-- ═══ VISTA SECRETARIA ═══ -->
-    <section id="vistaSecretaria" hidden>
+    <!-- ═══ ENVÍA: ENCARGADA DEL SOAT ═══ -->
+    <section id="vistaEnvia" hidden>
       <section class="filtros-panel">
         <div class="soat-form">
           <div class="filtro-grupo">
-            <label class="filtro-label" for="soatFecha">Fecha de recepción</label>
+            <label class="filtro-label" for="soatFecha">Fecha de presentación</label>
             <input type="date" class="soat-input" id="soatFecha" />
           </div>
           <div class="filtro-grupo">
@@ -55,31 +54,34 @@
             <label class="filtro-label" for="soatEntregadoA">Entregado a</label>
             <select class="soat-input" id="soatEntregadoA"></select>
           </div>
+          <div class="filtro-grupo soat-ancho">
+            <label class="filtro-label" for="soatArchivo">Documento PDF (opcional, máx. 3 MB)</label>
+            <input type="file" class="soat-input" id="soatArchivo" accept="application/pdf" />
+          </div>
         </div>
         <p class="soat-error" id="soatErrorForm" hidden></p>
         <div class="filtros-panel-acciones">
           <button type="button" class="btn-text-md" id="btnLimpiarSoat">Limpiar</button>
           <button type="button" class="btn-filled-md" id="btnEnviarSoat">
             <i class="ph ph-paper-plane-tilt"></i>
-            Enviar a SOAT
+            <span id="textoEnviarSoat">Enviar a la Unidad de Seguros</span>
           </button>
         </div>
       </section>
 
-      <h3 class="soat-titulo">Documentos enviados</h3>
+      <h3 class="soat-titulo">Documentos presentados</h3>
       <section class="documentos-tabla-contenedor" id="tablaEnviados"></section>
     </section>
 
-    <!-- ═══ VISTA ENCARGADA SOAT ═══ -->
-    <section id="vistaEncargado" hidden>
+    <!-- ═══ RECIBE: SECRETARIA ═══ -->
+    <section id="vistaRecibe" hidden>
       <div class="soat-resumen" id="soatResumen"></div>
       <section class="documentos-tabla-contenedor" id="tablaBandeja"></section>
     </section>
 
-    <!-- ═══ SIN ACCESO ═══ -->
     <div class="soat-aviso" id="vistaSinAcceso" hidden>
       <i class="ph ph-lock-simple"></i>
-      <h3>No tienes acceso al módulo SOAT</h3>
+      <h3>No tienes acceso a este módulo</h3>
       <p>Si necesitas usarlo, pide al administrador que te asigne el acceso.</p>
     </div>
 
@@ -110,7 +112,6 @@
     </div>
   </div>
 
-  <!-- AVISO FLOTANTE -->
   <div class="soat-toast" id="soatToast" role="status"></div>
 
   <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN (lo usa header.js) -->
@@ -134,6 +135,6 @@
   <script src="js/servicios/supabase.js"></script>
   <script src="js/componentes/header.js"></script>
   <script src="js/componentes/lateral.js"></script>
-  <script src="js/paginas/soat.js"></script>
+  <script src="js/paginas/soat-us.js"></script>
 </body>
 </html>

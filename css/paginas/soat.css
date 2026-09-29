@@ -163,3 +163,25 @@ textarea.soat-input { resize: vertical; }
 }
 .soat-toast.visible { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .soat-toast { transition: none; } }
+
+/* Botón "Ver PDF" */
+.soat-enlace-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: var(--borde-radio, 8px);
+  background: #fff;
+  color: #b42318;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: var(--peso-semibold, 600);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.soat-enlace-pdf:hover { background: #fef3f2; }
+.soat-enlace-pdf:disabled { opacity: .6; cursor: default; }
+
+/* Campo de archivo */
+input[type="file"].soat-input { padding: 7px 10px; font-size: 13px; }

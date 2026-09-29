@@ -36,12 +36,30 @@ document.addEventListener('header:listo', async () => {
     });
   }
 
-  // ─── MÓDULO SOAT: solo aparece para la secretaria y la encargada ───
+  // ─── MÓDULOS SOAT: solo para la secretaria y la encargada ───
   try {
     const menuSoat = document.getElementById('menuSoat');
-    if (menuSoat) {
+    const menuSoatUs = document.getElementById('menuSoatUs');
+
+    if (menuSoat || menuSoatUs) {
       const { data: rolSoat } = await supabase.rpc('soat_mi_rol');
-      if (rolSoat) menuSoat.style.display = '';
+
+      if (rolSoat) {
+        if (menuSoat) menuSoat.style.display = '';
+        if (menuSoatUs) menuSoatUs.style.display = '';
+      }
+
+      // La encargada del SOAT solo trabaja con los dos módulos SOAT
+      if (rolSoat === 'encargado') {
+        ['registrar-tramite', 'documentos', 'inventario'].forEach(modulo => {
+          const item = document.querySelector(`.sidebar-item[data-modulo="${modulo}"]`);
+          if (item) item.style.display = 'none';
+        });
+        if (['registrar-tramite', 'documentos', 'inventario', 'dashboard'].includes(moduloActivo)) {
+          window.location.href = 'soat.html';
+          return;
+        }
+      }
     }
   } catch (e) {
     console.warn('Menú SOAT:', e);

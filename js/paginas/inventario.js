@@ -1143,7 +1143,7 @@
   async function generarPDFCargo(numeroCargo) {
     const { data: movimientos } = await supabase
       .from('inventario_movimientos')
-      .select('*, inventario_articulos!inner(nombre, codigo)')
+      .select('*, inventario_articulos!inner(nombre, codigo, unidad_medida)')
       .eq('numero_cargo', numeroCargo)
       .order('created_at', { ascending: true })
 
@@ -1165,115 +1165,210 @@
     }
 
     const { jsPDF } = window.jspdf
-    const doc = new jsPDF('l', 'mm', 'a5')
+    const doc = new jsPDF('p', 'mm', 'a4')      // A4 vertical
 
     const pageW = 210
-    const margin = 12
+    const pageH = 297
+    const margin = 15
     const contentW = pageW - margin * 2
 
+    // ─── Encabezado: logo + título subrayado ───
     if (logoBase64) {
-      doc.addImage(logoBase64, 'JPEG', margin, 8, 28, 14)
+      doc.addImage(logoBase64, 'JPEG', margin, 12, 26, 20)
     }
 
-    doc.setFontSize(12)
+    const titulo = 'CARGO DE ENTREGA DE UTILES DE OFICINA'
+    doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
-    doc.text('CARGO DE ENTREGA DE ÚTILES DE OFICINA', pageW / 2, 22, { align: 'center' })
-
+    doc.text(titulo, margin + 32, 24)
     doc.setDrawColor(0, 0, 0)
-    doc.setLineWidth(0.5)
-    const anchoTitulo = doc.getTextWidth('CARGO DE ENTREGA DE ÚTILES DE OFICINA')
-    doc.line(pageW / 2 - anchoTitulo / 2, 24, pageW / 2 + anchoTitulo / 2, 24)
+    doc.setLineWidth(0.6)
+    doc.line(margin + 32, 26.5, margin + 32 + doc.getTextWidth(titulo), 26.5)
 
+    // ─── Fecha ───
+    const MESES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+      'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
     if (cargo.created_at) {
       const f = new Date(cargo.created_at)
-      const mes = MESES[f.getMonth()].toUpperCase()
-      doc.text(`CHINCHA, ${f.getDate()} DE ${mes} DEL ${f.getFullYear()}`, pageW - margin, 30, { align: 'right' })
+      doc.text(`CHINCHA, ${f.getDate()} DE ${MESES[f.getMonth()]} DEL ${f.getFullYear()}`,
+        pageW - margin, 45, { align: 'right' })
     }
 
-    let y = 45
+    // ─── Párrafo de entrega ───
+    let y = 57
+    const parrafo = `QUE, LA OFICINA DE LA UNIDAD DE SEGUROS REALIZA LA ENTREGA DE LOS SIGUIENTES UTILES DE ESCRITORIO AL SERVICIO DE ${(cargo.area_solicitante || '—').toUpperCase()}`
+    const lineas = doc.splitTextToSize(parrafo, contentW)
+    lineas.forEach((l, i) => doc.text(l, margin, y + i * 5.3))
+    y += lineas.length * 5.3 + 8
 
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    const parrafo = `QUE, LA OFICINA DE LA UNIDAD DE SEGUROS REALIZA LA ENTREGA DE LOS SIGUIENTES ÚTILES DE ESCRITORIO AL SERVICIO DE ${cargo.area_solicitante || '—'}`
-    const lines = doc.splitTextToSize(parrafo, contentW)
-    const lineHeight = 5.3
-    lines.forEach((line, i) => doc.text(line, margin, y + i * lineHeight))
-    y += lines.length * lineHeight + 8
+    // ─── Tabla de artículos ───
+    const COL = [
+      { titulo: 'N°',       ancho: 14,  alinear: 'center' },
+      { titulo: 'ARTICULO', ancho: 116, alinear: 'left'   },
+      { titulo: 'CANT.',    ancho: 22,  alinear: 'center' },
+      { titulo: 'UNIDAD',   ancho: 28,  alinear: 'center' }
+    ]
+    const ALTO_CABECERA = 7
+    const ALTO_LINEA = 4.2
+    const PAD = 2
 
-    const items = movimientos || []
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'normal')
-    items.forEach((m) => {
+    function xColumna(i) {
+      let x = margin
+      for (let k = 0; k < i; k++) x += COL[k].ancho
+      return x
+    }
+
+    function textoCelda(texto, i, yTexto) {
+      const x = xColumna(i)
+      if (COL[i].alinear === 'center') {
+        doc.text(String(texto), x + COL[i].ancho / 2, yTexto, { align: 'center' })
+      } else {
+        doc.text(String(texto), x + PAD, yTexto)
+      }
+    }
+
+    function dibujarCabecera() {
+      doc.setFillColor(41, 128, 185)          // azul del formato
+      doc.rect(margin, y, contentW, ALTO_CABECERA, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8.5)
+      COL.forEach((c, i) => textoCelda(c.titulo, i, y + 4.8))
+      doc.setTextColor(0, 0, 0)
+      doc.setFont('helvetica', 'normal')
+      y += ALTO_CABECERA
+    }
+
+    dibujarCabecera()
+
+    doc.setFontSize(8)
+    doc.setDrawColor(150, 150, 150)
+    doc.setLineWidth(0.2)
+
+    movimientos.forEach((m, idx) => {
       const art = m.inventario_articulos || {}
-      const nombre = art.nombre || '—'
-      doc.text(`- ${nombre} × ${m.cantidad} unidades`, margin, y)
-      y += 5
+      const nombre = (art.nombre || '—').toUpperCase()
+      const unidad = art.unidad_medida || 'unidades'
+      const textoNombre = doc.splitTextToSize(nombre, COL[1].ancho - PAD * 2)
+      const altoFila = Math.max(7, textoNombre.length * ALTO_LINEA + 3)
+
+      // salto de página si la fila ya no entra
+      if (y + altoFila > pageH - 60) {
+        doc.addPage()
+        y = 25
+        dibujarCabecera()
+        doc.setFontSize(8)
+      }
+
+      doc.rect(margin, y, contentW, altoFila)
+      let x = margin
+      COL.forEach((c) => {
+        x += c.ancho
+        if (x < margin + contentW - 0.1) doc.line(x, y, x, y + altoFila)
+      })
+
+      const yTexto = y + altoFila / 2 + 1.2
+      textoCelda(idx + 1, 0, yTexto)
+      textoNombre.forEach((linea, i) =>
+        doc.text(linea, xColumna(1) + PAD, y + 4.5 + i * ALTO_LINEA))
+      textoCelda(m.cantidad, 2, yTexto)
+      textoCelda(unidad, 3, yTexto)
+
+      y += altoFila
     })
-    y += 4
+
+    y += 6
 
     if (cargo.observacion) {
+      doc.setFontSize(9)
       doc.setFont('helvetica', 'bold')
-      doc.text('Observación:', margin, y)
-      y += 5
+      doc.text('OBSERVACION:', margin, y)
       doc.setFont('helvetica', 'normal')
-      doc.text(cargo.observacion, margin, y)
-      y += 10
+      const obs = doc.splitTextToSize(cargo.observacion, contentW - 32)
+      obs.forEach((l, i) => doc.text(l, margin + 32, y + i * 4.5))
+      y += obs.length * 4.5 + 6
     }
 
-    y = Math.max(y, 95)
-    y += 15
-
-    doc.setFont('helvetica', 'normal')
+  
     doc.setFontSize(10)
-    doc.text('RECIBÍ CONFORME:', margin, y)
-    y += 10
-
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text('______________________', pageW / 2, y, { align: 'center' })
-    y += 4
-    doc.text('NOMBRES Y APELLIDOS:', pageW / 2, y, { align: 'center' })
-    y += 4
-    doc.text('DNI:', pageW / 2, y, { align: 'center' })
+    doc.text('RECIBI CONFORME:', margin, y)
+
+    y = Math.max(y + 30, pageH - 75)
+    const anchoFirma = 45
+    const separacion = (contentW - anchoFirma * 3) / 2
+    const firmas = ['ENTREGA', 'RECIBE', 'V°B°']
+
+    doc.setDrawColor(0, 0, 0)
+    doc.setLineWidth(0.4)
+    doc.setFontSize(9)
+
+    firmas.forEach((texto, i) => {
+      const x = margin + i * (anchoFirma + separacion)
+      doc.line(x, y, x + anchoFirma, y)
+      doc.text(texto, x + anchoFirma / 2, y + 5, { align: 'center' })
+    })
+
+  
+    const totalPaginas = doc.internal.getNumberOfPages()
+    for (let p = 1; p <= totalPaginas; p++) {
+      doc.setPage(p)
+      doc.setFontSize(7.5)
+      doc.setTextColor(130, 130, 130)
+      doc.text(`Cargo: ${numeroCargo} - Pagina ${p} de ${totalPaginas}`,
+        pageW / 2, pageH - 12, { align: 'center' })
+      doc.setTextColor(0, 0, 0)
+    }
 
     return doc.output('blob')
   }
 
+  /* ── Ver / descargar el cargo ── */
   async function verCargoPdf(numeroCargo) {
-    const blob = await generarPDFCargo(numeroCargo)
-    if (!blob) return
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
+    try {
+      const blob = await generarPDFCargo(numeroCargo)
+      if (!blob) { alert('No se encontraron artículos para este cargo.'); return }
+      const url = URL.createObjectURL(blob)
+
+      const modal = document.getElementById('modalVerCargoPdf')
+      const visor = modal ? modal.querySelector('iframe, embed, object') : null
+
+      if (modal && visor) {
+        if (visor.tagName === 'OBJECT') visor.data = url
+        else visor.src = url
+        const btnDesc = document.getElementById('btnDescargarCargoPdf')
+        if (btnDesc) btnDesc.dataset.numeroCargo = numeroCargo
+        modal.classList.add('activo')
+      } else {
+        window.open(url, '_blank')
+      }
+    } catch (err) {
+      console.error('[Inventario] Error en verCargoPdf():', err)
+      alert('No se pudo generar el PDF: ' + (err.message || err))
+    }
   }
 
   async function descargarCargoPdf(numeroCargo) {
-    const blob = await generarPDFCargo(numeroCargo)
-    if (!blob) return
-
-    const nombre = `${numeroCargo}.pdf`
-
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = nombre
-    link.click()
-    URL.revokeObjectURL(link.href)
+    try {
+      const blob = await generarPDFCargo(numeroCargo)
+      if (!blob) { alert('No se encontraron artículos para este cargo.'); return }
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = `${numeroCargo}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000)
+    } catch (err) {
+      console.error('[Inventario] Error en descargarCargoPdf():', err)
+      alert('No se pudo generar el PDF: ' + (err.message || err))
+    }
   }
 
   async function generarPDFyDescargar(numeroCargo) {
-    setTimeout(async () => {
-      const blob = await generarPDFCargo(numeroCargo)
-      if (!blob) return
-      const nombre = `${numeroCargo}.pdf`
-      const link = document.createElement('a')
-      link.href = URL.createObjectURL(blob)
-      link.download = nombre
-      link.click()
-      URL.revokeObjectURL(link.href)
-    }, 500)
+    setTimeout(() => descargarCargoPdf(numeroCargo), 500)
   }
 
   /* ════════════════════════════════════════════
@@ -1410,4 +1505,9 @@
       if (num) await descargarCargoPdf(num)
     })
   }
+
+    // Exponer las funciones del cargo para los botones del HTML
+  window.verCargoPdf = verCargoPdf
+  window.descargarCargoPdf = descargarCargoPdf
+  window.generarPDFyDescargar = generarPDFyDescargar
 })()
