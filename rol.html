@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Trámite Documentario — Rol de turnos</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="css/base/variables.css" />
+  <link rel="stylesheet" href="css/layouts/header.css" />
+  <link rel="stylesheet" href="css/layouts/lateral.css" />
+  <link rel="stylesheet" href="css/paginas/dashboard.css" />
+  <link rel="stylesheet" href="css/componentes/tabla.css" />
+  <link rel="stylesheet" href="css/paginas/documentos.css" />
+  <link rel="stylesheet" href="css/paginas/rol.css" />
+</head>
+<body data-pagina="ROL DE TURNOS" data-ruta="Elaboración de rol automático" data-modulo-activo="rol">
+  <main class="contenido-principal">
+
+    <div class="rol-aviso" id="rolCargando">
+      <i class="ph ph-spinner"></i>
+      <p>Cargando módulo…</p>
+    </div>
+
+    <div class="rol-aviso" id="rolSinAcceso" hidden>
+      <i class="ph ph-lock-simple"></i>
+      <h3>No tienes acceso a este módulo</h3>
+      <p>Solo el administrador puede elaborar el rol de turnos.</p>
+    </div>
+
+    <div id="rolApp" hidden>
+
+      <!-- ═══ PESTAÑAS ═══ -->
+      <nav class="rol-tabs">
+        <button type="button" class="rol-tab activo" data-tab="generar">
+          <i class="ph ph-calendar-check"></i> Generar rol
+        </button>
+        <button type="button" class="rol-tab" data-tab="personal">
+          <i class="ph ph-users-three"></i> Personal
+        </button>
+        <button type="button" class="rol-tab" data-tab="ausencias">
+          <i class="ph ph-airplane-takeoff"></i> Ausencias
+        </button>
+      </nav>
+
+      <!-- ═══════════════ GENERAR ROL ═══════════════ -->
+      <section class="rol-panel activo" id="panelGenerar">
+        <section class="filtros-panel">
+          <div class="rol-form">
+            <div class="filtro-grupo">
+              <label class="filtro-label" for="rolMes">Mes</label>
+              <select class="rol-input" id="rolMes"></select>
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label" for="rolAnio">Año</label>
+              <input type="number" class="rol-input" id="rolAnio" min="2020" max="2100" />
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label" for="rolDiasSemana">Días de atención</label>
+              <select class="rol-input" id="rolDiasSemana">
+                <option value="LU_SA">Lunes a sábado</option>
+                <option value="LU_DO">Lunes a domingo</option>
+              </select>
+            </div>
+            <div class="filtro-grupo rol-check">
+              <label>
+                <input type="checkbox" id="rolDescansoMT" checked />
+                Descanso al día siguiente de un turno M/T
+              </label>
+              <label>
+                <input type="checkbox" id="rolCompletarHoras" checked />
+                Agregar segunda persona a quien le falten horas
+              </label>
+            </div>
+          </div>
+          <p class="rol-error" id="rolErrorGenerar" hidden></p>
+          <div class="filtros-panel-acciones">
+            <button type="button" class="btn-text-md" id="btnCargarRol">Cargar guardado</button>
+            <button type="button" class="btn-filled-md" id="btnGenerarRol">
+              <i class="ph ph-magic-wand"></i> Generar rol
+            </button>
+          </div>
+        </section>
+
+        <div class="rol-leyenda" id="rolLeyenda" hidden>
+          <span><b>M</b> mañana · 08:00 a 14:00</span>
+          <span><b>T</b> tarde · 14:00 a 20:00</span>
+          <span><b>M/T</b> todo el día · 08:00 a 20:00</span>
+        </div>
+
+        <section class="rol-resultado" id="rolResultado"></section>
+
+        <div class="rol-acciones-final" id="rolAccionesFinal" hidden>
+          <button type="button" class="btn-text-md" id="btnExportarExcel">
+            <i class="ph ph-file-xls"></i> Excel
+          </button>
+          <button type="button" class="btn-text-md" id="btnExportarPdf">
+            <i class="ph ph-file-pdf"></i> PDF
+          </button>
+          <button type="button" class="btn-filled-md" id="btnGuardarRol">
+            <i class="ph ph-floppy-disk"></i> Guardar rol
+          </button>
+        </div>
+      </section>
+
+      <!-- ═══════════════ PERSONAL ═══════════════ -->
+      <section class="rol-panel" id="panelPersonal">
+        <section class="filtros-panel">
+          <div class="rol-form">
+            <div class="filtro-grupo rol-ancho">
+              <label class="filtro-label" for="perNombre">Nombre completo</label>
+              <input type="text" class="rol-input" id="perNombre" placeholder="Ej. MARIA LOPEZ QUISPE" />
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label" for="perCargo">Cargo</label>
+              <input type="text" class="rol-input" id="perCargo" placeholder="Ej. LIC." />
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label" for="perHoras">Horas al mes</label>
+              <input type="number" class="rol-input" id="perHoras" min="0" value="150" />
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label" for="perTurno">Turnos que puede cubrir</label>
+              <select class="rol-input" id="perTurno">
+                <option value="todos">Todos</option>
+                <option value="M">Solo mañana</option>
+                <option value="T">Solo tarde</option>
+              </select>
+            </div>
+          </div>
+          <p class="rol-error" id="rolErrorPersonal" hidden></p>
+          <div class="filtros-panel-acciones">
+            <button type="button" class="btn-text-md" id="btnCancelarPersonal" hidden>Cancelar</button>
+            <button type="button" class="btn-filled-md" id="btnGuardarPersonal">
+              <i class="ph ph-plus"></i> <span id="txtGuardarPersonal">Agregar</span>
+            </button>
+          </div>
+        </section>
+        <section class="documentos-tabla-contenedor" id="tablaPersonal"></section>
+      </section>
+
+      <!-- ═══════════════ AUSENCIAS ═══════════════ -->
+      <section class="rol-panel" id="panelAusencias">
+        <section class="filtros-panel">
+          <div class="rol-form">
+            <div class="filtro-grupo rol-ancho">
+              <label class="filtro-label" for="ausPersonal">Profesional</label>
+              <select class="rol-input" id="ausPersonal"></select>
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label" for="ausMotivo">Motivo</label>
+              <select class="rol-input" id="ausMotivo">
+                <option>Vacaciones</option>
+                <option>Descanso médico</option>
+                <option>Permiso</option>
+                <option>Capacitación</option>
+              </select>
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label" for="ausInicio">Desde</label>
+              <input type="date" class="rol-input" id="ausInicio" />
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label" for="ausFin">Hasta</label>
+              <input type="date" class="rol-input" id="ausFin" />
+            </div>
+          </div>
+          <p class="rol-error" id="rolErrorAusencia" hidden></p>
+          <div class="filtros-panel-acciones">
+            <button type="button" class="btn-filled-md" id="btnGuardarAusencia">
+              <i class="ph ph-plus"></i> Registrar ausencia
+            </button>
+          </div>
+        </section>
+        <section class="documentos-tabla-contenedor" id="tablaAusencias"></section>
+      </section>
+
+    </div>
+  </main>
+
+  <div class="rol-toast" id="rolToast" role="status"></div>
+
+  <!-- MODAL CONFIRMACIÓN CERRAR SESIÓN (lo usa header.js) -->
+  <div class="modal-overlay" id="modalCerrarSesion">
+    <div class="md-modal">
+      <div class="modal-header-md modal-header-centro">
+        <div class="header-text-md">
+          <h3>Estás a punto de cerrar sesión</h3>
+          <p>¿Está seguro de que desea salir del sistema?</p>
+        </div>
+      </div>
+      <div class="modal-footer-md modal-footer-centro">
+        <button class="btn-text-md" id="btnCancelarCerrarSesion">Cancelar</button>
+        <button class="btn-filled-md btn-peligro-md" id="btnConfirmarCerrarSesion">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="js/configuracion/aplicacion.js"></script>
+  <script src="js/servicios/supabase.js"></script>
+  <script src="js/componentes/header.js"></script>
+  <script src="js/componentes/lateral.js"></script>
+  <script src="js/paginas/rol.js"></script>
+</body>
+</html>

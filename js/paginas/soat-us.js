@@ -1,4 +1,8 @@
-
+// =====================================================================
+// MÓDULO SOAT - U.S.  -  js/paginas/soat-us.js
+// Encargada SOAT: presenta documentos (con PDF opcional) a la secretaria.
+// Secretaria:     los recibe y da visto bueno.
+// =====================================================================
 (() => {
   'use strict';
 
@@ -7,7 +11,7 @@
   const BUCKET = 'soat-pdf';
   const MAX_MB = 3;
 
-  let rol = null;          
+  let rol = null;          // 'encargado' (envía) | 'secretaria' (recibe)
   let usuarioId = null;
   let registros = [];
   let docSeleccionado = null;

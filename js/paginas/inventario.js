@@ -11,6 +11,8 @@
   let articulosSeleccionadosCargo = []
   let editandoArticuloId = null
   let datosImportacionPreview = []
+  let movimientoEditando = null
+  let anulacionPendiente = null   // { tipo: 'entrada' | 'cargo', ... }
 
   const CATEGORIAS_PREDEFINIDAS = [
     'Útiles de Oficina', 'Material de Limpieza', 'Material de Impresión',
@@ -52,7 +54,7 @@
 
       const { data: perfil } = await supabase
         .from('perfiles')
-        .select('id, nombre_completo, apellidos_completos, nombre_usuario')
+        .select('id, nombre_completo, apellidos_completos, nombre_usuario, rol')
         .eq('id', session.user.id)
         .single()
 
@@ -775,6 +777,11 @@
         inicializarDesplegable('wrapperArticuloIngreso', 'triggerArticuloIngreso', 'dropdownArticuloIngreso', artOpts)
         document.getElementById('btnRegistrarEntrada').addEventListener('click', registrarEntrada)
         window.datePickerIngreso = new DatePicker('campoFechaIngreso')
+        document.getElementById('btnNuevaEntrada').addEventListener('click', abrirModalEntrada)
+        document.getElementById('btnCerrarModalEntrada').addEventListener('click', () => cerrarModal('modalEntrada'))
+        document.getElementById('modalEntrada').addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) cerrarModal('modalEntrada')
+        })
       }
 
       await cargarUltimasEntradas()
@@ -827,6 +834,7 @@
       document.getElementById('campoDocEntrada').value = ''
       document.getElementById('campoMotivoEntrada').value = ''
 
+      cerrarModal('modalEntrada')
       await cargarUltimasEntradas()
       await cargarArticulos()
       await renderizarResumen()
@@ -842,7 +850,7 @@
       .select('*, inventario_articulos!inner(nombre, codigo)')
       .eq('tipo', 'entrada')
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(30)
 
     if (error) { console.error('[Inventario] Error cargarUltimasEntradas:', error); return }
 
@@ -850,22 +858,60 @@
     if (!tbody) return
 
     if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--color-texto-claro);padding:2rem;">No hay entradas registradas</td></tr>'
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--color-texto-claro);padding:2rem;">No hay entradas registradas</td></tr>'
       return
     }
+
+    const admin = puedeAnular()
 
     tbody.innerHTML = data.map(m => {
       const art = m.inventario_articulos || {}
       const nombreCompleto = `${art.codigo || ''} — ${art.nombre || ''}`
-      return `<tr>
+      const anulado = m.anulado === true
+      return `<tr class="${anulado ? 'inv-fila-anulada' : ''}">
         <td>${formatearFecha(m.created_at ? m.created_at.slice(0, 10) : '')}</td>
         <td>${escaparHtml(nombreCompleto)}</td>
         <td>${m.cantidad}</td>
         <td>${escaparHtml(m.proveedor || '—')}</td>
         <td>${m.usuario_id === perfilActual.id ? `${perfilActual.nombre_completo || ''} ${perfilActual.apellidos_completos || ''}`.trim() : '—'}</td>
         <td>${escaparHtml(m.observacion || '—')}</td>
+        <td>${anulado
+          ? `<span class="tabla-badge inactivo"><i class="ph ph-prohibit"></i> Anulado</span>
+             <span class="inv-motivo">${escaparHtml(m.motivo_anulacion || 'Sin motivo')}</span>
+             <span class="inv-motivo-fecha">${formatearFechaHora(m.anulado_en)}</span>`
+          : '<span class="tabla-badge activo"><i class="ph ph-check-circle"></i> Vigente</span>'}</td>
+        <td>${anulado ? '' : `
+          <div class="acciones-tabla">
+            <button class="btn-accion btn-editar" data-editar-mov="${m.id}" title="Editar datos">
+              <i class="ph ph-pencil-simple"></i>
+            </button>
+            ${admin ? `<button class="btn-accion btn-eliminar" data-anular-entrada="${m.id}" title="Anular entrada">
+              <i class="ph ph-prohibit"></i>
+            </button>` : ''}
+          </div>`}</td>
       </tr>`
     }).join('')
+
+    tbody.querySelectorAll('[data-editar-mov]').forEach(b =>
+      b.addEventListener('click', () => abrirEditarMovimiento(b.dataset.editarMov, data)))
+    tbody.querySelectorAll('[data-anular-entrada]').forEach(b =>
+      b.addEventListener('click', () => abrirAnularEntrada(b.dataset.anularEntrada, data)))
+  }
+
+  function puedeAnular() {
+    return perfilActual && (perfilActual.rol === 1 || perfilActual.rol === 2)
+  }
+
+  function abrirModal(id) { document.getElementById(id).classList.add('activo') }
+  function cerrarModal(id) { document.getElementById(id).classList.remove('activo') }
+
+  function abrirModalEntrada() {
+    limpiarErrores(document.getElementById('modalEntrada'))
+    document.getElementById('campoCantidadIngreso').value = ''
+    document.getElementById('campoProveedor').value = ''
+    document.getElementById('campoDocEntrada').value = ''
+    document.getElementById('campoMotivoEntrada').value = ''
+    abrirModal('modalEntrada')
   }
 
   /* ════════════════════════════════════════════
@@ -898,6 +944,14 @@
         document.getElementById('btnAgregarArticuloCargo').addEventListener('click', agregarArticuloACargo)
         document.getElementById('btnRegistrarCargo').addEventListener('click', registrarCargo)
         window.datePickerCargo = new DatePicker('campoFechaCargo')
+        document.getElementById('btnNuevoCargo').addEventListener('click', () => {
+          limpiarErrores(document.getElementById('modalCargo'))
+          abrirModal('modalCargo')
+        })
+        document.getElementById('btnCerrarModalCargoForm').addEventListener('click', () => cerrarModal('modalCargo'))
+        document.getElementById('modalCargo').addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) cerrarModal('modalCargo')
+        })
       }
 
       refrescarOpcionesDropdown('dropdownAreaCargo', 'triggerAreaCargo', areaOpts)
@@ -918,6 +972,14 @@
             render: (v) => `${v || 0} ítem(s)`,
           },
           {
+            clave: 'anulado', titulo: 'Estado',
+            render: (v, fila) => v
+              ? `<span class="tabla-badge inactivo"><i class="ph ph-prohibit"></i> Anulado</span>
+                 <span class="inv-motivo">${escaparHtml(fila.motivo_anulacion || 'Sin motivo')}</span>
+                 <span class="inv-motivo-fecha">${formatearFechaHora(fila.anulado_en)}</span>`
+              : '<span class="tabla-badge activo"><i class="ph ph-check-circle"></i> Vigente</span>',
+          },
+          {
             clave: 'acciones', titulo: '',
             render: (v, fila) => `
             <div class="acciones-tabla">
@@ -927,6 +989,14 @@
               <button class="btn-accion-descargar" data-accion="descargar-pdf" data-id="${fila.numero_cargo}" title="Descargar PDF">
                 <i class="ph ph-download"></i>
               </button>
+              ${fila.anulado ? '' : `
+              <button class="btn-accion btn-editar" data-accion="editar-cargo" data-id="${fila.numero_cargo}" title="Editar datos">
+                <i class="ph ph-pencil-simple"></i>
+              </button>`}
+              ${(fila.anulado || !puedeAnular()) ? '' : `
+              <button class="btn-accion btn-eliminar" data-accion="anular-cargo" data-id="${fila.numero_cargo}" title="Anular cargo">
+                <i class="ph ph-prohibit"></i>
+              </button>`}
             </div>
           `,
           },
@@ -943,6 +1013,8 @@
         const id = btn.dataset.id
         if (btn.dataset.accion === 'ver-pdf') verCargoPdf(id)
         if (btn.dataset.accion === 'descargar-pdf') descargarCargoPdf(id)
+        if (btn.dataset.accion === 'editar-cargo') abrirEditarCargo(id)
+        if (btn.dataset.accion === 'anular-cargo') abrirAnularCargo(id)
       })
     } catch (err) {
       console.error('[Inventario] Error en renderizarDescontar():', err)
@@ -1097,6 +1169,7 @@
       document.getElementById('campoResponsableReceptor').value = ''
       document.getElementById('campoObservacionCargo').value = ''
 
+      cerrarModal('modalCargo')
       await cargarCargosRecientes()
       await cargarArticulos()
       await renderizarResumen()
@@ -1111,7 +1184,7 @@
   async function cargarCargosRecientes() {
     const { data, error } = await supabase
       .from('inventario_movimientos')
-      .select('numero_cargo, area_solicitante, responsable_receptor, created_at')
+      .select('numero_cargo, area_solicitante, responsable_receptor, created_at, anulado, motivo_anulacion, anulado_en, cantidad, articulo_id, observacion')
       .eq('tipo', 'salida')
       .not('numero_cargo', 'is', null)
       .order('created_at', { ascending: false })
@@ -1127,6 +1200,10 @@
           fecha: m.created_at ? m.created_at.slice(0, 10) : '',
           area_solicitante: m.area_solicitante,
           responsable_receptor: m.responsable_receptor,
+          observacion: m.observacion,
+          anulado: m.anulado === true,
+          motivo_anulacion: m.motivo_anulacion,
+          anulado_en: m.anulado_en,
           total_articulos: 0,
         })
       }
@@ -1371,6 +1448,230 @@
     setTimeout(() => descargarCargoPdf(numeroCargo), 500)
   }
 
+
+  /* ════════════════════════════════════════════
+     EDITAR MOVIMIENTO (datos que no afectan el stock)
+     ════════════════════════════════════════════ */
+  function abrirEditarMovimiento(id, lista) {
+    const m = (lista || []).find(x => x.id === id)
+    if (!m) return
+    movimientoEditando = { tipo: 'entrada', id: m.id }
+
+    document.getElementById('tituloEditarMovimiento').textContent = 'Editar entrada'
+    const art = m.inventario_articulos || {}
+    document.getElementById('subtituloEditarMovimiento').textContent =
+      `${art.codigo || ''} — ${art.nombre || ''} · ${m.cantidad} unidad(es)`
+
+    document.getElementById('grupoEditarProveedor').style.display = ''
+    document.getElementById('grupoEditarDocumento').style.display = ''
+    document.getElementById('grupoEditarResponsable').style.display = 'none'
+
+    document.getElementById('editProveedor').value = m.proveedor || ''
+    document.getElementById('editDocumento').value = m.numero_documento || ''
+    document.getElementById('editObservacion').value = m.observacion || ''
+    document.getElementById('errorEditarMovimiento').style.display = 'none'
+
+    abrirModal('modalEditarMovimiento')
+  }
+
+  async function abrirEditarCargo(numeroCargo) {
+    const { data } = await supabase
+      .from('inventario_movimientos')
+      .select('responsable_receptor, observacion, area_solicitante')
+      .eq('numero_cargo', numeroCargo)
+      .limit(1)
+      .maybeSingle()
+
+    if (!data) return
+    movimientoEditando = { tipo: 'cargo', numeroCargo }
+
+    document.getElementById('tituloEditarMovimiento').textContent = 'Editar cargo de entrega'
+    document.getElementById('subtituloEditarMovimiento').textContent =
+      `${numeroCargo} · ${data.area_solicitante || ''}`
+
+    document.getElementById('grupoEditarProveedor').style.display = 'none'
+    document.getElementById('grupoEditarDocumento').style.display = 'none'
+    document.getElementById('grupoEditarResponsable').style.display = ''
+
+    document.getElementById('editResponsable').value = data.responsable_receptor || ''
+    document.getElementById('editObservacion').value = data.observacion || ''
+    document.getElementById('errorEditarMovimiento').style.display = 'none'
+
+    abrirModal('modalEditarMovimiento')
+  }
+
+  async function guardarEdicionMovimiento() {
+    if (!movimientoEditando) return
+    const errorEl = document.getElementById('errorEditarMovimiento')
+    const btn = document.getElementById('btnGuardarEditarMovimiento')
+    errorEl.style.display = 'none'
+    btn.disabled = true
+
+    let error = null
+
+    if (movimientoEditando.tipo === 'entrada') {
+      const res = await supabase.from('inventario_movimientos').update({
+        proveedor: document.getElementById('editProveedor').value.trim() || null,
+        numero_documento: document.getElementById('editDocumento').value.trim() || null,
+        observacion: document.getElementById('editObservacion').value.trim() || null,
+      }).eq('id', movimientoEditando.id)
+      error = res.error
+    } else {
+      const responsable = document.getElementById('editResponsable').value.trim()
+      if (!responsable) {
+        errorEl.textContent = 'El responsable receptor es obligatorio.'
+        errorEl.style.display = 'block'
+        btn.disabled = false
+        return
+      }
+      const res = await supabase.from('inventario_movimientos').update({
+        responsable_receptor: responsable,
+        observacion: document.getElementById('editObservacion').value.trim() || null,
+      }).eq('numero_cargo', movimientoEditando.numeroCargo)
+      error = res.error
+    }
+
+    btn.disabled = false
+
+    if (error) {
+      errorEl.textContent = 'No se pudo guardar: ' + error.message
+      errorEl.style.display = 'block'
+      return
+    }
+
+    cerrarModal('modalEditarMovimiento')
+    movimientoEditando = null
+    await cargarUltimasEntradas()
+    await cargarCargosRecientes()
+  }
+
+  /* ════════════════════════════════════════════
+     ANULAR MOVIMIENTO (devuelve el stock, deja rastro)
+     ════════════════════════════════════════════ */
+  function abrirAnularEntrada(id, lista) {
+    const m = (lista || []).find(x => x.id === id)
+    if (!m) return
+    const art = m.inventario_articulos || {}
+
+    anulacionPendiente = { tipo: 'entrada', id: m.id, articuloId: m.articulo_id, cantidad: m.cantidad }
+
+    document.getElementById('tituloAnular').textContent = 'Anular entrada'
+    document.getElementById('detalleAnular').innerHTML = `
+      <dt>Artículo</dt><dd>${escaparHtml(`${art.codigo || ''} — ${art.nombre || ''}`)}</dd>
+      <dt>Cantidad</dt><dd>${m.cantidad}</dd>
+      <dt>Proveedor</dt><dd>${escaparHtml(m.proveedor || '—')}</dd>
+      <dt>Fecha</dt><dd>${formatearFechaHora(m.created_at)}</dd>`
+    document.getElementById('avisoStockAnular').innerHTML =
+      `<i class="ph ph-arrow-circle-down"></i> Se descontarán <b>${m.cantidad}</b> unidad(es) del stock, porque esta entrada las había sumado.`
+
+    document.getElementById('motivoAnulacion').value = ''
+    document.getElementById('errorAnular').style.display = 'none'
+    abrirModal('modalAnularMovimiento')
+  }
+
+  async function abrirAnularCargo(numeroCargo) {
+    const { data } = await supabase
+      .from('inventario_movimientos')
+      .select('id, cantidad, articulo_id, area_solicitante, responsable_receptor, created_at, inventario_articulos!inner(nombre, codigo)')
+      .eq('numero_cargo', numeroCargo)
+
+    if (!data || !data.length) return
+
+    anulacionPendiente = { tipo: 'cargo', numeroCargo, items: data }
+    const total = data.reduce((s, m) => s + m.cantidad, 0)
+
+    document.getElementById('tituloAnular').textContent = 'Anular cargo de entrega'
+    document.getElementById('detalleAnular').innerHTML = `
+      <dt>N° Cargo</dt><dd>${escaparHtml(numeroCargo)}</dd>
+      <dt>Área</dt><dd>${escaparHtml(data[0].area_solicitante || '—')}</dd>
+      <dt>Responsable</dt><dd>${escaparHtml(data[0].responsable_receptor || '—')}</dd>
+      <dt>Fecha</dt><dd>${formatearFechaHora(data[0].created_at)}</dd>
+      <dt>Artículos</dt><dd>${data.map(m =>
+        `${escaparHtml(m.inventario_articulos?.nombre || '')} × ${m.cantidad}`).join('<br>')}</dd>`
+    document.getElementById('avisoStockAnular').innerHTML =
+      `<i class="ph ph-arrow-circle-up"></i> Se devolverán <b>${total}</b> unidad(es) al stock del almacén.`
+
+    document.getElementById('motivoAnulacion').value = ''
+    document.getElementById('errorAnular').style.display = 'none'
+    abrirModal('modalAnularMovimiento')
+  }
+
+  async function confirmarAnulacion() {
+    if (!anulacionPendiente) return
+    const motivo = document.getElementById('motivoAnulacion').value.trim()
+    const errorEl = document.getElementById('errorAnular')
+    const btn = document.getElementById('btnConfirmarAnular')
+    errorEl.style.display = 'none'
+
+    if (!motivo) {
+      errorEl.textContent = 'Escribe el motivo de la anulación.'
+      errorEl.style.display = 'block'
+      return
+    }
+
+    btn.disabled = true
+    document.getElementById('textoConfirmarAnular').textContent = 'Anulando...'
+
+    try {
+      const marca = {
+        anulado: true,
+        anulado_en: new Date().toISOString(),
+        anulado_por: perfilActual.id,
+        motivo_anulacion: motivo,
+      }
+
+      if (anulacionPendiente.tipo === 'entrada') {
+        // La entrada sumó stock: al anular, se resta
+        const { data: art } = await supabase.from('inventario_articulos')
+          .select('stock_actual').eq('id', anulacionPendiente.articuloId).single()
+        if (!art) throw new Error('Artículo no encontrado')
+
+        const nuevoStock = (art.stock_actual || 0) - anulacionPendiente.cantidad
+        if (nuevoStock < 0) {
+          throw new Error(`No se puede anular: el stock actual es ${art.stock_actual} y esta entrada aportó ${anulacionPendiente.cantidad}. Parte ya fue entregada.`)
+        }
+
+        const { error: e1 } = await supabase.from('inventario_articulos')
+          .update({ stock_actual: nuevoStock }).eq('id', anulacionPendiente.articuloId)
+        if (e1) throw new Error(e1.message)
+
+        const { error: e2 } = await supabase.from('inventario_movimientos')
+          .update(marca).eq('id', anulacionPendiente.id)
+        if (e2) throw new Error(e2.message)
+
+      } else {
+        // El cargo restó stock: al anular, se devuelve
+        for (const item of anulacionPendiente.items) {
+          const { data: art } = await supabase.from('inventario_articulos')
+            .select('stock_actual').eq('id', item.articulo_id).single()
+          if (!art) continue
+          const { error: e1 } = await supabase.from('inventario_articulos')
+            .update({ stock_actual: (art.stock_actual || 0) + item.cantidad })
+            .eq('id', item.articulo_id)
+          if (e1) throw new Error(e1.message)
+        }
+
+        const { error: e2 } = await supabase.from('inventario_movimientos')
+          .update(marca).eq('numero_cargo', anulacionPendiente.numeroCargo)
+        if (e2) throw new Error(e2.message)
+      }
+
+      cerrarModal('modalAnularMovimiento')
+      anulacionPendiente = null
+      await cargarUltimasEntradas()
+      await cargarCargosRecientes()
+      await cargarArticulos()
+      await renderizarResumen()
+
+    } catch (err) {
+      errorEl.textContent = err.message || 'No se pudo anular.'
+      errorEl.style.display = 'block'
+    }
+
+    btn.disabled = false
+    document.getElementById('textoConfirmarAnular').textContent = 'Anular'
+  }
+
   /* ════════════════════════════════════════════
      TAB: KARDEX
      ════════════════════════════════════════════ */
@@ -1410,6 +1711,13 @@
           { clave: 'stock_actual', titulo: 'Stock Actual' },
           { clave: 'usuario_nombre', titulo: 'Usuario' },
           { clave: 'observacion', titulo: 'Observación', render: (v) => v ? escaparHtml(v) : '—' },
+          {
+            clave: 'anulado', titulo: 'Estado',
+            render: (v, fila) => v
+              ? `<span class="tabla-badge inactivo"><i class="ph ph-prohibit"></i> Anulado</span>
+                 <span class="inv-motivo">${escaparHtml(fila.motivo_anulacion || 'Sin motivo')}</span>`
+              : '<span class="tabla-badge activo">Vigente</span>',
+          },
         ],
       })
 
@@ -1503,6 +1811,22 @@
     document.getElementById('btnDescargarCargoPdf').addEventListener('click', async () => {
       const num = document.getElementById('btnDescargarCargoPdf').dataset.numeroCargo
       if (num) await descargarCargoPdf(num)
+    })
+
+    // ─── Editar movimiento ───
+    document.getElementById('btnCerrarEditarMovimiento').addEventListener('click', () => cerrarModal('modalEditarMovimiento'))
+    document.getElementById('btnCancelarEditarMovimiento').addEventListener('click', () => cerrarModal('modalEditarMovimiento'))
+    document.getElementById('btnGuardarEditarMovimiento').addEventListener('click', guardarEdicionMovimiento)
+    document.getElementById('modalEditarMovimiento').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) cerrarModal('modalEditarMovimiento')
+    })
+
+    // ─── Anular movimiento ───
+    document.getElementById('btnCerrarAnular').addEventListener('click', () => cerrarModal('modalAnularMovimiento'))
+    document.getElementById('btnCancelarAnular').addEventListener('click', () => cerrarModal('modalAnularMovimiento'))
+    document.getElementById('btnConfirmarAnular').addEventListener('click', confirmarAnulacion)
+    document.getElementById('modalAnularMovimiento').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) cerrarModal('modalAnularMovimiento')
     })
   }
 

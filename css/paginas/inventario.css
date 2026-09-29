@@ -767,3 +767,250 @@
   margin-top: var(--espaciado-md);
   min-height: 1.2em;
 }
+
+
+/* ═══ INVENTARIO: modales, edición y anulación ═══ */
+
+/* Barra sobre cada tabla */
+.inv-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.inv-barra h3 { margin: 0; }
+
+/* ── El formulario dentro del modal ── */
+.inv-en-modal {
+  background: none;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  display: block;
+}
+/* el título ya lo pone la cabecera del modal */
+.inv-en-modal > h3,
+.inv-en-modal .ingresar-form-header { display: none; }
+
+/* Campos en dos columnas parejas */
+.inv-en-modal .ingresar-form-campos,
+.inv-en-modal .cargo-form-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+  padding: 0;
+  margin: 0 0 4px;
+}
+@media (max-width: 700px) {
+  .inv-en-modal .ingresar-form-campos,
+  .inv-en-modal .cargo-form-campos { grid-template-columns: 1fr; }
+}
+
+/* El motivo y la observación ocupan la fila completa */
+.inv-en-modal .campo-grupo:has(#campoMotivoEntrada),
+.inv-en-modal .campo-grupo:has(#campoObservacionCargo) { grid-column: 1 / -1; }
+
+.inv-en-modal .campo-grupo { min-width: 0; }
+.inv-en-modal .campo-grupo label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: var(--peso-semibold, 600);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: #667085;
+}
+.inv-en-modal .input-wrapper,
+.inv-en-modal .filtro-select-wrapper { width: 100%; }
+.inv-en-modal .input-wrapper input,
+.inv-en-modal .filtro-select-trigger { width: 100%; box-sizing: border-box; }
+
+/* Campo de solo lectura, para que se note que no se escribe ahí */
+.inv-en-modal input[readonly] { background: #f8f9fb; color: #667085; }
+
+/* ── Detalle de artículos del cargo ── */
+.inv-en-modal .cargo-detalle {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid #eaecf0;
+}
+.inv-en-modal .cargo-detalle h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: var(--peso-semibold, 600);
+}
+.inv-en-modal .cargo-agregar-articulo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px auto;
+  gap: 10px;
+  align-items: center;
+}
+@media (max-width: 700px) {
+  .inv-en-modal .cargo-agregar-articulo { grid-template-columns: 1fr; }
+}
+.inv-en-modal .cargo-detalle-tabla-contenedor {
+  margin-top: 14px;
+  max-height: 210px;
+  overflow-y: auto;
+  border: 1px solid #eaecf0;
+  border-radius: var(--borde-radio, 8px);
+}
+.inv-en-modal .cargo-detalle-tabla-contenedor:empty,
+.inv-en-modal .cargo-detalle-tabla-contenedor table tbody:empty { display: none; }
+.inv-en-modal .cargo-detalle-vacio {
+  margin-top: 14px;
+  padding: 26px 16px;
+  border: 1px dashed #d0d5dd;
+  border-radius: var(--borde-radio, 8px);
+  color: #98a2b3;
+  text-align: center;
+}
+.inv-en-modal .cargo-detalle-vacio i { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+.inv-en-modal .cargo-detalle-vacio p { margin: 0; font-size: 13px; }
+
+/* ── Botón de guardar: barra fija al pie del modal ── */
+.inv-en-modal .ingresar-form-footer,
+.inv-en-modal .cargo-form-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 24px -24px -20px;
+  padding: 14px 24px;
+  background: #fff;
+  border-top: 1px solid #eaecf0;
+  z-index: 1;
+}
+.inv-en-modal .ingresar-form-footer .btn-filled-md,
+.inv-en-modal .cargo-form-footer .btn-filled-md { min-width: 170px; justify-content: center; }
+
+/* Mensajes de error dentro del modal */
+.inv-en-modal .input-error { display: block; margin-top: 4px; font-size: 12px; }
+
+/* Fila anulada */
+.inv-fila-anulada td {
+  opacity: .6;
+  text-decoration: line-through;
+  text-decoration-color: rgba(198, 40, 40, .5);
+}
+.inv-fila-anulada .tabla-badge { text-decoration: none; }
+
+/* Nota explicativa dentro del modal de edición */
+.inv-nota {
+  margin: 0 0 18px;
+  padding: 11px 14px;
+  background: #f8f9fb;
+  border-left: 3px solid var(--color-primario-inicio, #1e88e5);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #475467;
+}
+
+/* Detalle del movimiento que se va a anular */
+.inv-detalle {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 8px 12px;
+  margin: 0 0 16px;
+  font-size: 13.5px;
+}
+.inv-detalle dt { color: #667085; }
+.inv-detalle dd { margin: 0; font-weight: 500; }
+
+/* Aviso del efecto en el stock */
+.inv-aviso-stock {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  background: #fff4e5;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #8a4b0b;
+}
+.inv-aviso-stock i { font-size: 1.15rem; flex-shrink: 0; }
+
+/* El alto del contenido, para que el botón quede siempre visible */
+.md-modal-grande .modal-body-md { max-height: 70vh; overflow-y: auto; }
+
+/* Motivo de anulación, visible bajo la etiqueta */
+.inv-motivo {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: #b42318;
+  text-decoration: none;
+  max-width: 190px;
+}
+.inv-motivo-fecha {
+  display: block;
+  font-size: 10.5px;
+  color: #98a2b3;
+  text-decoration: none;
+}
+
+/* ── Cabecera y márgenes de las ventanas del inventario ── */
+#modalEntrada .modal-header-md,
+#modalCargo .modal-header-md {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #eaecf0;
+  position: relative;
+}
+#modalEntrada .header-icon-md,
+#modalCargo .header-icon-md {
+  position: static;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(30, 136, 229, .1);
+  color: var(--color-primario-inicio, #1e88e5);
+  font-size: 1.3rem;
+}
+#modalEntrada .header-text-md,
+#modalCargo .header-text-md {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  text-align: left;
+}
+#modalEntrada .header-text-md h3,
+#modalCargo .header-text-md h3 { margin: 0 0 2px; font-size: 1.05rem; }
+#modalEntrada .header-text-md p,
+#modalCargo .header-text-md p { margin: 0; font-size: 13px; color: #667085; }
+
+#modalEntrada .modal-cerrar,
+#modalCargo .modal-cerrar { position: static; flex: 0 0 auto; margin-left: auto; }
+
+/* Aire a los lados del contenido */
+#modalEntrada .modal-body-md,
+#modalCargo .modal-body-md { padding: 22px 24px 0; }
+
+/* La barra del botón vuelve a tocar los bordes del modal */
+.inv-en-modal .ingresar-form-footer,
+.inv-en-modal .cargo-form-footer {
+  margin: 24px -24px 0;
+  padding: 14px 24px;
+  border-radius: 0 0 var(--borde-radio, 8px) var(--borde-radio, 8px);
+}
+
+/* Sin artículos aún: se oculta la tabla y queda solo el mensaje */
+.inv-en-modal .cargo-detalle-tabla-contenedor:has(tbody:empty) { display: none; }
